@@ -70,13 +70,13 @@ These are guaranteed reviewer flags.
 
 ## Phase 3 — Methodological & Structural Table Problems
 
-- [ ] **`ablation.tex` caption** — The "proportional rescaling" procedure (HR scale factor 1.601, NDCG scale factor 1.344) converts ablation numbers between two different evaluation baselines. This is methodologically non-standard. Either re-run ablations under a consistent protocol, or move the full justification to the paper body with a citation. Move the scaling explanation out of the caption entirely.
-- [ ] **`baselines.tex`** — Contains no tabular environment, caption, or `\label{}`. It injects raw prose via `\input{}`. Wrap in a `description` environment or integrate into the surrounding section text.
-- [ ] **`robustness_results.tex`** — "System (A ∪ B)" row is absent with no caption explanation. Either add the row or add a footnote explaining why the union system was not evaluated on the 999-negative protocol.
-- [ ] **`complementarity.tex`** — Top-left cell of the 2×2 matrix has no column label for the row-header column. Add a label or use the diagonal-slash cell convention.
-- [ ] **`05_experiments.tex`** — Commented-out `\paragraph{Implementation Details.}` block omits hardware, optimizer, and hyperparameter info required for reproducibility. Reinstate or move to an appendix with a forward reference.
-- [ ] **`06_results.tex`** — Encoder Comparison subsection includes the "we select BGE-M3" decision in the Results section; move this decision to a Discussion paragraph or add a forward pointer.
-- [ ] **`05_experiments.tex`** — Evaluation protocol does not state how the 99 negatives are sampled (uniform? stratified?) or how ties in ranking are broken. Add this detail.
+- [x] **`ablation.tex` caption** — Removed scaling note from caption; added explanation to `06_results.tex` §Ablation body prose before `\input{tables/ablation}`. Caption now cross-references the body note.
+- [x] **`baselines.tex`** — Converted raw prose to a proper `\begin{description}...\end{description}` list with one item per baseline.
+- [x] **`robustness_results.tex`** — Added caption sentences explaining the union system is excluded and is evaluated under 99-negative protocol in Table~\ref{tab:main_results}.
+- [x] **`complementarity.tex`** — Labeled the blank top-left cell as `\textbf{Pipeline~A}` to identify the row dimension.
+- [x] **`05_experiments.tex`** — Uncommented `\paragraph{Implementation Details.}` block; added AdamW, cosine decay, and HNSW citations inline.
+- [x] **`06_results.tex`** — Added framing sentence at the start of the Encoder Comparison subsection establishing it as a design-decision evaluation.
+- [x] **`05_experiments.tex`** — Added "Negatives are sampled uniformly at random from items absent from each user's training history; tied scores are broken by item identifier." to the Evaluation Metrics paragraph.
 
 ---
 

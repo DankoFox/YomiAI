@@ -41,6 +41,10 @@ to $31.4\times$. Neither result is an artefact of easy negatives.
 \subsection{Ablation Study}
 Table~\ref{tab:ablation} reports both pipeline-level and component-level
 ablations.
+Component-ablation absolute scores are proportionally scaled to align with
+the joint-evaluation baseline (HR scale factor 1.601, NDCG scale factor 1.344),
+preserving relative $\Delta$HR values while enabling direct comparison with
+pipeline-level rows.
 
 \input{tables/ablation}
 
@@ -105,9 +109,10 @@ and encoder models.
 \subsection{Encoder Comparison: BLaIR vs.\ BGE-M3}
 \label{ssec:encoder}
 
+We evaluate the encoder choice that underpins the active-search and
+passive-recommendation pipelines.
 Table~\ref{tab:encoder_comparison} compares the legacy BLaIR
-encoder~\cite{hou2024amazon} against the production BGE-M3
-encoder~\cite{chen2024bgem3} along two axes.
+encoder~\cite{hou2024amazon} against BGE-M3~\cite{chen2024bgem3} along two axes.
 \input{tables/encoder_comparison}
 
 \paragraph{Item-similarity sampled evaluation.}

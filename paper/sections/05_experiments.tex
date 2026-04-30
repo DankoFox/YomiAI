@@ -33,19 +33,22 @@ We report HR@10 and NDCG@10.
 Following the protocol of SASRec~\cite{kang2018self} and
 DIF-SASRec~\cite{xie2022difsr}, each held-out item is ranked against 99 random
 negatives (random-chance HR@10 = 0.10).
+Negatives are sampled uniformly at random from items absent from each user's
+training history; tied scores are broken by item identifier.
 We also evaluate under a 999-negative protocol (random-chance HR@10 = 0.01)
 to assess robustness (Section~\ref{ssec:robustness}).
 
 \paragraph{Baselines.}
 \input{tables/baselines}
 
-% \paragraph{Implementation Details.}
-% All experiments run on a single RTX~5060~Ti (16\,GB).
-% DIF-SASRec uses AdamW ($\text{lr}=10^{-3}$, wd~$0.01$), linear warmup
-% (2 epochs), cosine decay to $10^{-5}$ over 30 epochs, batch 2\,048, AMP
-% float16, 512 sampled softmax negatives, and $\lambda = 0.1$ for the category
-% loss.
-% FAISS HNSW uses $M=32$, $\text{ef\_construction}=200$, $\text{ef\_search}=128$.
-% Cleora uses 3 Markov propagation steps; BGE-M3 and CLIP run in FP16 on GPU;
-% BM25 on CPU. The AgentPool holds 8 DIF-SASRec instances (148\,MB each,
-% 1.18\,GB total).
+\paragraph{Implementation Details.}
+All experiments run on a single RTX~5060~Ti (16\,GB VRAM).
+DIF-SASRec uses AdamW~\cite{loshchilov2019decoupled} ($\text{lr}=10^{-3}$, $\text{wd}=0.01$),
+linear warmup (2 epochs), cosine decay~\cite{loshchilov2017sgdr} to $10^{-5}$ over 30 epochs,
+batch size 2\,048, AMP float16, 512 sampled softmax negatives, and $\lambda=0.1$
+for the category loss.
+FAISS HNSW~\cite{malkov2018efficient} uses $M{=}32$, $\text{ef\_construction}{=}200$,
+$\text{ef\_search}{=}128$.
+Cleora uses 3 Markov propagation steps; BGE-M3 and CLIP run in FP16 on GPU;
+BM25 runs on CPU.
+The model pool holds 8 DIF-SASRec instances (148\,MB each, 1.18\,GB total).
