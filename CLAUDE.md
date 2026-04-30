@@ -136,3 +136,5 @@ Fall back to Grep/Glob/Read **only** when the graph doesn't cover what you need.
 
 ## Custom Skills
 - **Academic Formatting:** To format text with strict LaTeX citation rules (`\cite{}`) and prioritize recent papers, refer to the rules in `.claude/skills/format-latex.md`. You can trigger this explicitly when the user types `/format-latex`.
+
+- **Academic Review:** To critically evaluate the tone, structure, and LaTeX syntax of a draft, refer to `.claude/skills/review-latex.md`. Trigger with `/review-latex`.
