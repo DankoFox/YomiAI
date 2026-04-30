@@ -11,7 +11,7 @@
 %          a replacement for item IDs; added online-adaptation gap.
 % -------------------------------------------------------------------
 Self-attentive sequential models are the dominant paradigm for modeling
-user preference dynamics over interaction histories.
+user preference dynamics over interaction histories~\cite{kang2018self,sun2019bert4rec}.
 SASRec~\cite{kang2018self} replaces recurrent encoders with causal
 self-attention, establishing a strong benchmark for next-item prediction.
 BERT4Rec~\cite{sun2019bert4rec} extends this with bidirectional masked
@@ -85,12 +85,12 @@ Hybrid recommenders that combine behavioral and content signals have been
 widely studied, but existing systems share three structural limitations.
 First, retrieval is a single pipeline with no separation between user-initiated
 search and system-initiated suggestions, a distinction critical for
-conversational interfaces.
+conversational interfaces~\cite{wang2019ngcf,he2020lightgcn}.
 Second, most systems fuse at most two modalities and assume a static user
-representation not updated between requests.
+representation not updated between requests~\cite{radford2021clip,ying2018pinsage}.
 Third, user state is maintained implicitly through training rather than as an
-explicitly persisted embedding updated after each interaction.
-To our knowledge, no existing system simultaneously supports multilingual and
+explicitly persisted embedding updated after each interaction~\cite{kang2018self,xie2022difsr}.
+To the best of our knowledge, no existing system simultaneously supports multilingual and
 image-based active search, behavioral-graph and sequential passive
 recommendations, and a shared continuously-updated user profile.
 

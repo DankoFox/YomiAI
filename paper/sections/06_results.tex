@@ -80,7 +80,7 @@ The bottleneck is FAISS HNSW text search (P50 906\,ms), which incurs OS
 page faults on the 12.6\,GB index. BGE-M3 encoding adds 40\,ms P50;
 NLLB translation adds 156\,ms for non-English.
 The flat-index baseline (4\,200\,ms) is $3.7\times$ slower than cold HNSW,
-confirming HNSW's speedup is independent of caching.
+confirming HNSW's~\cite{malkov2018efficient} speedup is independent of caching.
 
 \paragraph{Warm path.}
 Once warm, P50 drops to \textbf{17\,ms} (internal) / \textbf{34\,ms}
@@ -118,7 +118,7 @@ live system, so held-out clicks are structurally correlated with its
 embedding space.
 Score analysis confirms the artefact: BLaIR's intra- and inter-genre
 cosine similarities (0.819 vs.\ 0.765, ratio 1.061) are nearly
-indistinguishable, indicating embedding collapse. BGE-M3's higher ratio
+indistinguishable, indicating embedding collapse~\cite{gao2021simcse}. BGE-M3's higher ratio
 (1.147) reflects more distinct genre clusters.
 
 \paragraph{Text query retrieval quality.}

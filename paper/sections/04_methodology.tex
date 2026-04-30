@@ -23,9 +23,9 @@ BGE-M3 inference is cached (4\,096 entries); repeated queries skip GPU
 inference and are served from CPU RAM in under 0.1\,ms.
 
 \paragraph{Retrieval.}
-FAISS~\cite{johnson2019faiss} HNSW search retrieves top-$K$ candidates from each index independently,
+FAISS~\cite{johnson2019faiss} HNSW~\cite{malkov2018efficient} search retrieves top-$K$ candidates from each index independently,
 yielding ranked lists $L_t$ and $L_i$.
-A BM25 keyword search over tokenized titles and descriptions yields $L_k$.
+A BM25~\cite{robertson1994okapi} keyword search over tokenized titles and descriptions yields $L_k$.
 
 \paragraph{Fusion.}
 Reciprocal Rank Fusion (RRF)~\cite{cormack2009rrf} combines the three lists:
@@ -90,11 +90,11 @@ and category, fused by a learnable scalar $\alpha$, and
 Total parameters: 12.4M.
 
 \paragraph{Training.}
-Trained on 100k users (80/20 temporal split), sampled softmax with 512
+Trained on 100k users (80/20 temporal split), sampled softmax~\cite{jean2015using} with 512
 negatives per step scales to the 3M-item catalog. An auxiliary category loss
-($\lambda = 0.1$) stabilizes genre-level understanding.
+($\lambda = 0.1$, see Table~\ref{tab:ablation}) stabilizes genre-level understanding.
 We use AdamW~\cite{loshchilov2019decoupled} ($\text{lr}=10^{-3}$,
-$\text{wd}=0.01$) with linear warmup (2 epochs), cosine decay over 30 epochs,
+$\text{wd}=0.01$) with linear warmup (2 epochs), cosine decay~\cite{loshchilov2017sgdr} over 30 epochs,
 batch size 2048, and AMP float16.
 
 \paragraph{Online adaptation.}

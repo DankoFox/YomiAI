@@ -27,7 +27,7 @@ relevant items but lack behavioral graph structure.
 To address these challenges, we propose a \textbf{Dual-Mode Multimodal NBA Recommendation System} that jointly models active search and passive personalization, integrating heterogeneous signals from text, images, and user behavior.
 \begin{itemize}
   \item \textbf{Mode~1 (Active Search):}  a multilingual query-driven
-        retrieval component that combines textual and visual representation via Reciprocal Rank Fusion (RRF), with optional BM25 keyword boosting and multi-layer LRU caching.
+        retrieval component that combines textual and visual representation via Reciprocal Rank Fusion (RRF)~\cite{cormack2009rrf}, with optional BM25~\cite{robertson1994okapi} keyword boosting and multi-layer LRU caching.
   \item \textbf{Mode~2 (Passive Recommendation):} two complementary pipelines, consisting of (a) a graph-based component capturing behavioral similarity, and (b) a sequential model capturing evolving user preferences.
   \item A \textbf{shared user profile} continuously updated after every
         interaction, bridging both modes  temporal weighting and
