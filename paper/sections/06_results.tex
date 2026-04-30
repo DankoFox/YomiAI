@@ -27,7 +27,7 @@ the behavioral graph index (375{,}000 items), while DIF-SASRec covers items outs
 \label{ssec:robustness}
 
 Table~\ref{tab:robustness} repeats the comparison under a 999-negative
-protocol (random-chance HR@10 = 0.01), ten times harder.
+protocol (random-chance HR@10 = 0.01), an order of magnitude more discriminative.
 
 \input{tables/robustness_results}
 
@@ -36,7 +36,7 @@ Pipeline~A achieves HR@10 = \textbf{0.3272}; DIF-SASRec leads on NDCG@10
 retrieves the target. Content-KNN drops to 0.2122 HR@10.
 Both models show an \emph{increasing} relative advantage as the pool grows:
 Pipeline~A rises from $9.0\times$ to $32.7\times$; DIF-SASRec from $7.7\times$
-to $31.4\times$. Neither result is an artefact of easy negatives.
+to $31.4\times$. Neither result is an artifact of easy negatives.
 
 \subsection{Ablation Study}
 Table~\ref{tab:ablation} reports both pipeline-level and component-level
@@ -92,7 +92,7 @@ Once warm, P50 drops to \textbf{17\,ms} (internal) / \textbf{34\,ms}
 are served from LRU caches at under 1\,ms, leaving the BM25 keyword index
 (${\approx}6$\,ms) as the bottleneck.
 
-\paragraph{Production characterisation.}
+\paragraph{Production characterization.}
 A startup warmup routine pages the HNSW index into RAM before serving
 traffic. Thereafter, new unique queries incur BGE-M3 encoding (${\approx}40$\,ms)
 plus FAISS search (${\approx}2$\,ms), yielding a steady-state P50 of 60--80\,ms.
@@ -121,7 +121,7 @@ vs.\ 0.4510, NDCG@10: 0.3513 vs.\ 0.3128). This advantage must be
 interpreted cautiously: the benchmark was collected while BLaIR was the
 live system, so held-out clicks are structurally correlated with its
 embedding space.
-Score analysis confirms the artefact: BLaIR's intra- and inter-genre
+Score analysis confirms the artifact: BLaIR's intra- and inter-genre
 cosine similarities (0.819 vs.\ 0.765, ratio 1.061) are nearly
 indistinguishable, indicating embedding collapse~\cite{gao2021simcse}. BGE-M3's higher ratio
 (1.147) reflects more distinct genre clusters.
@@ -133,7 +133,7 @@ groups except single-token English: medium (0.333 vs.\ 0.083), long
 BLaIR marginally leads on short single-token queries (0.233 vs.\ 0.150),
 likely due to collapsed similarities returning genre-coherent results
 regardless of the query token.
-For non-English queries, BLaIR returns near-random results due to
+For non-English queries, BLaIR returns results approximating the random baseline due to
 English-only training, while BGE-M3 achieves genre-precision of 0.275
 and 0.550.
 Given the primary interaction mode of typed text search (including

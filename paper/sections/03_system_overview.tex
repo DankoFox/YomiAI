@@ -2,7 +2,7 @@
 \label{sec:overview}
 
 Figure~\ref{fig:arch} illustrates the overall architecture.
-The system exposes a REST API\footnote{\url{https://fastapi.tiangolo.com/}} with three layers: an \emph{API layer} (search, recommend, interact, profile),
+The system provides a RESTful API\footnote{\url{https://fastapi.tiangolo.com/}} with three layers: an \emph{API layer} (search, recommend, interact, profile),
 a \emph{service layer} (business logic), and a
 \emph{data layer} (ANN indices, behavioral graph embeddings, and a document store).
 
@@ -163,3 +163,7 @@ half-life 30 interactions),
 (iii)~a raw interaction audit trail.
 Profiles are updated asynchronously after every click with user-level locking
 to prevent race conditions.
+This shared representation feeds both pipelines in Mode~2
+(Section~\ref{ssec:passive}): Pipeline~A uses the aggregated content embedding
+for semantic re-ranking of behavioral candidates, and Pipeline~B uses the
+rolling interaction history as input to DIF-SASRec.

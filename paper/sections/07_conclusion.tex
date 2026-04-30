@@ -1,22 +1,22 @@
 \section{Conclusion}
 \label{sec:conclusion}
 
-We presented a dual-mode multimodal NBA recommendation system that mines
+We presented a dual-mode multimodal Next Best Action (NBA) recommendation system that extracts features from
 text, visual, and behavioral multimedia data to unify active search and
 passive personalization within a single architecture.
 The system integrates multimodal feature extraction via BGE-M3 and CLIP
 with co-purchase graph embeddings and DIF-SASRec sequential personalization,
 evaluated end-to-end against multiple baseline approaches.
 
-By grounding DIF-SASRec in dense BGE-M3 content embeddings rather than
+By conditioning DIF-SASRec on dense BGE-M3 content embeddings rather than
 item IDs, the system generalises to the full 3.08M-item catalog without
 retraining.
 Pipeline~A (behavioral graph embedding + BGE-M3 ranking) provides strong
 content-aware retrieval, while DIF-SASRec delivers complementary
 sequential personalization via online adaptation.
-Complementarity analysis shows Pipeline~A rescues 88.3\% of DIF-SASRec
+Complementarity analysis shows Pipeline~A recovers 88.3\% of DIF-SASRec
 misses (Table~\ref{tab:complementarity}), and the union system achieves HR@10 of 0.9736
-(+124\% over the content-only baseline), with warm-path P50 latency of
+(+124\% over the content-only baseline), with warm-cache P50 latency of
 34\,ms and safe concurrent inference via the model pool.
 
 Future work includes dynamic graph embedding retraining from accumulated
@@ -24,3 +24,7 @@ interaction logs, expansion of multilingual keyword search beyond
 the current inverted index, cross-domain transfer of pretrained
 DIF-SASRec weights, and extension of the NBA framing to domains
 beyond book discovery.
+These results demonstrate that fusing heterogeneous retrieval signals within a
+unified, continuously updated user model is a practical and scalable path toward
+NBA systems capable of serving both explicit and exploratory information needs
+across large-scale multimedia catalogs.

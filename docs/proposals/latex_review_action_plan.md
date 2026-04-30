@@ -111,20 +111,20 @@ These are guaranteed reviewer flags.
 
 ## Phase 6 — Tone, Structure & Register
 
-- [ ] **`04_methodology.tex` subsubsection titles** — Rename "People Also Buy" → "Behavioral Candidate Retrieval" and "You Might Like" → "Sequential Intent Scoring" (or equivalent neutral academic terms).
-- [ ] **`01_introduction.tex` §3 bullet** — Fix broken prose: "bridging both modes  temporal weighting" — insert missing word/connector (e.g., "bridging both modes via temporal weighting").
-- [ ] **`07_conclusion.tex`** — Add a closing sentence anchoring the paper's broader significance after the future-work list.
-- [ ] **`07_conclusion.tex`** — Replace colloquial terms: "rescues" → "recovers", "mines" → "extracts", "warm-path" → define or use standard latency-tier term, "grounding" → "conditioning".
-- [ ] **`01_introduction.tex`** — Replace informal phrases: "crowd wisdom" → "aggregated user behaviour", "Users who know what they want" → "Users with explicit information needs", "passive browsers" → "users engaged in exploratory browsing".
-- [ ] **`06_results.tex` / `main.tex`** — Standardize spelling to American English throughout: "characterisation" → "characterization", "artefact" → "artifact" (appears in §6.4 and §6.5).
-- [ ] **`06_results.tex`** — "10+ concurrent users" → "more than 10 concurrent users" or "$\geq 10$ concurrent users".
-- [ ] **`06_results.tex`** — "near-random results" → "results approximating the random baseline".
-- [ ] **`03_system_overview.tex`** — Add a closing/transition sentence after `\subsection{User Profile}` linking the profile back to the two pipelines.
-- [ ] **`03_system_overview.tex`** — "exposes a REST API" → "provides a RESTful API".
-- [ ] **`02_related_work.tex` lines 119–135** — The Summary subsection repeats each prior subsection nearly verbatim. Rewrite to add synthesis across the literature rather than restating.
-- [ ] **`main.tex` §6.2** — "ten times harder" → "an order of magnitude more discriminative" (describing the 999-negative protocol).
-- [ ] **`00_abstract.tex`** — "failing to exploit" → "unable to leverage"; fix vague pronoun "It combines" → use explicit subject.
-- [ ] **`07_conclusion.tex`** — "NBA" acronym re-used without expansion; expand on first use in this section.
+- [x] **`04_methodology.tex` subsubsection titles** — Renamed "People Also Buy" → "Behavioral Candidate Retrieval" and "You Might Like" → "Sequential Intent Scoring".
+- [x] **`01_introduction.tex` §3 bullet** — Fixed broken prose: "bridging both modes via temporal weighting".
+- [x] **`07_conclusion.tex`** — Added closing sentence anchoring broader significance after future-work list.
+- [x] **`07_conclusion.tex`** — Replaced colloquial terms: "rescues" → "recovers", "mines" → "extracts", "warm-path" → "warm-cache", "grounding" → "conditioning".
+- [x] **`01_introduction.tex`** — Replaced informal phrases: "crowd wisdom" → "aggregated user behaviour", "Users who know what they want" → "Users with explicit information needs", "passive browsers" → "users engaged in exploratory browsing".
+- [x] **`06_results.tex`** — Standardized to American English: "characterisation" → "characterization", "artefact" → "artifact" (§6.4 and §6.5).
+- [x] **`06_results.tex`** — "10+ concurrent users" already uses `${\geq}10$` (fixed in Phase 4); no further change needed.
+- [x] **`06_results.tex`** — "near-random results" → "results approximating the random baseline".
+- [x] **`03_system_overview.tex`** — Added transition sentence after `\subsection{User Profile}` linking profile to both pipelines.
+- [x] **`03_system_overview.tex`** — "exposes a REST API" → "provides a RESTful API".
+- [x] **`02_related_work.tex`** — Rewrote Summary subsection with behavioral-vs-content structural framing; gaps now presented as consequences of that divide rather than verbatim restatements.
+- [x] **`06_results.tex` §6.2** — "ten times harder" → "an order of magnitude more discriminative".
+- [x] **`00_abstract.tex`** — "failing to exploit" → "unable to leverage"; "It combines" → "The framework combines".
+- [x] **`07_conclusion.tex`** — "NBA" expanded to "Next Best Action (NBA)" on first use in this section.
 
 ---
 

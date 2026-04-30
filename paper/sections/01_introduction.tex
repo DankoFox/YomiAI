@@ -13,12 +13,12 @@ provide crucial contextual signals for more accurate recommendations.
 
 % Paragraph 2 — Domain narrowing & interaction-content gap
 Book discovery is a representative testbed for this challenge.
-Users who know what they want issue free-text or image-based queries
-(active search), while passive browsers benefit from proactive suggestions
-derived from their interaction history (passive recommendation).
+Users with explicit information needs issue free-text or image-based queries
+(active search), while users engaged in exploratory browsing benefit from
+proactive suggestions derived from their interaction history (passive recommendation).
 Most systems address only one mode, leaving an \emph{interaction-content gap}:
 behavioral co-purchase signals are decoupled from semantic content understanding.
-Collaborative filtering excels at crowd wisdom but suffers from cold-start
+Collaborative filtering effectively leverages aggregated user behaviour but suffers from cold-start
 and ignores multimodal content; sequential models~\cite{kang2018self} capture
 preference evolution but discard visual signals; content-based encoders retrieve
 relevant items but lack behavioral graph structure.
@@ -30,7 +30,7 @@ To address these challenges, we propose a \textbf{Dual-Mode Multimodal NBA Recom
         retrieval component that combines textual and visual representation via Reciprocal Rank Fusion (RRF)~\cite{cormack2009rrf}, with optional BM25~\cite{robertson1994okapi} keyword boosting and multi-layer LRU caching.
   \item \textbf{Mode~2 (Passive Recommendation):} two complementary pipelines, consisting of (a) a graph-based component capturing behavioral similarity, and (b) a sequential model capturing evolving user preferences.
   \item A \textbf{shared user profile} continuously updated after every
-        interaction, bridging both modes  temporal weighting and
+        interaction, bridging both modes via temporal weighting and
         enabling online adaptation of the sequential model.
 \end{itemize}
 

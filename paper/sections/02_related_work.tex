@@ -99,20 +99,33 @@ labelled queries) where no circular bias applies.
 % -------------------------------------------------------------------
 \subsection{Summary: Gaps Motivating This Work}
 % -------------------------------------------------------------------
-The surveyed literature reveals four recurring gaps.
-\textit{(i)}~\textbf{ID-bound sequential models} (SASRec, BERT4Rec, DIF-SASRec) cannot
-generalize to unseen items in a long-tail catalog without retraining, imposing
-a hard ceiling on cold-start coverage.
-\textit{(ii)}~\textbf{Stateless dense retrievers} (CLIP, BGE-M3) return relevant results
-but are oblivious to user identity and interaction history.
-\textit{(iii)}~\textbf{Behavioral graph methods} (Cleora) capture strong co-purchase
+The surveyed literature divides into two families that have evolved largely
+in isolation.
+\emph{Behaviorally-grounded} methods — collaborative filtering, graph neural
+networks, and sequential models — achieve strong recommendation accuracy but are
+anchored to observed item identifiers: they cannot generalize to unseen items,
+ignore query content, and are insensitive to the language of a typed search.
+\emph{Content-grounded} methods — dense text and image encoders — support
+zero-shot generalization and explicit query matching but treat each request
+statelessly, discarding the accumulated user history that behavioral methods
+rely on.
+Hybrid systems that bridge both families typically collapse active search and
+passive recommendation into a single pipeline, preventing their independent
+optimization.
+Four concrete gaps follow from this structural divide.
+\textit{(i)}~\textbf{ID-bound sequential models} cannot generalize to unseen
+items in a long-tail catalog without retraining, imposing a hard ceiling on
+cold-start coverage.
+\textit{(ii)}~\textbf{Stateless dense retrievers} return relevant results but
+are oblivious to user identity and interaction history.
+\textit{(iii)}~\textbf{Behavioral graph methods} capture strong co-purchase
 signals but cover only a fraction of the catalog and are insensitive to the
 content or language of a typed query.
-\textit{(iv)}~\textbf{Existing hybrid systems} collapse user-issued queries and
-system suggestions into one pipeline, preventing independent optimization
+\textit{(iv)}~\textbf{Existing hybrid systems} collapse user-issued queries
+and system suggestions into one pipeline, preventing independent optimization
 of each mode.
-Our system addresses all four gaps: BGE-M3 content embeddings replace item
-IDs for zero-shot catalog coverage; complementary pipelines with RRF fuse
-textual, visual, and behavioral signals; a persistent temporally-weighted
-user profile bridges both modes; and NLLB-200 routing enables multilingual
+Our system bridges the divide: BGE-M3 content embeddings replace item IDs for
+zero-shot catalog coverage; complementary pipelines with RRF fuse textual,
+visual, and behavioral signals; a persistent temporally-weighted user profile
+maintains state across both modes; and NLLB-200 routing enables multilingual
 deployment.
