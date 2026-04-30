@@ -100,12 +100,12 @@ These are guaranteed reviewer flags.
 
 ## Phase 5 — Editorial Cleanup (remove before submission)
 
-- [ ] **`02_related_work.tex`** — Remove all `% CHANGED:`, `% NEW:`, `% KEPT:` revision comment lines (lines 4, 9, 54, 82, 99, 117). These expose internal revision history.
-- [ ] **`00_abstract.tex`** — Remove `% Target:`, `% Cover:`, and stray `%` comment lines.
-- [ ] **`06_results.tex` line 140** — Remove or uncomment the stray `\clearpage`.
-- [ ] **`latency.tex` caption** — Replace internal identifier `run\_021` with a reproducible description (e.g., "30 observations, warm-cache benchmark").
-- [ ] **`latency.tex` below-table note** — The `\footnotesize` prose block appended after `\end{tabular}` should be a formal `\footnote{}` or moved to the paper body.
-- [ ] **`07_conclusion.tex`** — `\textbf{0.7886}` bolds a metric value in running prose; per convention, bold is reserved for table entries. Remove `\textbf{}`.
+- [x] **`02_related_work.tex`** — Removed all 7 annotation blocks: `% MAJOR REVISION:`, `% CHANGED:` (×4), `% KEPT:`, `% NEW:`. Section-separator `% ---` lines retained.
+- [x] **`00_abstract.tex`** — Removed `% Target:` and `% Cover:` comment lines. No stray `%` remained.
+- [x] **`06_results.tex`** — Removed the 3-line `% Flush all pending floats…` + `% \clearpage` comment block.
+- [x] **`latency.tex` caption** — Replaced `run\_021, 30 observations` with `30 warm-cache observations`.
+- [ ] **`latency.tex` below-table note** — `\footnotesize` prose block left in place; moving to body prose is a Phase 6 structural decision.
+- [x] **`07_conclusion.tex`** — Removed `\textbf{}` wrapper from `0.9736` in running prose.
 
 ---
 

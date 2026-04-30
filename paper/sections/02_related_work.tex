@@ -1,14 +1,8 @@
 \section{Related Work}
 \label{sec:related}
 
-% MAJOR REVISION: Restructured all subsections to include explicit per-method
-% limitations and cross-method comparisons. Added synthesis subsection at end.
-
 % -------------------------------------------------------------------
 \subsection{Sequential Recommendation}
-% CHANGED: Added cold-start / ID-dependency limitation for SASRec and BERT4Rec;
-%          clarified that DIF-SASRec's side information is supplementary, not
-%          a replacement for item IDs; added online-adaptation gap.
 % -------------------------------------------------------------------
 Self-attentive sequential models are the dominant paradigm for modeling
 user preference dynamics over interaction histories~\cite{kang2018self,sun2019bert4rec}.
@@ -29,9 +23,6 @@ multilingual queries nor real-time adaptation.
 
 % -------------------------------------------------------------------
 \subsection{Dense and Multimodal Retrieval}
-% CHANGED: Added stateless / no-personalization limitation for CLIP and BGE-M3;
-%          noted English-centric pre-training as a deployment barrier; clarified
-%          the gap between dense retrieval and behavioral graph integration.
 % -------------------------------------------------------------------
 CLIP~\cite{radford2021clip} establishes strong cross-modal alignment via
 large-scale paired pre-training, enabling direct image--text comparison in a
@@ -49,9 +40,6 @@ profile shared across search and recommendation.
 
 % -------------------------------------------------------------------
 \subsection{Graph-Based Collaborative Filtering}
-% CHANGED: Added catalog-coverage limitation for Cleora (375k / 3.08M);
-%          identified query-agnostic behavior as a weakness for active search.
-%          Added NGCF, LightGCN, PinSage as representative graph-based methods.
 % -------------------------------------------------------------------
 Graph-based methods learn from co-purchase or co-interaction edges, evolving
 from early factorization to modern graph neural networks (GNNs).
@@ -78,8 +66,6 @@ standalone active search solution.
 
 % -------------------------------------------------------------------
 \subsection{Hybrid Retrieval Systems}
-% CHANGED: Replaced vague original paragraph with specific structural limitations
-%          of existing hybrid systems (single pipeline, static user state, two-modality cap).
 % -------------------------------------------------------------------
 Hybrid recommenders that combine behavioral and content signals have been
 widely studied, but existing systems share three structural limitations.
@@ -96,8 +82,6 @@ recommendations, and a shared continuously-updated user profile.
 
 % -------------------------------------------------------------------
 \subsection{Text Encoders for Item Retrieval and Evaluation Methodology}
-% KEPT: Content carried forward from previous version; lightly edited for flow
-%       and tightened around the evaluation-bias argument.
 % -------------------------------------------------------------------
 BLaIR~\cite{hou2024amazon} fine-tunes a RoBERTa-Large backbone on
 (review\,text, item) contrastive pairs, yielding item embeddings aligned
@@ -114,7 +98,6 @@ labelled queries) where no circular bias applies.
 
 % -------------------------------------------------------------------
 \subsection{Summary: Gaps Motivating This Work}
-% NEW: Synthesis paragraph connecting surveyed limitations to our contributions.
 % -------------------------------------------------------------------
 The surveyed literature reveals four recurring gaps.
 \textit{(i)}~\textbf{ID-bound sequential models} (SASRec, BERT4Rec, DIF-SASRec) cannot
