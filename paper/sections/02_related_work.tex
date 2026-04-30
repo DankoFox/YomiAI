@@ -117,15 +117,15 @@ labelled queries) where no circular bias applies.
 % NEW: Synthesis paragraph connecting surveyed limitations to our contributions.
 % -------------------------------------------------------------------
 The surveyed literature reveals four recurring gaps.
-\textit{(i)~ID-bound sequential models} (SASRec, BERT4Rec, DIF-SASRec) cannot
+\textit{(i)}~\textbf{ID-bound sequential models} (SASRec, BERT4Rec, DIF-SASRec) cannot
 generalize to unseen items in a long-tail catalog without retraining, imposing
 a hard ceiling on cold-start coverage.
-\textit{(ii)~Stateless dense retrievers} (CLIP, BGE-M3) return relevant results
+\textit{(ii)}~\textbf{Stateless dense retrievers} (CLIP, BGE-M3) return relevant results
 but are oblivious to user identity and interaction history.
-\textit{(iii)~Behavioral graph methods} (Cleora) capture strong co-purchase
+\textit{(iii)}~\textbf{Behavioral graph methods} (Cleora) capture strong co-purchase
 signals but cover only a fraction of the catalog and are insensitive to the
 content or language of a typed query.
-\textit{(iv)~Existing hybrid systems} collapse user-issued queries and
+\textit{(iv)}~\textbf{Existing hybrid systems} collapse user-issued queries and
 system suggestions into one pipeline, preventing independent optimization
 of each mode.
 Our system addresses all four gaps: BGE-M3 content embeddings replace item

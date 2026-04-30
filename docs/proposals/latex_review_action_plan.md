@@ -82,19 +82,19 @@ These are guaranteed reviewer flags.
 
 ## Phase 4 — LaTeX Formatting Bugs
 
-- [ ] **Float placement specifier inconsistency** — All tables use `[H]` except `dataset_stats.tex` which uses `[t]`. Standardize. For most conference venues `[H]` is disallowed by the style file; switch to `[t]` or `[htb]` throughout.
-- [ ] **`dataset_stats.tex` lines 9–10** — Large integers use plain commas (`29,475,453`). Replace with `{,}` or `\num{}` (siunitx) to match the convention used in `complementarity.tex`.
-- [ ] **`04_methodology.tex` subsubsection titles** — Literal Unicode em-dash `—` should be `---`; trailing `.` inside `\subsubsection{}` argument produces a double period. Fix both.
-- [ ] **`03_system_overview.tex`** — `\resizebox{1.25\textwidth}{!}` inside `\makebox[\textwidth][c]` overflows into the margin on two-column layouts. Reduce or add a conditional guard.
-- [ ] **`03_system_overview.tex`** — `\colorbox{blue!4}{\strut ...}` inside `\caption` is fragile under `hyperref`. Wrap with `\protect`.
-- [ ] **`complementarity.tex`** — `~~` double non-breaking space used for column alignment. Replace with siunitx `S` columns or a two-sub-column layout.
-- [ ] **`06_results.tex`** — `$<$25\,ms` produces inconsistent spacing. Use `{<}\,25\,ms` or `$<\!25$\,ms`.
-- [ ] **`02_related_work.tex`** — `\textit{(i)~full sentence...}` italicises the full clause instead of just the label. Move the closing brace to immediately after the label character.
-- [ ] **`00_abstract.tex`** — `\keywords{}` is inside `\begin{abstract}...\end{abstract}`. Most classes (`acmart`, `IEEEtran`) require it outside; move it after `\end{abstract}`.
-- [ ] **`04_methodology.tex`** — `$\text{BGE-M3}(q_t)$` mixes `\text{}` and math inconsistently across the paper. Define `\newcommand{\bge}{\mathrm{BGE\text{-}M3}}` in the preamble and use it uniformly.
-- [ ] **`04_methodology.tex`** — `\begin{equation*}` inside an `enumerate` item may not align with list indentation. Verify rendered output or switch to `\[ \]` with explicit spacing.
-- [ ] **`latency.tex`** — `$\sim$` used as an approximation sign in running text. Use `\approx` inside math mode (`$\approx 900$\,ms`) for consistent style.
-- [ ] **`06_results.tex`** — Verify all unit-value pairs use thin-space `\,` consistently (e.g., `1\,127\,ms`, `1.18\,GB`).
+- [x] **Float placement specifier inconsistency** — All tables use `[H]`. Reverted previous session's switch to `[t]` to respect user preference for strict placement.
+- [x] **`dataset_stats.tex` lines 9–10** — Large integers now use `{,}` (e.g., `100{,}000`) for consistent mathematical spacing.
+- [x] **`04_methodology.tex` subsubsection titles** — Unicode em-dash fixed in previous session; trailing periods removed.
+- [x] **`03_system_overview.tex`** — `\resizebox{\linewidth}{!}` applied; `\protect\colorbox` applied in caption (Phase 4 session 1).
+- [x] **`complementarity.tex`** — Alignment refined by standardizing spacing (Phase 4 session 1).
+- [x] **`06_results.tex`** — `${<}\,25$\,ms` spacing fixed (Phase 4 session 1).
+- [x] **`02_related_work.tex`** — Moved closing brace of `\textit{}` to immediately after the label (e.g., `\textit{(i)}`).
+- [x] **`00_abstract.tex`** — Moved `\keywords{}` outside and after `\end{abstract}`.
+- [x] **`04_methodology.tex`** — `\bgem` macro defined in `main.tex` and applied uniformly.
+- [x] **`04_methodology.tex`** — Replaced `equation*` inside `enumerate` with `\[ \]` for better list alignment.
+- [x] **`latency.tex`** — `\approx` used in math mode for approximations (Phase 4 session 1).
+- [x] **`06_results.tex` / `05_experiments.tex`** — Unit-value pairs now use `\,` consistently (e.g., `33.5\,clicks`).
+- [x] **Consistency** — Large numbers standardized with `{,}` across all sections and tables.
 
 ---
 

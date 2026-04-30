@@ -9,7 +9,7 @@ a \emph{service layer} (business logic), and a
 \begin{figure}[htb]
 \centering
 \makebox[\textwidth][c]{%
-\resizebox{1.25\textwidth}{!}{%
+\resizebox{\linewidth}{!}{%
 \begin{tikzpicture}[
   >=Stealth,
   every path/.style={line width=0.6pt},
@@ -141,8 +141,8 @@ a \emph{service layer} (business logic), and a
   \emph{Solid} arrows show the inference-time data flow.
   \emph{Dashed} arrows show profile update feedback after each
   user interaction, shared across both modes.
-  Mode~1 (left, \colorbox{blue!4}{\strut blue zone}) processes
-  active queries; Mode~2 (right, \colorbox{green!4}{\strut green zone})
+  Mode~1 (left, \protect\colorbox{blue!4}{\strut blue zone}) processes
+  active queries; Mode~2 (right, \protect\colorbox{green!4}{\strut green zone})
   generates proactive recommendations from the User Profile.}
 \label{fig:arch}
 \end{figure}
