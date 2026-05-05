@@ -85,6 +85,11 @@ class Settings:
     BM25_HIGH_CONF: float = 0.6
     BM25_VISUAL_BOOST: float = 0.5
 
+    # ── Dynamic Cleora Refit ──────────────────────────────────────────────────
+    CLEORA_REFIT_THRESHOLD: int = field(
+        default_factory=lambda: int(os.getenv("CLEORA_REFIT_THRESHOLD", "50"))
+    )
+
     # ── DIF-SASRec (Personal Pipeline — "You Might Like") ────────────────────
     # Replaces GRU-SeqDQN for the personal "You Might Like" tab.
     # Uses decoupled category attention to model individual user taste evolution.

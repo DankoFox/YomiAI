@@ -144,6 +144,22 @@ class Retriever:
             )
         return None
 
+    def reload_cleora(self, cleora_data) -> int:
+        """
+        Hot-swap the Cleora FAISS index without restarting the API.
+
+        Safe under asyncio: this method contains no await points, so the event
+        loop cannot interleave another coroutine mid-swap. Refits always produce
+        a same-or-larger item set, so indices from concurrent in-flight searches
+        remain valid against the new asins list.
+        """
+        new_asins = list(cleora_data["asins"])
+        new_index = self._build_index(cleora_data["embeddings"])
+        self.cleora_asins       = new_asins
+        self.cleora_index       = new_index
+        self.asin_to_cleora_idx = {asin: i for i, asin in enumerate(new_asins)}
+        return len(new_asins)
+
     def get_content_candidates(self, query_vector, top_n: int = 200,
                                 exclude_asins: set = None) -> list:
         """

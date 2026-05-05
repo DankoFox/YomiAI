@@ -8,6 +8,7 @@ import asyncio
 import json
 import logging
 import os
+import sys
 from contextlib import asynccontextmanager
 
 import numpy as np
@@ -27,17 +28,86 @@ from app.services.passive_recommend import PassiveRecommendationEngine
 log = logging.getLogger("nba_api")
 
 
-async def _log_worker():
-    """Drains the Redis queue into MongoDB in the background."""
-    log.info("Background logging worker started.")
+async def _run_cleora_refit(project_root: str, data_dir: str, retriever) -> bool:
+    """Export delta hyperedges → retrain Cleora → hot-reload FAISS index."""
+    export_script = os.path.join(project_root, "scripts", "export_delta_hyperedges.py")
+    cleora_script = os.path.join(project_root, "scripts", "data", "run_cleora.py")
+    delta_path    = os.path.join(data_dir, "delta_hyperedges.txt")
+
+    # Remove stale delta so we can detect whether the export produces new data
+    if os.path.exists(delta_path):
+        os.remove(delta_path)
+
+    log.info("Cleora refit ▶ exporting delta hyperedges ...")
+    proc = await asyncio.create_subprocess_exec(
+        sys.executable, export_script,
+        stdout=asyncio.subprocess.PIPE,
+        stderr=asyncio.subprocess.STDOUT,
+    )
+    stdout, _ = await proc.communicate()
+    log.info(f"Delta export:\n{stdout.decode('utf-8', errors='replace').strip()}")
+    if proc.returncode != 0:
+        log.error("Delta export failed — aborting refit.")
+        return False
+
+    if not os.path.exists(delta_path):
+        log.info("No new interactions since last run — skipping refit.")
+        return True
+
+    log.info("Cleora refit ▶ running Markov propagation (this takes a few minutes) ...")
+    proc = await asyncio.create_subprocess_exec(
+        sys.executable, cleora_script, "--augment", delta_path,
+        stdout=asyncio.subprocess.PIPE,
+        stderr=asyncio.subprocess.STDOUT,
+    )
+    stdout, _ = await proc.communicate()
+    log.info(f"Refit:\n{stdout.decode('utf-8', errors='replace').strip()}")
+    if proc.returncode != 0:
+        log.error("Cleora refit failed — old index retained.")
+        return False
+
+    log.info("Cleora refit ▶ hot-reloading FAISS index ...")
+    try:
+        cleora_data = np.load(os.path.join(data_dir, "cleora_embeddings.npz"))
+        n = retriever.reload_cleora(cleora_data)
+        log.info(f"Hot-reload complete — {n:,} items in updated Cleora index.")
+        return True
+    except Exception as e:
+        log.error(f"Hot-reload failed: {e}")
+        return False
+
+
+async def _log_worker(retriever, refit_threshold: int, project_root: str, data_dir: str):
+    """Drains the Redis queue into MongoDB; triggers a Cleora refit at threshold."""
+    log.info(f"Background logging worker started (refit threshold: {refit_threshold:,}).")
+    count      = 0
+    refit_gate = asyncio.Event()
+    refit_gate.set()   # open: no refit currently running
+
     while True:
         try:
             if db.redis:
                 res = await db.redis.blpop("nba_interactions", timeout=5)
                 if res:
                     _, data_json = res
-                    interaction  = json.loads(data_json)
-                    await db.log_interaction(interaction)
+                    await db.log_interaction(json.loads(data_json))
+
+                    count += 1
+                    if count >= refit_threshold and refit_gate.is_set():
+                        count = 0
+                        refit_gate.clear()
+                        log.info(
+                            f"Refit threshold ({refit_threshold:,}) reached — "
+                            "launching Cleora refit pipeline."
+                        )
+
+                        async def _guarded_refit():
+                            try:
+                                await _run_cleora_refit(project_root, data_dir, retriever)
+                            finally:
+                                refit_gate.set()
+
+                        asyncio.create_task(_guarded_refit())
             else:
                 await asyncio.sleep(5)
         except Exception as e:
@@ -145,7 +215,9 @@ async def lifespan(app):
 
     # Infrastructure
     await db.connect()
-    app.state.log_worker_task = asyncio.create_task(_log_worker())
+    app.state.log_worker_task = asyncio.create_task(
+        _log_worker(retriever, settings.CLEORA_REFIT_THRESHOLD, settings.PROJECT_ROOT, settings.DATA_DIR)
+    )
 
     container.ready = True
     log.info("NBA API is ready!")

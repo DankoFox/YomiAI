@@ -1,0 +1,52 @@
+# Python environment & caches
+venv/
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+
+# Frontend dependencies & build output
+frontend/node_modules/
+frontend/dist/
+frontend/dist-ssr/
+frontend/.vite/
+
+# Heavy data & model files (not source)
+data/
+sample_covers/
+*.faiss
+*.npz
+*.parquet
+*.pt
+*.pkl
+*.csv
+*.zip
+*.rar
+*.tar.gz
+
+# Evaluation artefacts
+evaluation/eval_users.json
+evaluation/logs/
+
+# Logs & temp
+*.log
+*.txt
+*.tmp
+*.temp
+profiling/
+
+# Legacy / non-source directories
+IAAAconference(Latex)/
+Markdowns/
+
+# Internal graph store
+.code-review-graph/
+
+# IDE & OS
+.vscode/
+.idea/
+.DS_Store
+*.swp
+*.swo
