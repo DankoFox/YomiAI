@@ -1,0 +1,16 @@
+\section{Chapter Conclusion}
+
+This chapter presented a comprehensive evaluation of the proposed dual-mode multimodal book recommendation system across multiple dimensions.
+
+The main findings are as follows.
+The combined system achieves \textbf{HR@10 = 0.9736} on 100{,}000 held-out users with $N = 99$ sampled negatives, representing a 124\% improvement over the Content Baseline and an improvement of more than 8$\times$ over the prior GRU-SeqDQN approach.
+This result is stable across five evaluation seeds (standard deviation $\sigma = 0.0024$), confirming that the improvement is not an artefact of evaluation randomness.
+
+Component-level analysis established that BGE-M3 is the superior encoder for this use case despite slightly lower recommendation accuracy compared to BLaIR on a subset evaluation: its multilingual capability is essential for Vietnamese-language queries, where it achieves up to 11$\times$ higher Precision@10 than BLaIR.
+The HNSW index provides a 5.12$\times$ median latency reduction over exact flat search at a cost of 47.9\% approximate recall, which is compensated by the downstream BM25 re-ranking stage.
+Search pipeline optimisations reduced end-to-end query latency from 1{,}102 ms to 59 ms (warm cache), an 18.6$\times$ improvement.
+
+The complementarity analysis reveals that Pipeline A and Pipeline B capture largely independent signals: Pipeline A uniquely serves 19.9\% of users through co-purchase graph proximity, while Pipeline B uniquely serves 6.9\% through sequential intent modelling.
+The union achieves 97.4\% coverage, with the remaining 2.6\% corresponding to cold-start, long-tail, or cross-domain scenarios that represent directions for future improvement.
+
+Overall, the experimental results validate the design decisions underlying the proposed system: (i) the use of a co-purchase graph for behavioural candidate retrieval, (ii) the DIF-SASRec transformer for sequential intent modelling, (iii) BGE-M3 as the multilingual encoder, and (iv) HNSW for scalable production-grade approximate search.

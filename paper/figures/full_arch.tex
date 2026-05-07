@@ -1,0 +1,372 @@
+% ============================================================
+%  Full System Architecture — Thesis Figure
+%  Requires in preamble:
+%    \usepackage{tikz}
+%    \usetikzlibrary{arrows.meta,shapes.geometric,positioning,backgrounds,fit}
+%    \pgfdeclarelayer{background}
+%    \pgfsetlayers{background,main}
+% ============================================================
+
+\begin{figure}[htbp]
+\centering
+\makebox[\textwidth][c]{%
+\resizebox{1.5\textwidth}{!}{%
+\begin{tikzpicture}[
+  >=Stealth,
+  every path/.style={line width=0.55pt},
+  %── node base ──────────────────────────────────────────────
+  box/.style={draw, rounded corners=2pt, align=center,
+              inner sep=3pt, font=\footnotesize, minimum height=0.52cm},
+  %── colour palette ─────────────────────────────────────────
+  data/.style ={box, fill=gray!18,   minimum width=2.2cm},
+  enc/.style  ={box, fill=violet!15, minimum width=2.4cm},
+  idx/.style  ={box, fill=teal!12,   minimum width=2.0cm},
+  svc/.style  ={box, fill=cyan!10,   minimum width=2.5cm},
+  ml/.style   ={box, fill=orange!18, minimum width=2.5cm},
+  out/.style  ={box, fill=yellow!30, minimum width=3.0cm,
+                font=\footnotesize\bfseries},
+  api/.style  ={box, fill=blue!8,    minimum width=1.8cm,
+                font=\footnotesize\ttfamily},
+  prof/.style ={box, fill=purple!8,  draw=purple!40, minimum width=6.0cm},
+  store/.style={box, fill=green!10,  minimum width=1.6cm},
+  %── arrows ─────────────────────────────────────────────────
+  arr/.style  = {->},
+  darr/.style = {->, dashed, gray!70},
+  oarr/.style = {->, dashed, orange!65},
+  %── labels ─────────────────────────────────────────────────
+  hdr/.style  = {font=\small\bfseries},
+  lbl/.style  = {font=\tiny, text=gray!65},
+]
+
+%╔══════════════════════════════════════════════════════════════╗
+%  BACKGROUND ZONES
+%╚══════════════════════════════════════════════════════════════╝
+\begin{pgfonlayer}{background}
+  % Offline zone
+  \fill[gray!7,   rounded corners=6pt] (-12.8, 6.85) rectangle (12.8, 9.90);
+  % Infrastructure zone
+  \fill[teal!5,   rounded corners=6pt] (-12.8, 3.90) rectangle (12.8, 6.70);
+  % Mode 1
+  \fill[blue!4,   rounded corners=6pt] (-12.8,-0.85) rectangle (-0.35, 3.75);
+  % Mode 2
+  \fill[green!4,  rounded corners=6pt] ( 0.35,-0.85) rectangle (12.8, 3.75);
+  % Serving layer
+  \fill[orange!3, rounded corners=6pt] (-12.8,-1.05) rectangle (12.8,-3.60);
+\end{pgfonlayer}
+
+%── Zone headers ────────────────────────────────────────────────────
+\node[hdr, text=gray!55]  at ( 0.0,  9.60) {Offline Data Preparation \& Index Building};
+\node[hdr, text=teal!70]  at ( 0.0,  6.72) {Runtime Infrastructure (loaded at startup via \texttt{lifespan})};
+\node[hdr, text=blue!65]  at (-6.6,  3.85) {Mode~1 — Active Search};
+\node[hdr, text=green!65] at ( 6.6,  3.85) {Mode~2 — Passive Recommendation};
+\node[hdr, text=orange!70]at ( 0.0, -0.92) {FastAPI Serving Layer};
+
+%╔══════════════════════════════════════════════════════════════╗
+%  ROW A — DATA SOURCES  (y = 9.25)
+%╚══════════════════════════════════════════════════════════════╝
+\node[data] (src_int)  at (-10.0, 9.25) {User–Item\\Interactions};
+\node[data] (src_meta) at ( -6.8, 9.25) {Item Metadata\\{\tiny 3M items, parquet}};
+\node[data] (src_img)  at ( -3.6, 9.25) {Image Corpus\\{\tiny cover URLs}};
+\node[data] (src_delta)at ( -0.2, 9.25) {Live Interaction\\Delta};
+\node[data, draw=orange!50, fill=orange!8, minimum width=3.8cm]
+  (refit) at ( 5.5, 9.25)
+  {Dynamic Cleora Refit\\
+   {\tiny \texttt{\_run\_cleora\_refit()}} \\
+   {\tiny export delta $\to$ Markov walks $\to$ hot-reload}};
+
+%╔══════════════════════════════════════════════════════════════╗
+%  ROW B — PRE-COMPUTATION  (y = 8.15)
+%╚══════════════════════════════════════════════════════════════╝
+\node[data] (hype)   at (-10.0, 8.15) {Hyperedges\\{\tiny co-purchase graph}};
+\node[enc]  (cl_tr)  at ( -7.2, 8.15) {Cleora Training\\
+                                        {\tiny pycleora SparseMatrix}\\
+                                        {\tiny 8 Markov walks, 1024-dim}};
+\node[enc]  (bge_pr) at ( -3.0, 8.15) {BGE-M3 Pre-encode\\
+                                        {\tiny BAAI/bge-m3, 1024-dim}\\
+                                        {\tiny normalize\_embeddings=True}};
+\node[enc]  (clip_pr)at (  1.0, 8.15) {CLIP Pre-encode\\
+                                        {\tiny openai/clip-vit-base-patch32}\\
+                                        {\tiny 512-dim}};
+\node[enc]  (tan_pr) at (  5.0, 8.15) {Tantivy BM25 Build\\
+                                        {\tiny fields: title, author, genres}};
+\node[data] (cat_pr) at (  9.0, 8.15) {CategoryEncoder\\
+                                        {\tiny leaf-category $\to$ int vocab}};
+
+\draw[arr] (src_int.south)  -- (hype.north);
+\draw[arr] (hype)           -- (cl_tr);
+\draw[arr] (src_meta.south) -- ++(0,-.28) -| (bge_pr.north);
+\draw[arr] (src_meta.south) -- ++(0,-.28) -| (tan_pr.north);
+\draw[arr] (src_meta.south) -- ++(0,-.28) -| (cat_pr.north);
+\draw[arr] (src_img.south)  -- ++(0,-.28) -| (clip_pr.north);
+\draw[darr, orange!60] (src_delta.south) -- ++(0,-.28) -| (refit.north);
+\draw[darr, orange!60] (refit.west)      -- ++(-1.5, 0) |- (cl_tr.east);
+
+%╔══════════════════════════════════════════════════════════════╗
+%  ROW C — INDEX FILES  (y = 7.1)
+%╚══════════════════════════════════════════════════════════════╝
+\node[idx] (fi_cle)  at (-10.8, 7.10) {cleora\_embeddings\\{\tiny .npz — 375k items}};
+\node[idx] (fi_hnsw) at ( -8.0, 7.10) {bge\_index\_hnsw\\{\tiny FAISS HNSW, 1.7M}};
+\node[idx] (fi_flat) at ( -5.2, 7.10) {bge\_index\_flat\\{\tiny FAISS Flat, 3M}};
+\node[idx] (fi_clip) at ( -2.4, 7.10) {clip\_index\_hnsw\\{\tiny FAISS HNSW, 3M}};
+\node[idx] (fi_tan)  at (  0.6, 7.10) {tantivy\_index/\\{\tiny Rust BM25}};
+\node[idx] (fi_cat)  at (  3.6, 7.10) {category\_encoder\\{\tiny .json}};
+\node[data](fi_meta) at (  7.0, 7.10) {item\_metadata\\{\tiny .parquet, 3M rows}};
+\node[data](fi_asn)  at ( 10.0, 7.10) {asins.csv\\{\tiny ordered ASIN list}};
+
+\draw[arr] (cl_tr.south)   -- (fi_cle.north);
+\draw[arr] (bge_pr.south)  -- (fi_hnsw.north);
+\draw[arr] (bge_pr.south)  -- (fi_flat.north);
+\draw[arr] (clip_pr.south) -- (fi_clip.north);
+\draw[arr] (tan_pr.south)  -- (fi_tan.north);
+\draw[arr] (cat_pr.south)  -- (fi_cat.north);
+\draw[arr] (src_meta.south)-- ++(0,-2.42) -| (fi_meta.north);
+
+% Dynamic refit hot-reloads Cleora index
+\draw[oarr] (refit.south) -- ++(0,-.35) -| (fi_cle.north);
+
+%╔══════════════════════════════════════════════════════════════╗
+%  INFRASTRUCTURE — RETRIEVER  (dashed bounding box, y ≈ 5.55)
+%╚══════════════════════════════════════════════════════════════╝
+\node[hdr, font=\scriptsize\bfseries, text=teal!70] at (-9.5, 6.25)
+  {\texttt{Retriever} class};
+\draw[draw=teal!45, dashed, rounded corners=3pt]
+  (-12.5, 5.10) rectangle (-4.40, 6.15);
+
+\node[svc] (r_txt) at (-11.2, 5.60) {text\_index\\text\_flat};
+\node[svc] (r_clp) at ( -8.8, 5.60) {clip\_index};
+\node[svc] (r_cle) at ( -6.1, 5.60) {cleora\_index\\cleora\_asins};
+
+\draw[arr] (fi_cle.south)  -- ++(0,-.25) -| (r_cle.north);
+\draw[arr] (fi_hnsw.south) -- ++(0,-.25) -| (r_txt.north);
+\draw[arr] (fi_flat.south) -- ++(0,-.25) -| (r_txt.north);
+\draw[arr] (fi_clip.south) -- ++(0,-.25) -| (r_clp.north);
+\draw[arr] (fi_asn.south)  -- ++(0,-.25) -| (r_cle.east);
+
+%── AgentPool ──────────────────────────────────────────────────────
+\node[ml, minimum width=2.8cm] (pool) at (-2.2, 5.60)
+  {AgentPool\\{\tiny DIFSASRecAgent $\times N$}\\
+   {\tiny borrow / release pattern}};
+\draw[arr] (fi_cat.south) -- ++(0,-.25) -| (pool.north);
+
+%── UserProfileManager ─────────────────────────────────────────────
+\node[prof, minimum width=8.5cm] (upm) at (5.8, 5.60)
+  {UserProfileManager (MongoDB-backed)\\
+   {\tiny \textbf{text\_profile} (1024-d BGE-M3 weighted avg, decay $\lambda{=}0.1$)}~~
+   {\tiny \textbf{visual\_profile} (512-d CLIP weighted avg)}\\
+   {\tiny \textbf{cleora\_profile}~~
+    \textbf{click\_seq} (max\,50, recency-weighted)~~
+    \textbf{category\_seq}}};
+
+%── Storage nodes ──────────────────────────────────────────────────
+\node[store] (mdb)   at (10.5, 5.95) {MongoDB\\{\tiny logs}};
+\node[store] (redis) at (12.0, 5.95) {Redis\\{\tiny cache}};
+\node[svc]   (meta_r)at (11.0, 5.10) {MetadataRepo\\{\tiny parquet}};
+
+\draw[arr] (upm.east)       -- (mdb.west);
+\draw[darr] (redis)          -- (upm.east |- redis);
+\draw[arr] (fi_meta.south)  -- (meta_r.north);
+
+%── Runtime encoders ───────────────────────────────────────────────
+\node[enc] (nllb)   at (-11.5, 4.55) {NLLB-200\\{\tiny lang-detect + translate}};
+\node[enc] (bge_rt) at ( -8.5, 4.55) {BGE-M3\\{\tiny encode\_text(), LRU cached}};
+\node[enc] (clip_rt)at ( -5.5, 4.55) {CLIP\\{\tiny encode\_image\_b64()}};
+
+\draw[arr] (nllb.east) -- (bge_rt.west);
+
+%── MongoDB → dynamic refit feedback ──────────────────────────────
+\draw[oarr] (mdb.north) -- ++(0, 3.55) -| (refit.south);
+
+%╔══════════════════════════════════════════════════════════════╗
+%  MODE 1 — ACTIVE SEARCH
+%╚══════════════════════════════════════════════════════════════╝
+
+%── Query inputs ─────────────────────────────────────────────────
+\node[data] (tq) at (-11.0, 3.25) {Text Query};
+\node[data] (iq) at ( -8.0, 3.25) {Image Query\\{\tiny base64}};
+
+\draw[arr] (tq.south) -- ++(0,-.3)
+  node[midway, right, lbl]{non-EN?} -| (nllb.north);
+\draw[arr] (tq.south) -- ++(0,-.3) -| (bge_rt.north);
+\draw[arr] (iq.south) -- ++(0,-.3) -| (clip_rt.north);
+
+%── Retrieval channels ───────────────────────────────────────────
+\node[svc] (f_txt) at (-11.0, 2.20) {FAISS text search\\{\tiny HNSW, top-50}};
+\node[svc] (bm25)  at ( -8.0, 2.20) {Tantivy BM25\\{\tiny OR-query, top-30}};
+\node[svc] (f_img) at ( -5.0, 2.20) {FAISS image search\\{\tiny HNSW, top-50}};
+
+\draw[arr] (bge_rt.south) -- ++(0,-.3) -| (f_txt.north);
+\draw[arr] (bge_rt.south) -- ++(0,-.3) -| (bm25.north);
+\draw[arr] (clip_rt.south)-- ++(0,-.3) -| (f_img.north);
+\draw[arr] (r_txt.south)  -- ++(0,-.5) -| (f_txt.west);
+\draw[arr] (fi_tan.south) -- ++(0,-.5) -| (bm25.north);
+\draw[arr] (r_clp.south)  -- ++(0,-.5) -| (f_img.west);
+
+%── RRF fusion ───────────────────────────────────────────────────
+\node[svc, minimum width=8.5cm] (rrf1) at (-8.0, 1.20)
+  {Adaptive Reciprocal Rank Fusion \small($k{=}60$)
+   — text channel + BM25 channel + image channel};
+
+\draw[arr] (f_txt.south) -- (rrf1.north -| f_txt);
+\draw[arr] (bm25.south)  -- (rrf1.north -| bm25);
+\draw[arr] (f_img.south) -- (rrf1.north -| f_img);
+
+%── Metadata filter ───────────────────────────────────────────────
+\node[svc] (mfilt) at (-8.0, 0.35)
+  {Metadata filter\\{\tiny drop ASINs absent from parquet}};
+\draw[arr] (rrf1)   -- (mfilt);
+\draw[arr] (meta_r.west |- mfilt) -- (mfilt.east);
+
+%── Search output ─────────────────────────────────────────────────
+\node[out, minimum width=5.0cm] (out_sr) at (-8.0, -0.45)
+  {Search Results (Top-10)};
+\draw[arr] (mfilt) -- (out_sr);
+
+%╔══════════════════════════════════════════════════════════════╗
+%  MODE 2 — PASSIVE RECOMMENDATION
+%╚══════════════════════════════════════════════════════════════╝
+
+%── User Profile input (cold-start gate) ─────────────────────────
+\node[prof, minimum width=5.0cm] (up2) at (6.5, 3.25)
+  {User Profile (runtime view)\\
+   {\tiny cold-start gate: $\geq 5$ clicks required}};
+\draw[arr] (upm.south -| up2) -- (up2.north);
+
+%───────── Pipeline A: People Also Buy ─────────────────────────
+\node[lbl] at (3.3, 2.80) {\textit{Pipeline A — People Also Buy (Cleora)}};
+
+\node[ml]  (cle_q)  at (2.0, 2.20) {Cleora FAISS\\{\tiny profile $\to$ 50 cands}};
+\node[svc] (seed)   at (4.5, 2.20) {Seed-item\\neighbors\\{\tiny recent 5 items}};
+
+\draw[arr] (up2.south -| cle_q) -- (cle_q.north);
+\draw[arr] (up2.south -| seed)  -- (seed.north);
+\draw[arr] (r_cle.south)        -- ++(0,-0.5) -| (cle_q.west);
+
+\node[svc, minimum width=5.5cm] (cv_a) at (3.3, 1.20)
+  {Content Veto\\
+   {\tiny $\max\!\bigl(\cos(\mathbf{u}_{\mathrm{txt}},\mathbf{v}),\;
+   \cos(\mathbf{u}_{\mathrm{clip}},\mathbf{v})\bigr) \geq \tau{=}0.3$}};
+
+\draw[arr] (cle_q.south) -- (cv_a.north -| cle_q);
+\draw[arr] (seed.south)  -- (cv_a.north -| seed);
+\draw[arr] (r_txt.south |- cv_a.east) -- (cv_a.east);
+
+\node[svc] (rank_a) at (3.3, 0.35)
+  {Similarity Rank\\
+   {\tiny $\max(\mathrm{text\_score},\,\mathrm{visual\_score})$}};
+\draw[arr] (cv_a) -- (rank_a);
+
+\node[out] (out_pab) at (3.3, -0.45) {People Also Buy};
+\draw[arr] (rank_a) -- (out_pab);
+
+%───────── Pipeline B: You Might Like ───────────────────────────
+\node[lbl] at (9.5, 2.80) {\textit{Pipeline B — You Might Like (DIF-SASRec)}};
+
+\node[ml]  (knn_b) at (8.0, 2.20) {BGE-M3 HNSW KNN\\{\tiny 200 candidates}};
+\draw[arr] (up2.south -| knn_b) -- (knn_b.north);
+\draw[arr] (r_txt.south)        -- ++(0,-0.7) -| (knn_b.west);
+
+\node[svc] (cv_b) at (8.0, 1.35)
+  {Content Veto\\{\tiny same $\tau{=}0.3$ threshold}};
+\draw[arr] (knn_b) -- (cv_b);
+
+%── DIF-SASRec model block ────────────────────────────────────────
+\node[ml, minimum width=5.5cm] (dif) at (10.8, 0.70)
+  {DIF-SASRec Scorer\\
+   {\tiny \textbf{ContentProjector:} $1024 \to 512$ (Linear + LayerNorm + Dropout)}\\
+   {\tiny \textbf{DIFAttentionLayer:} content stream (Q\textsubscript{c}K\textsubscript{c}V)
+     $+$ category stream (Q\textsubscript{k}K\textsubscript{k}),
+     fused $\alpha{=}0.7$}\\
+   {\tiny \textbf{4 blocks} $\times$ \textbf{8 heads}, causal mask,
+     sampled softmax ($N_{\neg}{=}512$)}\\
+   {\tiny AdamW + cosine LR schedule, online fine-tuned per click}};
+
+\draw[arr] (cv_b.south)  -- ++(0,-.2) -| (dif.north);
+
+% AgentPool supplies a borrowed agent
+\draw[arr] (pool.south)  -- ++(0,-.5) -| (dif.north);
+
+\node[out] (out_yml) at (10.8, -0.45) {You Might Like};
+\draw[arr] (dif) -- (out_yml);
+
+% Online training self-loop
+\draw[darr] (out_yml.east) -- ++(0.5, 0) |- (dif.east)
+  node[pos=0.5, right, lbl]{online\\fine-tune};
+
+%╔══════════════════════════════════════════════════════════════╗
+%  SERVING LAYER — FastAPI Routes  (y = -1.75)
+%╚══════════════════════════════════════════════════════════════╝
+\node[api] (rt_s)  at (-11.2,-1.75) {/search};
+\node[api] (rt_r)  at ( -8.8,-1.75) {/recommend};
+\node[api] (rt_i)  at ( -6.4,-1.75) {/interact};
+\node[api] (rt_l)  at ( -4.0,-1.75) {/llm};
+\node[api] (rt_p)  at ( -1.6,-1.75) {/profile};
+\node[api] (rt_a)  at (  0.8,-1.75) {/auth};
+\node[api] (rt_h)  at (  3.2,-1.75) {/health};
+
+\draw[arr] (out_sr.south)  -- ++(0,-.35) -| (rt_s.north);
+\draw[arr] (out_pab.south) -- ++(0,-.35) -| (rt_r.north);
+\draw[arr] (out_yml.south) -- ++(0,-.35) -| (rt_r.north);
+
+% interact → UserProfile update (dashed, upward)
+\draw[darr] (rt_i.north) -- ++(0, 0.5) -| (upm.south |- 0, -1.3);
+
+%── LLM service ──────────────────────────────────────────────────
+\node[svc, minimum width=5.8cm] (llm_s) at (9.0,-1.75)
+  {LLM Service\\
+   {\tiny Wikipedia search + Google Books API}\\
+   {\tiny context reranking + streaming SSE (\texttt{generate\_stream})}};
+\draw[arr] (rt_l.east) -- (llm_s.west |- rt_l) -- (llm_s.west);
+
+%── Final output row  (y = -2.90) ────────────────────────────────
+\node[out] (o_sr)  at (-11.2,-2.90) {Search\\Results};
+\node[out] (o_pab) at ( -8.2,-2.90) {People\\Also Buy};
+\node[out] (o_yml) at ( -5.2,-2.90) {You\\Might Like};
+\node[out] (o_llm) at (  9.0,-2.90) {AI Book\\Explanation};
+
+\draw[arr] (rt_s.south) -- (o_sr.north);
+\draw[arr] (rt_r.south) -- ++(0,-.15) -| (o_pab.north);
+\draw[arr] (rt_r.south) -- ++(0,-.15) -| (o_yml.north);
+\draw[arr] (llm_s.south) -- (o_llm.north);
+
+%╔══════════════════════════════════════════════════════════════╗
+%  GLOBAL FEEDBACK LOOPS (dashed)
+%╚══════════════════════════════════════════════════════════════╝
+% Search → profile update
+\draw[darr] (out_sr.west) -- ++(-0.5,0) |- (upm.west);
+% People Also Buy → profile update
+\draw[darr] (out_pab.south) -- ++(0,-1.55)
+  -- ++(-14.0, 0) |- (upm.south -| -14.0, 0);
+% You Might Like → profile update
+\draw[darr] (out_yml.east) -- ++(0.6, 0) |- (upm.east);
+
+\end{tikzpicture}%
+}% end \resizebox
+}% end \makebox
+\caption{Complete system architecture (thesis view).
+  \emph{Grey zone:} offline data preparation and index building (performed once or on
+  schedule).
+  \emph{Teal zone:} components loaded at startup via \texttt{lifespan()}
+  — the \texttt{Retriever} (FAISS HNSW/flat indices + Cleora behavioural index),
+  the \texttt{AgentPool} (per-request DIF-SASRec agent isolation), runtime encoders
+  (BGE-M3, CLIP, NLLB-200), and the \texttt{UserProfileManager} (MongoDB-backed).
+  \emph{Blue zone (left):} Mode~1 active search — text or image query is encoded,
+  searched across three channels (FAISS text HNSW, Tantivy BM25, FAISS image HNSW),
+  fused via adaptive RRF ($k{=}60$), and filtered against the metadata catalogue.
+  \emph{Green zone (right):} Mode~2 passive recommendation split into two independent
+  pipelines:
+  Pipeline~A (\emph{People Also Buy}) uses Cleora behavioural graph embeddings to
+  retrieve co-purchase candidates, which are vetted by a content-similarity threshold
+  ($\tau{=}0.3$);
+  Pipeline~B (\emph{You Might Like}) uses BGE-M3 HNSW retrieval (200 candidates,
+  Cleora-free) followed by DIF-SASRec scoring with decoupled content/category
+  attention streams ($\alpha{=}0.7$) and online fine-tuning per user click.
+  \emph{Orange zone:} FastAPI serving layer exposing \texttt{/search},
+  \texttt{/recommend}, \texttt{/interact}, \texttt{/llm}, \texttt{/profile},
+  \texttt{/auth}, and \texttt{/health} endpoints.
+  \emph{Solid arrows} — inference-time data flow;
+  \emph{grey dashed arrows} — user-profile update feedback loops;
+  \emph{orange dashed arrows} — dynamic Cleora refit that continuously
+  propagates live interaction deltas via Markov walks and hot-reloads
+  the behavioural FAISS index without server restart.}
+\label{fig:arch}
+\end{figure}

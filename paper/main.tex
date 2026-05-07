@@ -21,7 +21,9 @@
 % ----- Math macros -----
 \newcommand{\bgem}{\mathrm{BGE\text{-}M3}}
 \usepackage{tikz}
-\usetikzlibrary{arrows.meta, backgrounds}
+\usetikzlibrary{arrows.meta, backgrounds, positioning, fit}
+\pgfdeclarelayer{background}
+\pgfsetlayers{background,main}
 
 % ---- Path for figures ----
 \graphicspath{{figures/}}

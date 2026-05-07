@@ -1,0 +1,74 @@
+\section{Qualitative Analysis}
+\label{sec:qualitative}
+
+\subsection{Pipeline Complementarity}
+
+The joint evaluation of Pipeline A and Pipeline B reveals a strong complementarity between the two recommendation approaches.
+Table~\ref{tab:complementarity} breaks down the 100{,}000 test users by which pipeline correctly retrieved the ground-truth item within their top-10, and Figure~\ref{fig:complementarity} presents the same data visually.
+
+\begin{table}[H]
+\centering
+\caption{Pipeline complementarity analysis (100k users, $N = 99$, seed = 42).}
+\label{tab:complementarity}
+\begin{tabular}{lrr}
+\hline
+\textbf{Outcome} & \textbf{Users} & \textbf{Proportion} \\
+\hline
+Both pipelines hit ($A \cap B$) & 70{,}557 & 70.6\% \\
+Pipeline A only                 & 19{,}909 & 19.9\% \\
+Pipeline B only                 &  6{,}893 &  6.9\% \\
+Neither pipeline                &  2{,}641 &  2.6\% \\
+\hline
+Total                           & 100{,}000 & 100\% \\
+\hline
+\end{tabular}
+\end{table}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{images/chapter5/fig_complementarity}
+\caption{Pipeline complementarity analysis (100{,}000 users, $N=99$, seed=42). (a) Donut chart: 70.6\% of users are served by both pipelines, 19.9\% by Pipeline A only, 6.9\% by Pipeline B only, and 2.6\% by neither. (b) Absolute user counts per outcome.}
+\label{fig:complementarity}
+\end{figure}
+
+The majority of users (70.6\%) are served by both pipelines simultaneously, reflecting the strong individual performance of each.
+Pipeline A uniquely recovers 19{,}909 users (19.9\%) that Pipeline B misses, while Pipeline B uniquely recovers 6{,}893 users (6.9\%) that Pipeline A misses.
+The union therefore covers 97.4\% of test users (HR@10 = 0.9736), with only 2.6\% remaining unreachable by either pipeline.
+
+\subsection{User Behaviour Archetypes}
+
+Three qualitative user archetypes are identified to explain the complementarity patterns:
+
+\paragraph{Type A — Dense Readers ($A \cap B$, 70.6\%)}
+These are high-activity users with hundreds of interactions spanning consistent reading genres.
+Both the Cleora co-purchase graph (which clusters densely interacted items) and DIF-SASRec (which captures the repeated sequential pattern) agree on the relevant candidates.
+The dense interaction history provides strong signal to both modalities.
+
+\paragraph{Type B — Graph-Prominent (A only, 19.9\%)}
+These users have eclectic or burst-driven purchasing patterns (e.g., gift buyers, cross-genre readers) whose co-purchase communities in the Cleora graph are informative, but whose interaction sequences are too noisy or irregular for DIF-SASRec to identify the intent.
+Pipeline A correctly retrieves the item while Pipeline B misses it.
+
+\paragraph{Type C — Sequential Intent (B only, 6.9\%)}
+These users recently shifted their reading interest.
+The most recent interactions form a coherent sub-sequence that DIF-SASRec's self-attention successfully captures, but the shift is too recent to be reflected in the global co-purchase graph.
+Pipeline B recovers these users while Pipeline A misses them.
+
+\subsection{Error Analysis}
+
+The 2.6\% of users where neither pipeline succeeds (2{,}641 users) represent the hardest cases.
+Several failure modes are identified:
+
+\begin{itemize}
+    \item \textbf{Cold-start and sparse users}: users with very few interactions ($< 10$) provide insufficient signal for both the Cleora graph and DIF-SASRec, which requires a meaningful sequence to attend over.
+    \item \textbf{Long-tail items}: items not appearing in the Cleora index (which covers 375{,}280 of the 3M catalogue items) cannot be retrieved by Pipeline A.
+    If DIF-SASRec's sequential candidate is also blocked by the content veto ($\tau = 0.3$), the user goes unserved.
+    \item \textbf{Cross-domain shifts}: an abrupt genre change from, e.g., fiction to technical reference can mislead both pipelines simultaneously — the graph reflects the old domain, and the sequence may not yet contain enough new-domain items for DIF-SASRec to adapt.
+    \item \textbf{Content veto over-filtering}: in rare cases the DIF-SASRec candidate is semantically legitimate but has a cosine similarity just below 0.3, causing it to be filtered out.
+    Relaxing $\tau$ to 0.25 or removing the veto for users with sparse histories is a potential direction for future improvement.
+\end{itemize}
+
+\subsection{Search Query Quality}
+
+Beyond recommendation, the system's semantic search component was assessed through a query retrieval evaluation covering five query-type groups.
+BGE-M3 achieves Precision@10 of 0.55 on long Vietnamese queries and 0.40 on long English queries, demonstrating strong multilingual retrieval capability.
+The inability of the legacy BLaIR encoder to handle Vietnamese queries (Precision@10 $\leq 0.05$) confirms the necessity of a multilingual encoder for the target user population (Figure~\ref{fig:encoder_query}).
