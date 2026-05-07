@@ -1,2 +1,16 @@
-\section{Summary}
+\section{Chapter Conclusion}
+
+This chapter has described the design and current implementation of the system across its three architectural tiers and four functional modules.
+
+The system provides a functional end-to-end pipeline: multi-modal search (text and image), hybrid BM25 + dense re-ranking, user interaction tracking, and a recommendation endpoint.
+The containerised infrastructure and modular API design provide a stable foundation on which improvements can be made module-by-module without disrupting the overall system.
+
+However, three critical weaknesses prevent the system from delivering a competitive user experience.
+First, the GRU-SeqDQN recommendation module operates near random-baseline level (HR@10 = 0.0823), making the recommendation feature of negligible practical value.
+Second, the flat FAISS index produces a warm-cache end-to-end search latency of 1{,}102 ms — an order of magnitude above the interactive threshold.
+Third, the BLaIR encoder's near-zero performance on Vietnamese queries (Precision@10 $\leq 0.05$) excludes a substantial portion of the target user population from effective search.
+
+The secondary weaknesses — ingestion batch-only design, coarse Redis caching, shallow MongoDB indexing, and an unresponsive visualisation layer — compound these primary issues and must be addressed concurrently to realise the full benefit of the proposed algorithmic improvements.
+
+The proposed solutions presented in Chapter~4 address each of these challenges directly, and the experimental evaluation in Chapter~5 quantifies the resulting improvements.
 

@@ -23,7 +23,7 @@ Tailwind CSS       & —          & Utility-first CSS framework \\
 \hline
 \multicolumn{3}{l}{\textit{Infrastructure}} \\
 MongoDB            & —          & Document store for interaction logs \\
-Redis              & —          & Embedding and response cache \\
+Redis              & —          & Async interaction write-queue; drains to MongoDB; triggers Cleora refit \\
 Docker             & —          & Service orchestration (Compose) \\
 \hline
 \multicolumn{3}{l}{\textit{Machine Learning}} \\

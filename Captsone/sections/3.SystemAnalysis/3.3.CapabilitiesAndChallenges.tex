@@ -1,2 +1,67 @@
 \section{Capabilities and Challenges}
+\label{sec:capabilities_challenges}
+
+\subsection{System Capabilities}
+
+Despite the limitations identified above, the current system provides a functional end-to-end pipeline that serves as the foundation for the proposed improvements.
+The following capabilities are already present and require no redesign:
+
+\begin{itemize}
+    \item \textbf{Multi-modal search}: The system supports both text-based and image-based queries.
+    Text queries are encoded by the BLaIR encoder and retrieved via the FAISS flat index, while image queries are encoded by CLIP and retrieved from a separate CLIP HNSW index.
+    The two modalities share the same result presentation layer.
+
+    \item \textbf{Hybrid re-ranking}: BM25 results from Tantivy and dense results from FAISS are already fused via Reciprocal Rank Fusion ($k = 60$), providing complementary exact-match and semantic recall.
+
+    \item \textbf{User interaction tracking}: The \texttt{/interact} route records all click and rating events to MongoDB with millisecond-precision timestamps, building a complete and queryable interaction history for every authenticated user.
+
+    \item \textbf{Exact-recall vector search}: The flat FAISS index provides exact nearest-neighbour retrieval over the full 3-million-item catalogue, serving as a reliable evaluation baseline and as a fallback when latency is not a constraint.
+
+    \item \textbf{Modular API structure}: The FastAPI router architecture cleanly separates search, recommendation, interaction, profile, and authentication concerns, making individual modules replaceable without disrupting others.
+
+    \item \textbf{Containerised infrastructure}: MongoDB and Redis are deployed as Docker containers, ensuring consistent behaviour across development and deployment environments.
+\end{itemize}
+
+\subsection{Identified Challenges}
+\label{sec:challenges}
+
+Table~\ref{tab:challenges} summarises the principal limitations identified through system analysis, grouped by module and linked to the proposed solution in Chapter~4.
+
+\begin{table}[H]
+\centering
+\caption{Summary of identified challenges by module.}
+\label{tab:challenges}
+\begin{tabular}{p{2.8cm} p{5.8cm} p{3.8cm}}
+\hline
+\textbf{Module} & \textbf{Challenge} & \textbf{Addressed in} \\
+\hline
+Data Ingestion    & Batch-only pipeline; no deduplication; no error recovery; shallow schema validation & Section~\ref{sec:ingestion_improvements} \\
+\hline
+Data Storage      & 612 ms P50 FAISS search latency; no programmatic indexes defined on MongoDB collections — full collection scans on all profile and interaction queries & Section~\ref{sec:storage_improvements} \\
+\hline
+Data Visualisation & Synchronous rendering causes UI freezes on slow queries; no filtering or sorting controls; no multilingual input support & Section~\ref{sec:viz_improvements} \\
+\hline
+Recommendation    & GRU-SeqDQN HR@10 = 0.0823 (near random); no content feature integration; no behavioural graph signal; large action-space convergence failure & Sections~\ref{sec:infra_improvements}--\ref{sec:storage_improvements} \\
+\hline
+Search latency    & End-to-end warm-cache latency of 1{,}102 ms driven by slow FAISS search and unoptimised encoder & Section~\ref{sec:infra_improvements} \\
+\hline
+Multilingual      & BLaIR encoder achieves Precision@10 $\leq 0.05$ on Vietnamese queries; no translation stage & Section~\ref{sec:infra_improvements} \\
+\hline
+\end{tabular}
+\end{table}
+
+Three challenges deserve particular emphasis because they have the largest impact on user-facing quality.
+
+\paragraph{Recommendation quality —}
+The GRU-SeqDQN model's near-random performance (HR@10 = 0.0823) renders the recommendation feature effectively unusable.
+A user who sees random recommendations quickly loses trust in the system and stops engaging with the personalisation features entirely.
+This is the highest-priority challenge and motivates the complete replacement of the recommendation backend with the dual-mode Pipeline A + Pipeline B architecture.
+
+\paragraph{Search latency —}
+A warm-cache end-to-end latency of 1{,}102 ms is above the 200 ms threshold at which users typically perceive a response as instantaneous.
+Reducing this to below 100 ms requires replacing the flat FAISS index with an HNSW approximate index and adding GPU-accelerated encoding.
+
+\paragraph{Multilingual gap —}
+The BLaIR encoder's failure on Vietnamese queries (Precision@10 $\leq 0.05$, compared to 0.55 for BGE-M3 on long queries) creates an inequitable search experience for Vietnamese-speaking users who represent a significant portion of the target audience.
+Addressing this challenge requires replacing BLaIR with a multilingual encoder and adding a query translation stage.
 

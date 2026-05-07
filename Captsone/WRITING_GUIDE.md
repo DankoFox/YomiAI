@@ -169,7 +169,7 @@ This chapter demonstrates the platform's generality by applying the data ingesti
 - Source → ingestion pipeline: how raw sensor data enters the system (API polling, MQTT, CSV upload — whichever applies).
 - The pipeline steps: schema validation, timestamp normalization, duplicate detection.
 - A table listing ingestion throughput / latency before and after the Ch. 4.2 improvements.
-- How data lands in the storage layer (MongoDB collection schema, Redis cache keys).
+- How data lands in the storage layer (MongoDB collection schema, Redis write-queue).
 - Cross-reference Chapter 4 improvements where relevant: e.g., "The batching mechanism introduced in Section~\ref{sec:xxx} reduces..."
 
 **Length**: ~400–500 words, 1 table, optionally 1 figure (pipeline diagram or latency chart).
@@ -209,7 +209,7 @@ This chapter demonstrates the platform's generality by applying the data ingesti
 **Goal**: Describe how users query historical air quality data through the platform.  
 **Cover**:
 - Query types supported: time-range queries, station-specific queries, aggregation queries (hourly/daily averages).
-- The storage and indexing strategy enabling fast retrieval (MongoDB indexes, Redis caching — from Chapter 4.4).
+- The storage and indexing strategy enabling fast retrieval (MongoDB indexes — from Chapter 4.4).
 - Retrieval latency: a table with P50/P95 latency for each query type (same format as Table 5.3 in Ch. 5).
 - Caching effectiveness: cache hit rate and latency improvement.
 
