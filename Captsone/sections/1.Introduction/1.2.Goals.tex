@@ -1,2 +1,22 @@
 \section{Goals}
+\label{sec:goals}
+
+The project pursues the following objectives:
+
+\begin{enumerate}
+    \item \textbf{Design a dual-mode recommendation pipeline.}
+    Implement Pipeline~A (Cleora co-purchase graph + BGE-M3 profile re-ranking) and Pipeline~B (DIF-SASRec sequential transformer) as complementary retrieval strategies, and combine their outputs to maximise coverage.
+
+    \item \textbf{Achieve substantial improvement over the prior baseline.}
+    Demonstrate a measurable improvement in HR@10 and NDCG@10 over the existing GRU-SeqDQN approach on the Amazon Book Reviews dataset, evaluated under a rigorous leave-one-out protocol with 100{,}000 test users.
+
+    \item \textbf{Enable multilingual semantic search.}
+    Replace the legacy BLaIR text encoder with the multilingual BGE-M3 model to support Vietnamese-language queries, with a target of at least 5$\times$ improvement in Precision@10 on Vietnamese queries relative to the legacy encoder.
+
+    \item \textbf{Reduce end-to-end search latency to production-acceptable levels.}
+    Optimise the search pipeline (translation, encoding, and FAISS retrieval) to achieve a warm-cache end-to-end latency below 100 ms, enabling interactive use in a web application.
+
+    \item \textbf{Demonstrate platform generality through an application case study.}
+    Apply the data ingestion, preparation, visualisation, and retrieval modules to an air quality monitoring domain, verifying that the underlying data platform is not domain-specific and can support heterogeneous real-world workloads.
+\end{enumerate}
 

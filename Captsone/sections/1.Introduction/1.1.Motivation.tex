@@ -1,2 +1,25 @@
 \section{Motivation}
+\label{sec:motivation}
+
+The rapid growth of digital content platforms has fundamentally changed how users discover and consume information.
+In the domain of books alone, major platforms now catalogue tens of millions of titles, making the curation of relevant recommendations a non-trivial problem at scale.
+A user browsing a catalogue of three million books faces a search space that manual exploration cannot realistically traverse; a recommendation system must therefore act as an intelligent intermediary that surfaces relevant items before the user expresses a precise query.
+
+Traditional recommendation approaches tend to be unimodal.
+Collaborative filtering methods exploit the co-occurrence of user–item interactions but ignore the semantic content of the items themselves.
+Content-based methods encode item descriptions into dense vectors and retrieve semantically similar content, but are insensitive to the community-level purchasing patterns that often drive discovery.
+Neither class of method captures \textit{sequential intent} — the fact that a user's most recent interactions often signal a current reading interest that differs from their long-term profile.
+This gap motivates the development of a \textit{dual-mode} architecture that combines both behavioural signals and sequential intent modelling within a unified recommendation pipeline.
+
+A further practical challenge is language.
+In Vietnam and other multilingual markets, a substantial portion of users formulate queries in their native language, yet most open-source encoders are trained primarily on English text and perform poorly on Vietnamese input.
+This discrepancy creates a de facto exclusion of non-English speakers from the quality of search results that English speakers receive.
+Addressing multilingual retrieval is therefore not merely a technical refinement but a question of equitable access.
+
+Finally, real-world deployment demands that accuracy improvements not come at the cost of user experience.
+A recommendation API that takes more than one second to respond is unlikely to be adopted in an interactive application.
+Latency optimisation — through model quantisation, approximate nearest-neighbour indexing, and response caching — must therefore be treated as a first-class design constraint rather than an afterthought.
+
+This capstone project addresses these challenges by designing, implementing, and evaluating a multimodal recommendation system that combines Cleora co-purchase graph embeddings with a DIF-SASRec sequential transformer, supported by a multilingual BGE-M3 encoder and a latency-optimised search pipeline.
+The system is built on a modular data platform whose ingestion, storage, and visualisation components are additionally demonstrated on an air quality monitoring use case, establishing the generality of the underlying infrastructure.
 

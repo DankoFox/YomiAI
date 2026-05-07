@@ -1,2 +1,25 @@
 \section{Thesis Structure}
+\label{sec:thesis_structure}
+
+The remainder of this report is organised into six chapters as follows.
+
+\textbf{Chapter 2 — Theoretical Background} reviews the foundational concepts and prior work relevant to this project.
+This includes the theoretical basis of sequential recommendation models, graph-based collaborative filtering, dense retrieval with transformer encoders, approximate nearest-neighbour search, and multilingual language modelling.
+Existing commercial and academic recommendation systems are also surveyed to contextualise the proposed approach.
+
+\textbf{Chapter 3 — System Analysis} describes the design and prior implementation of the data platform.
+The overall architecture, individual module designs (ingestion, visualisation, storage), and the legacy GRU-SeqDQN recommendation component are analysed.
+The chapter concludes with an identification of the system's limitations that motivate the proposed improvements.
+
+\textbf{Chapter 4 — Proposed Solutions} presents the technical contributions of this project.
+The infrastructure changes are described first, followed by the improvements to each of the three data platform modules.
+The dual-mode recommendation architecture — Pipeline~A (Cleora + BGE-M3) and Pipeline~B (DIF-SASRec) — is introduced and justified in detail.
+
+\textbf{Chapter 5 — Experiments and Evaluation} reports the quantitative evaluation of the proposed system.
+Component-level analyses (encoder comparison, HNSW vs.\ flat index, search latency profiling) are presented first, followed by end-to-end recommendation results on 100{,}000 users, sensitivity analyses, and a qualitative pipeline complementarity study.
+
+\textbf{Chapter 6 — Application} demonstrates the generality of the data platform by applying it to an air quality monitoring use case.
+The chapter covers the domain problem, dataset description, data ingestion and preparation, visualisation, retrieval, and a summary of results achieved in this domain.
+
+\textbf{Chapter 7 — Conclusion} summarises the achievements of the project against the stated goals, identifies limitations, and proposes directions for future work.
 

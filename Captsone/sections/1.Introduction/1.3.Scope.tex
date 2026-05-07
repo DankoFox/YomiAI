@@ -1,2 +1,29 @@
 \section{Scope}
+\label{sec:scope}
+
+\subsection{Inclusions}
+
+The following are within the scope of this project:
+
+\begin{itemize}
+    \item \textbf{Dataset}: The Amazon Book Reviews dataset~\cite{ni2019justifying}, comprising 3{,}080{,}829 catalogue items and 100{,}000 sampled evaluation users with held-out test interactions.
+    \item \textbf{Recommendation}: Offline evaluation of all proposed and baseline systems using sampled negative protocols ($N = 99$ and $N = 999$), reporting HR@$k$, NDCG@$k$, and MRR@$k$ at $k = 10$.
+    \item \textbf{Semantic search}: Text-based retrieval supporting English and Vietnamese queries, evaluated through a manually curated query set covering five query-type groups.
+    \item \textbf{Visual search}: CLIP-based image embedding index for cover-image search over the full 3M-item catalogue.
+    \item \textbf{Latency evaluation}: End-to-end profiling of the search pipeline under warm- and cold-cache conditions.
+    \item \textbf{Application case study}: Full application of the data platform modules (ingestion, preparation, visualisation, retrieval) to an air quality monitoring dataset.
+    \item \textbf{System implementation}: A FastAPI backend with a React frontend, deployed locally via Docker.
+\end{itemize}
+
+\subsection{Exclusions}
+
+The following are explicitly outside the scope of this project:
+
+\begin{itemize}
+    \item \textbf{Online learning}: The DIF-SASRec model is pretrained offline; continuous model updates from live user interactions are not implemented.
+    \item \textbf{A/B testing and user studies}: No live user experimentation or subjective preference evaluation is conducted. All evaluation is offline.
+    \item \textbf{Production-scale deployment}: The system is evaluated on a single machine. Distributed deployment, load balancing, and horizontal scaling are not addressed.
+    \item \textbf{Collaborative filtering beyond Cleora}: Traditional matrix-factorisation or neighbourhood-based collaborative filtering methods are not included; the behavioural signal is provided solely through the Cleora graph embedding.
+    \item \textbf{Cross-domain recommendation}: The recommendation evaluation covers the book domain only; transfer to other product categories is not evaluated.
+\end{itemize}
 
