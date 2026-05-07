@@ -1,2 +1,121 @@
-\section{Conclusion}
+\section{Summary of Achievements}
+\label{sec:conclusion_summary}
 
+Chapter~2 reviewed the theoretical foundations underpinning the system: sequential recommendation via self-attention~\cite{kang2018self,sun2019bert4rec}, co-purchase graph embedding via Cleora~\cite{rychalska2021cleora}, approximate nearest-neighbour search via HNSW~\cite{malkov2018hnsw}, large-scale similarity indexing via FAISS~\cite{johnson2021faiss}, multilingual encoding via BGE-M3~\cite{chen2024bge}, and Reciprocal Rank Fusion for retrieval combination~\cite{cormack2009rrf}.
+These methods were selected on the basis of empirical performance, latency characteristics, and compatibility with the existing data platform.
+
+Chapter~3 analysed the limitations of the prior system.
+The legacy GRU-SeqDQN recommendation module achieved HR@10 = 0.0823 — statistically indistinguishable from the random baseline of 0.1000 — due to the fixed-size GRU bottleneck and the intractable 3-million-item DQN action space.
+The BLaIR text encoder produced Precision@10 $\leq 0.05$ on Vietnamese queries, making the system functionally unusable for the target multilingual user base.
+The FAISS flat index incurred a P50 search latency of 612.19\,ms and a 45-second startup loading penalty, precluding interactive use.
+
+Chapter~4 introduced four infrastructure changes to address these shortcomings.
+BLaIR was replaced by BGE-M3, and the GRU-SeqDQN module was replaced by a dual-mode architecture comprising Pipeline~A (Cleora + BGE-M3) and Pipeline~B (DIF-SASRec).
+A three-stage NLLB-200 translation pipeline extended query support to 19 non-English languages.
+Parallel text and CLIP encoding was achieved via an \texttt{anyio} task group.
+The flat FAISS index was replaced by a dual HNSW/flat strategy loaded via memory mapping, and a three-stage incremental Cleora refit pipeline was introduced to incorporate new interactions without restarting the server.
+
+Chapter~5 evaluated these changes quantitatively.
+The combined system achieves HR@10 = 0.9736 and NDCG@10 = 0.5571 on 100{,}000 held-out test users, a 124\% improvement in HR@10 over the Content Baseline (0.4346) and an 843\% improvement over GRU-SeqDQN (0.1031).
+The result is stable across five random evaluation seeds (standard deviation $\sigma = 0.0024$).
+Multilingual search performance reached Precision@10 = 0.5500 on long Vietnamese queries under BGE-M3, compared to 0.0500 under BLaIR — an 11$\times$ improvement.
+End-to-end warm-cache search latency was reduced from 1{,}102\,ms to 59\,ms, an 18.6$\times$ improvement.
+
+Chapter~6 presented the deployed book discovery application, demonstrating the end-to-end integration of all components: the login gate, the multimodal search interface (text, image, and fused), the dual-panel recommendation view with the DIF-SASRec input-sequence strip, the real-time profile panel with the Bellman-error loss sparkline, and the streaming Qwen2.5 book assistant.
+
+---
+
+\section{Evaluation of Objectives}
+\label{sec:conclusion_objectives}
+
+Table~\ref{tab:objectives} evaluates each objective stated in Section~\ref{sec:goals} against the experimental evidence.
+
+\begin{table}[H]
+\centering
+\caption{Evaluation of project objectives against experimental evidence.}
+\label{tab:objectives}
+\begin{tabular}{p{5.8cm} p{2.2cm} p{5.5cm}}
+\hline
+\textbf{Objective} & \textbf{Status} & \textbf{Evidence} \\
+\hline
+Design a dual-mode recommendation pipeline (Pipeline~A + Pipeline~B) &
+Met &
+Table~\ref{tab:main_results}: System ($A \cup B$) HR@10 = 0.9736, NDCG@10 = 0.5571 \\
+
+Achieve substantial improvement over the prior GRU-SeqDQN baseline &
+Met &
+HR@10 increased from 0.1031 (GRU-SeqDQN) to 0.9736 (proposed), an 843\% improvement (Table~\ref{tab:main_results}) \\
+
+Enable multilingual semantic search with $\geq 5\times$ Precision@10 improvement on Vietnamese queries &
+Met &
+Precision@10 on long Vietnamese queries: 0.0500 (BLaIR) $\to$ 0.5500 (BGE-M3), an 11$\times$ improvement (Table~\ref{tab:query_retrieval}) \\
+
+Reduce warm-cache end-to-end search latency below 100\,ms &
+Met &
+Latency reduced from 1{,}102\,ms to 59\,ms (18.6$\times$ improvement, Table~\ref{tab:latency_stages}) \\
+
+Demonstrate platform generality through an application case study &
+Met &
+Chapter~6 presents the deployed application integrating all platform modules \\
+\hline
+\end{tabular}
+\end{table}
+
+All five objectives are met.
+The most significant result is the HR@10 improvement from 0.1031 to 0.9736, which closes the gap between the prior near-random recommender and a system capable of correctly identifying the relevant item in 97.4\% of test cases.
+
+---
+
+\section{Limitations}
+\label{sec:conclusion_limitations}
+
+Several limitations of the proposed system are identified.
+
+\begin{itemize}
+    \item \textbf{Incomplete catalogue coverage in Pipeline~A.}
+    The Cleora co-purchase graph covers 375{,}280 items — 12.5\% of the full 3-million-item catalogue.
+    Items outside the graph cannot be retrieved by Pipeline~A, contributing to the 2.6\% of test users (2{,}641) that neither pipeline serves (Section~\ref{sec:qualitative}).
+
+    \item \textbf{Content veto over-filtering.}
+    The cosine similarity threshold $\tau = 0.3$ in Pipeline~B occasionally filters out semantically legitimate candidates whose embeddings fall just below the threshold.
+    This is particularly harmful for users with sparse histories, where the DIF-SASRec prediction may be the only available recommendation path.
+
+    \item \textbf{HNSW recall degradation.}
+    The HNSW index achieves a recall of 0.521 relative to exact flat search (Table~\ref{tab:hnsw_comparison}), meaning that 47.9\% of the nearest neighbours under the full index are not returned by the approximate index.
+    The BM25 re-ranking stage partially compensates, but this gap may reduce recommendation quality for queries where exact top-$k$ proximity is critical.
+
+    \item \textbf{Online fine-tuning latency on cold sessions.}
+    The DIF-SASRec gradient step executes synchronously in the \texttt{POST /interact} request handler.
+    For users with long interaction histories the checkpoint serialisation and deserialisation from disk introduces latency that grows proportionally with checkpoint size.
+
+    \item \textbf{In-session cart state.}
+    The shopping cart is held in React component state only and is not persisted to the backend.
+    Cart contents are lost on page reload, preventing recovery of abandoned carts and limiting the cart signal from influencing Cleora graph updates across sessions.
+\end{itemize}
+
+---
+
+\section{Future Work}
+\label{sec:conclusion_future}
+
+Several concrete directions for future improvement follow from the identified limitations.
+
+\begin{itemize}
+    \item \textbf{Expand the Cleora index to the full catalogue.}
+    Extending the co-purchase graph from 375{,}280 to the full 3 million items would eliminate the catalogue boundary that causes Pipeline~A to fail for long-tail items.
+    The incremental refit pipeline introduced in Section~\ref{sec:cleora_incremental} already supports partial augmentation; a batch re-embedding of the full catalogue with accumulated interaction data is the next step.
+
+    \item \textbf{Adaptive content veto threshold.}
+    Rather than a fixed threshold of $\tau = 0.3$, the veto could be relaxed to $\tau = 0.2$ or disabled entirely for users with fewer than 20 interactions, where over-filtering risk outweighs the benefit of semantic consistency enforcement.
+    This directly addresses the sparse-user failure mode identified in Section~\ref{sec:qualitative}.
+
+    \item \textbf{Asynchronous online fine-tuning.}
+    Moving the DIF-SASRec gradient step from the synchronous \texttt{POST /interact} response path to a background task queue would decouple interaction logging latency from model update latency, allowing the training step to be batched and accelerated without impacting the user-facing response time.
+
+    \item \textbf{Persistent cart and cross-session interaction signals.}
+    Persisting cart events to MongoDB in the same manner as click and skip events would allow cart additions to contribute to Cleora graph updates across sessions, providing a higher-reward signal that currently disappears on page reload.
+
+    \item \textbf{Extension to additional retrieval modalities.}
+    The current retrieval pipeline combines text (BGE-M3) and visual (CLIP) signals.
+    Incorporating structured metadata signals — genre taxonomy, publication year, reading-level classification — as additional FAISS or Tantivy filter axes would improve precision for queries that express constraints rather than pure semantic similarity (e.g., ``beginner-level machine learning books published after 2020'').
+\end{itemize}
