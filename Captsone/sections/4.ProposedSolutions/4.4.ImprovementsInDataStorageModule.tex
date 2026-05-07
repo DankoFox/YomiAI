@@ -1,2 +1,56 @@
 \section{Improvements in Data Storage Module}
+\label{sec:storage_improvements}
 
+The principal storage bottleneck identified in Section~\ref{sec:storage_analysis} was the FAISS flat index search latency of 612 ms at P50, which dominated the end-to-end query time.
+The improvements introduced here replace the single flat index with a dual-index strategy, adopt memory-mapped loading to reduce startup RAM consumption, and introduce a dedicated behavioural embedding store with hot-swap support.
+
+\subsection{Dual FAISS Index Strategy}
+\label{sec:dual_index}
+
+The revised \texttt{Retriever} class maintains two independent text index files in parallel.
+Table~\ref{tab:index_files} summarises the four index artefacts managed by the system.
+
+\begin{table}[H]
+\centering
+\caption{FAISS index artefacts managed by the \texttt{Retriever} class.}
+\label{tab:index_files}
+\begin{tabular}{p{4.5cm} p{2.0cm} p{2.0cm} p{4.0cm}}
+\hline
+\textbf{File} & \textbf{Type} & \textbf{Vectors} & \textbf{Role} \\
+\hline
+\nolinkurl{bge_index_hnsw.faiss}        & BGE-M3 HNSW  & 1.7M (prod.) & ANN search, production query path \\
+\nolinkurl{bge_index_flat.faiss}        & BGE-M3 flat  & 3M (exact)   & Exact reconstruction for RL pipeline \\
+\nolinkurl{blair_index_hnsw_legacy.faiss} & BLaIR HNSW  & 3M           & Legacy fallback \\
+\nolinkurl{blair_index_flat_legacy.faiss} & BLaIR flat  & 3M           & Legacy last-resort fallback \\
+\hline
+\end{tabular}
+\end{table}
+
+The index loader follows a priority chain: the BGE-M3 HNSW file is loaded as the primary search index if present; the BGE-M3 flat file is loaded alongside it as the secondary index for exact vector reconstruction; if neither BGE-M3 file exists, the loader falls back to the legacy BLaIR indices in order.
+This fallback chain allows the system to operate on machines where only a subset of index files has been built, and provides a safe migration path when re-embedding with a new encoder.
+
+At search time, all user queries are routed exclusively through \texttt{text\_index} (the HNSW file).
+Vector reconstruction calls — used by the DIF-SASRec pipeline to retrieve item embeddings by ASIN for content-veto scoring — are routed through \texttt{text\_flat}, which supports the \texttt{reconstruct(i)} operation that HNSW indices do not provide.
+The separation of responsibilities means that neither index is burdened with a use case it is not optimised for.
+
+The latency and recall trade-off of this strategy is evaluated experimentally in Section~\ref{sec:hnsw} and summarised in Table~\ref{tab:hnsw_comparison}.
+The HNSW index reduces P50 search latency from 612.19 ms to 119.56 ms — a 5.12$\times$ speedup — at a recall of 0.521.
+The 47.9\% of candidates not returned by HNSW are partially compensated by the Tantivy BM25 stage, which captures exact-match hits that the approximate retriever misses.
+
+\subsection{Memory-Mapped Index Loading}
+\label{sec:mmap}
+
+Both HNSW and flat indices are loaded with the \texttt{faiss.IO\_FLAG\_MMAP} flag, which maps the index file directly into the process address space rather than reading the entire matrix into RAM.
+Pages are brought into physical memory on demand by the operating system's virtual memory subsystem.
+For the 3M-vector flat index — which occupies approximately 12 GB on disk — this change eliminates the 45-second full-load pause at startup and reduces peak memory usage to the working set actually accessed during inference, which is substantially smaller than the full index for typical query traffic.
+The HNSW index benefits similarly: graph traversal during search accesses only the nodes visited by the beam, so most of the index file remains un-paged under steady-state load.
+
+\subsection{Cleora Behavioural Embedding Store}
+\label{sec:cleora_store}
+
+The Cleora co-purchase graph embeddings are stored separately from the text and CLIP FAISS indices as a compressed NumPy archive (\texttt{data/cleora\_embeddings.npz}) containing two arrays: \texttt{asins} (a string array of 375{,}280 item identifiers) and \texttt{embeddings} (a float32 matrix of the same length).
+At startup, the archive is loaded and passed to the \texttt{Retriever} constructor, which normalises the embeddings with L2 normalisation and inserts them into a \texttt{faiss.IndexFlatIP} inner-product index in memory.
+This in-memory construction takes under one second and produces an index that supports both nearest-neighbour search (for Pipeline~A candidate retrieval) and vector reconstruction (for cosine re-ranking).
+
+The \texttt{reload\_cleora()} method, described in Section~\ref{sec:cleora_incremental}, enables the archive to be hot-swapped at runtime without an API restart.
+Because the Cleora index covers only 375{,}280 items — a subset of the 3M text and CLIP catalogues — the ASIN lookup table is maintained separately (\texttt{asin\_to\_cleora\_idx}) and the retriever always validates membership before issuing a search, returning an empty candidate list gracefully for items not yet in the co-purchase graph.

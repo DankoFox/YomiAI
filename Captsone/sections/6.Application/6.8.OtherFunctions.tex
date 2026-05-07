@@ -1,2 +1,47 @@
-\section{Other Functions}
+\section{Additional Application Features}
+\label{sec:app_other}
 
+\subsection{User Authentication}
+
+Authentication is handled by a full-screen login gate rendered before the main application.
+The flow proceeds in three stages: the user enters a user ID and submits; the frontend calls \texttt{POST /auth/check}; if the ID is found in MongoDB the session begins immediately, and if not, a confirmation prompt offers account creation via \texttt{POST /auth/create} or the option to re-enter a different ID.
+A \textit{Continue as Guest} button on the login page generates a random \texttt{guest\_XXXXXX} identifier and bypasses both checks.
+No password is stored or required at any point.
+The resolved user ID is persisted in \texttt{localStorage}; subsequent visits load it and bypass the gate automatically.
+
+\subsection{Shopping Cart}
+
+A cart button in the header tracks items added during the current session and displays the running item count.
+When a user selects \textit{Add to Cart} on any book card, the item is appended to the in-session cart array, the header count increments, and a success notification is shown.
+The cart state is held in React component state only — it is not persisted to the backend — and resets on page reload.
+The cart interaction also dispatches a cart event to the \texttt{POST /interact} endpoint (reward 5.0), which triggers a DIF-SASRec gradient step identical to the click path.
+
+\subsection{Interaction Logging and Online Training}
+
+The \texttt{POST /interact} endpoint accepts \texttt{user\_id}, \texttt{item\_id}, and \texttt{action} (\texttt{click}, \texttt{skip}, or \texttt{cart}).
+The backend assigns the corresponding reward, updates the in-memory user profile, and pushes the event to the Redis queue for asynchronous MongoDB persistence.
+For click and cart actions, the endpoint borrows a DIF-SASRec agent from the pool, loads the user's personal checkpoint, runs a Bellman-error gradient step, saves the updated checkpoint, and returns the resulting \texttt{sasrec\_loss} value.
+The frontend appends this loss value to the sparkline immediately on response, providing sub-second visual feedback that the model has updated.
+
+\subsection{Mock/Live Mode}
+
+A toggle switch in the header allows the frontend to operate in either \textit{Live} mode (calls the FastAPI backend) or \textit{Mock} mode (uses pre-defined in-memory data).
+In mock mode, search results return five fixed titles, recommendations return two co-purchase and two DIF-SASRec items, and interactions simulate a decreasing loss trajectory.
+This mode supports frontend development, demonstrations, and thesis presentations when the full machine-learning backend is not running.
+
+\subsection{Streaming LLM Book Assistant}
+
+Each book card exposes an \textit{Ask AI} button that opens an inline popover and calls \texttt{POST /ask\_llm\_stream}.
+The Qwen2.5-1.5B-Instruct model generates a structured response in three sections — \textbf{Genre}, \textbf{Plot Summary}, and \textbf{Pitch} — grounded by a Google Books or Wikipedia extract that is semantically re-ranked by BGE-M3 before being passed to the model.
+The response streams token-by-token into the popover; the first token dismisses the loading indicator and content builds progressively.
+The popover is dismissed by re-clicking the button.
+
+\subsection{User Profile Endpoint}
+
+\texttt{GET /profile?user\_id=\{id\}} returns aggregated engagement statistics: total interaction count, total search count, click-through rate, and a hydrated list of the ten most recent interactions with full item metadata.
+The frontend uses this response to populate the \texttt{ProfileRadar} chart, the Train Feed widget, and the Recently Viewed header strip.
+
+\subsection{Health Check}
+
+\texttt{GET /health} reports the readiness status of each loaded component.
+The frontend polls this endpoint at startup and withholds the search interface until all required components are confirmed ready, preventing queries from being submitted before the FAISS indices and encoders are fully initialised.

@@ -6,11 +6,7 @@ Figure~\ref{fig:system_overview} illustrates the high-level architecture and the
 
 \begin{figure}[H]
 \centering
-\fbox{\begin{minipage}{0.90\textwidth}
-\centering\vspace{2.2cm}
-\textit{[PLACEHOLDER: System architecture overview diagram showing the three-tier structure: (1) Presentation Tier — React/Vite frontend with search, recommendation, and profile views; (2) Application Tier — FastAPI backend with route modules (search, recommend, interact, profile, auth, llm) and service layer; (3) Data Tier — MongoDB, Redis, FAISS flat index, Tantivy BM25 index. Arrows should show request flow from browser → API → services → data stores and response path back.]}
-\vspace{2.2cm}
-\end{minipage}}
+\includegraphics[width=0.90\textwidth]{images/chapter3/fig_system_overview}
 \caption{High-level three-tier system architecture. The presentation tier communicates with the application tier exclusively through REST API calls. The data tier is accessed only by the application tier services.}
 \label{fig:system_overview}
 \end{figure}

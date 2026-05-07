@@ -1,2 +1,64 @@
-\section{Result}
+\section{System Demonstration}
+\label{sec:app_demo}
 
+This section walks through the three primary user flows as they appear in the deployed application.
+
+\subsection{Multimodal Search Flow}
+
+A user opens the application, enters their user ID on the login gate, and is placed in the \textit{Active Search} tab.
+They type the Vietnamese query \textit{``sách về trí tuệ nhân tạo''} (books about artificial intelligence) into the search box and submit.
+
+Internally, the NLLB-200 pipeline detects Vietnamese in under 1\,ms and translates the query to ``books about artificial intelligence''.
+The translated query is encoded by BGE-M3, searched against the HNSW text index, and fused with Tantivy BM25 scores via RRF.
+While the request is in flight, four animated skeleton placeholder cards occupy the result area.
+On response arrival, the placeholders are replaced by result cards showing the cover image, title, author, genre, and score badges.
+Warm-cache end-to-end latency for this step is approximately 59\,ms.
+
+Figure~\ref{fig:search_demo} shows the result page for a representative search query.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.92\textwidth]{images/chapter6/fig_search_demo}
+\caption{Active Search results (Mode 1). Each result card presents cover image, title, author, genre, relevance score badges, and four interaction controls: \textit{Interested}, \textit{Skip}, \textit{Ask AI} (streaming LLM popover), and \textit{Add to Cart}.}
+\label{fig:search_demo}
+\end{figure}
+
+Each result card provides four interaction controls.
+\textit{Interested} logs a click event (reward 1.0), updates the in-memory user profile, and triggers a DIF-SASRec gradient step.
+\textit{Skip} logs a skip event (reward 0.0) without a gradient step.
+\textit{Add to Cart} logs a cart event (reward 5.0), appends the item to the in-session cart, and triggers a gradient step.
+\textit{Ask AI} opens an inline streaming popover that calls \texttt{POST /ask\_llm\_stream}; the Qwen2.5 response is rendered progressively under \textbf{Genre}, \textbf{Plot Summary}, and \textbf{Pitch} headings as tokens arrive.
+
+For image queries, the user drags a book cover onto the drop zone below the text field.
+The zone transitions to a thumbnail preview confirming that the CLIP encoder will process it.
+If both text and image are supplied simultaneously, both encoders run in parallel and their candidate lists are fused by RRF before metadata hydration.
+
+\subsection{Personalised Recommendation Flow}
+
+After a user accumulates at least five interactions, the \textit{Recommendations} tab (Mode 2) switches from cold-start to personalised mode.
+The grey \textit{Discovery mode} status pill transitions to a green \textit{DIF-SASRec active} badge, and a toast notification confirms the transition.
+
+Figure~\ref{fig:rec_demo} shows the recommendation panel for a warm user.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.92\textwidth]{images/chapter6/fig_rec_demo}
+\caption{Personalised Recommendations (Mode 2) for a warm user. The \textit{DIF-SASRec active} status pill (top) confirms personalised ranking is engaged. The \textit{You Might Like} sub-tab renders the DIF-SASRec input sequence strip above the recommendation cards, making the model's input visible to the user.}
+\label{fig:rec_demo}
+\end{figure}
+
+The \textit{You Might Like} sub-tab renders an input-sequence strip above the recommendation cards when personalised mode is active.
+This strip shows the user's most recent click and cart interactions — up to eight items — in chronological order, representing the exact sequence that DIF-SASRec reads when generating the next-item prediction.
+The strip makes the sequential model's input visible to the user, providing an explanation for why specific items were recommended.
+
+Recommendations are refreshed automatically every three new interactions.
+A manual refresh button forces an immediate reload and displays the last-updated timestamp beside its label.
+Items that are new since the previous refresh are highlighted for four seconds.
+
+\subsection{Online Learning Observation}
+
+Every click or cart event triggers a Bellman-error gradient step on the user's personal DIF-SASRec checkpoint.
+The \textit{SASRec Loss} sparkline in the right-side profile panel shows the full loss history as a filled area chart.
+A dashed divider marks the boundary between the pretraining phase (checkpoint-loaded, high loss scale) and the online fine-tuning phase (per-user gradient steps, lower scale).
+An information tooltip beside the chart title explains the expected scale difference, noting that pretraining uses 512 hard negatives whereas online training samples from the full 3-million-item catalogue, producing a structurally lower loss.
+When a gradient step fires, a transient loss-decrease badge is displayed beside the current loss value for 2.5 seconds, confirming that the model has updated.

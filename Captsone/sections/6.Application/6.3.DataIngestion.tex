@@ -1,2 +1,27 @@
-\section{Data Ingestion}
+\section{Runtime Data Ingestion}
+\label{sec:app_ingestion}
 
+Data enters the system through two paths: an offline bulk load at startup and an online stream from user interactions.
+
+\subsection{Offline Bulk Load}
+
+At server startup, the \texttt{lifespan} context manager loads all persistent artefacts into memory:
+the Parquet metadata file is read into a pandas DataFrame;
+the BGE-M3 HNSW and flat FAISS indices are memory-mapped from disk;
+the CLIP HNSW index is loaded;
+the Cleora co-purchase graph embeddings are loaded from \nolinkurl{data/cleora_embeddings.npz} and inserted into an in-memory \texttt{faiss.IndexFlatIP};
+and the DIF-SASRec pretrained weights are loaded into the \texttt{AgentPool}.
+All FAISS index loads use the \texttt{IO\_FLAG\_MMAP} flag, so only the pages accessed during inference are brought into physical RAM.
+
+The Tantivy BM25 full-text index, stored in \nolinkurl{data/tantivy_index/}, is opened as a read-only reader.
+No data is written to Tantivy at runtime; the index is built offline over the full catalogue titles and descriptions.
+
+\subsection{Online Interaction Stream}
+
+Every user interaction (click, cart, skip) submitted via the \texttt{POST /interact} endpoint is serialised as a JSON object and pushed to the \texttt{nba\_interactions} Redis list with \texttt{rpush}.
+A background coroutine (\texttt{\_log\_worker}) continuously drains the list with \texttt{blpop} and writes each entry to the MongoDB \texttt{nba\_logs.interactions} collection.
+
+The logged document includes: \texttt{user\_id}, \texttt{asin}, \texttt{action} (\texttt{click}/\texttt{skip}/\texttt{cart}), a UTC \texttt{timestamp}, \texttt{session\_id}, \texttt{source}, and an \texttt{is\_guest} flag that marks unauthenticated sessions.
+Guest interactions are retained in MongoDB for analytics but are excluded from the Cleora co-purchase graph update (Section~\ref{sec:cleora_incremental}) to avoid polluting the graph with transient, unauthenticated traffic.
+
+The background worker also maintains a counter; when the counter reaches \texttt{CLEORA\_REFIT\_THRESHOLD} = 50, the incremental Cleora refit pipeline is triggered automatically as a non-blocking \texttt{asyncio.create\_task}, as described in Section~\ref{sec:cleora_trigger}.

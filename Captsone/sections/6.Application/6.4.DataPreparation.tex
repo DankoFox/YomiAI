@@ -1,2 +1,22 @@
-\section{Data Preparation}
+\section{Offline Data Preparation}
+\label{sec:app_preparation}
 
+Three offline pipelines must be run before the server can start for the first time.
+They are executed once during setup and re-run as needed when the model or catalogue changes.
+
+\subsection{Embedding and Index Construction}
+
+All item text fields (title, author, description) are encoded with BGE-M3 in batches to produce 1{,}024-dimensional dense vectors.
+The resulting vectors are inserted into two FAISS indices: an HNSW index (\nolinkurl{bge_index_hnsw.faiss}) for approximate nearest-neighbour production search, and a flat index (\nolinkurl{bge_index_flat.faiss}) for exact reconstruction used by the DIF-SASRec pipeline.
+Cover images are encoded with CLIP to produce a separate 512-dimensional visual HNSW index (\nolinkurl{clip_index_hnsw.faiss}).
+A Tantivy BM25 index is built over the same text fields to support the keyword re-ranking stage.
+
+\subsection{Cleora Co-Purchase Graph}
+
+The Cleora embeddings are generated offline from a hyperedge file that represents co-purchased item sets.
+Each line in the hyperedge file lists the ASINs interacted with by a single user during one session; Cleora~\cite{rychalska2021cleora} propagates these co-occurrence signals through Markov-chain iterations to produce 375{,}280 item embeddings stored in \nolinkurl{cleora_embeddings.npz}.
+
+\subsection{DIF-SASRec Pretraining}
+
+The DIF-SASRec model is pretrained on 100{,}000 user sequences using the setup script \nolinkurl{scripts/setup_dif_sasrec.py}, which processes the raw Amazon Books interaction data into training sequences, runs the pretraining loop, and writes the checkpoint to \nolinkurl{data/dif_sasrec_pretrained.pt}.
+At inference time, the pretrained checkpoint is loaded into each slot of the 8-agent \texttt{AgentPool}; per-user checkpoints are written to \nolinkurl{data/user_checkpoints/<user_id>.pt} as online fine-tuning accumulates gradient steps.

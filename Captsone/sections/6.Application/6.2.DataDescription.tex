@@ -1,2 +1,31 @@
-\section{Data Description}
+\section{Dataset Description}
+\label{sec:app_dataset}
 
+The catalogue is derived from the Amazon Books subset of the Amazon Reviews dataset~\cite{ni2019justifying}.
+Table~\ref{tab:dataset_stats} summarises the key dataset statistics.
+
+\begin{table}[H]
+\centering
+\caption{Dataset statistics for the Amazon Books catalogue.}
+\label{tab:dataset_stats}
+\begin{tabular}{p{6.5cm} p{8.0cm}}
+\hline
+\textbf{Property} & \textbf{Value} \\
+\hline
+Total catalogue items & 3{,}000{,}000 (approx.) \\
+Items with cover images & 2{,}800{,}000 (approx.) \\
+Items in Cleora co-purchase graph & 375{,}280 \\
+Pretraining interaction sequences & 100{,}000 users \\
+Item metadata fields & ASIN, title, author, genre, description, cover URL \\
+Primary storage format & Apache Parquet (\nolinkurl{data/item_metadata.parquet}) \\
+Text embedding index & BGE-M3 HNSW, 1{,}024-dim, 1.7M vectors (production) \\
+Visual embedding index & CLIP HNSW, 512 dimensions \\
+\hline
+\end{tabular}
+\end{table}
+
+Each item record contains the item identifier (ASIN), title, author name, genre label, a short description, and a URL pointing to the cover image hosted on Amazon CDN.
+Metadata is loaded at startup from the Parquet file into an in-memory pandas DataFrame indexed by ASIN, so individual item lookups for search result hydration are constant-time.
+
+The pretraining split contains 100{,}000 user interaction sequences used to initialise the DIF-SASRec weights in \nolinkurl{data/dif_sasrec_pretrained.pt}.
+At runtime, additional interactions are written by authenticated users and stored in MongoDB; these drive both the per-user fine-tuning of DIF-SASRec checkpoints and the incremental Cleora co-purchase graph updates described in Section~\ref{sec:cleora_incremental}.

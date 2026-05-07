@@ -1,2 +1,19 @@
-\section{Summary}
+\section{Chapter Summary}
+\label{sec:chap4_conclusion}
 
+This chapter described the four infrastructure changes that address the highest-priority challenges identified in Chapter~3.
+
+Section~\ref{sec:infra_improvements} replaced the BLaIR encoder with BGE-M3, introduced the NLLB-200 multilingual translation pipeline, parallelised text and CLIP encoding via an \texttt{anyio} task group, and replaced the GRU-SeqDQN recommendation module with a dual-pipeline architecture.
+These changes collectively reduce warm-cache end-to-end search latency from 1{,}102 ms to 59 ms — an 18.6$\times$ improvement — while enabling Vietnamese-language queries that previously achieved Precision@10 $\leq 0.05$ under BLaIR.
+
+Section~\ref{sec:ingestion_improvements} replaced the batch-only Cleora rebuild with a three-stage incremental pipeline: a delta export script that queries MongoDB for new click and cart events since the last run, a Cleora augmentation step that updates the co-purchase graph, and a hot-reload step that atomically swaps the in-memory index.
+The pipeline is triggered automatically at \texttt{CLEORA\_REFIT\_THRESHOLD} = 50 interactions and is fault-isolated at each stage, retaining the previous embeddings if any stage fails.
+
+Section~\ref{sec:viz_improvements} replaced synchronous rendering with skeleton loading states, exposed the dual-pipeline recommendation architecture as two explicit sub-tabs (\textit{People Also Buy} and \textit{You Might Like}), and added an inline training visualisation showing the DIF-SASRec loss sparkline with pretrain-to-online phase annotation.
+The revised interface also supports multimodal search through a combined text-and-image input area, and provides a dark mode toggle and a live recently-viewed strip.
+
+Section~\ref{sec:storage_improvements} introduced a dual FAISS index strategy — an HNSW index for production ANN search and a flat index for exact reconstruction — loaded via memory mapping to eliminate the 45-second full-load startup penalty.
+The HNSW index reduces P50 search latency from 612.19 ms to 119.56 ms (a 5.12$\times$ speedup), at a recall of 0.521 that is partially compensated by the BM25 re-ranking stage.
+The Cleora behavioural embeddings are maintained as a separate hot-swappable archive covering 375{,}280 catalogue items.
+
+Chapter~5 evaluates these changes quantitatively, reporting recommendation accuracy across 100{,}000 test users, multilingual retrieval precision across five query-type groups, and end-to-end latency across four optimisation stages.

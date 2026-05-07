@@ -1,2 +1,60 @@
-\section{Improvements in Data Visualization Module}
+\section{Improvements in Data Visualisation Module}
+\label{sec:viz_improvements}
 
+Three limitations were identified in the prior visualisation layer in Section~\ref{sec:viz_analysis}: synchronous rendering caused the page to freeze during slow API responses, no filtering or sorting controls existed, and the recommendation panel showed no indication of pipeline origin or personalisation state.
+The revised frontend addresses all three through asynchronous loading patterns, dual recommendation panels with explicit pipeline attribution, and an inline training visualisation component.
+
+\subsection{Asynchronous Rendering and Skeleton Loading}
+\label{sec:skeleton_loading}
+
+In the prior system, the React component tree rendered synchronously: the search view blocked the main thread while awaiting the API response, producing a visibly frozen interface during the 1{,}102 ms baseline latency window.
+The revised implementation transitions all data-fetching calls to non-blocking \texttt{async}/\texttt{await} handlers managed by React state.
+While a request is in flight, the result area is replaced by a configurable number of \texttt{SkeletonCard} placeholder elements — animated loading stubs that match the dimensions of the real result cards.
+The user therefore sees immediate visual feedback and can continue interacting with other parts of the interface while the response is pending.
+This pattern is applied uniformly to the search result list (four skeleton cards during query processing), the recommendation panels (four skeleton cards during profile loading), and the profile data fetch.
+
+\subsection{Dual Recommendation Panels}
+\label{sec:dual_panels}
+
+The prior recommendation panel was a single flat list with no indication of how or why items appeared.
+The revised panel exposes the two-pipeline architecture directly in the UI through a pair of sub-tabs.
+
+Figure~\ref{fig:ui_recs} shows the updated recommendation interface.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.90\textwidth]{images/chapter4/fig_ui_recs}
+\caption{Revised recommendation panel. The ``People Also Buy'' sub-tab (Pipeline~A) surfaces Cleora co-purchase neighbours re-ranked by BGE-M3 cosine similarity. The ``You Might Like'' sub-tab (Pipeline~B) shows DIF-SASRec sequential recommendations. A mode pill above the tabs transitions from ``Discovery mode'' (cold start) to a live-dot ``DIF-SASRec active'' badge once the user accumulates sufficient interaction history.}
+\label{fig:ui_recs}
+\end{figure}
+
+The \textit{People Also Buy} sub-tab renders the output of Pipeline~A: Cleora co-purchase neighbours re-ranked by the user's BGE-M3 profile vector.
+The \textit{You Might Like} sub-tab renders Pipeline~B output from the DIF-SASRec \texttt{AgentPool}.
+Each recommendation card carries a pipeline label (e.g., \texttt{Cleora + BGE-M3} or \texttt{DIF-SASRec}) so users can see which model generated each suggestion.
+
+A mode status pill above the sub-tabs reflects the personalisation state returned by the \texttt{/recommend} endpoint.
+Cold-start users (fewer than \texttt{COLD\_START\_THRESHOLD} = 5 interactions) see a grey \textit{Discovery mode} badge; once the threshold is crossed, the pill transitions to a green live-dot \textit{DIF-SASRec active} badge with a toast notification informing the user that personalised ranking has engaged.
+When new items appear in \textit{You Might Like} after a refresh, those cards are briefly highlighted with a new-badge for four seconds, making it visually clear that the personalisation has updated.
+
+\subsection{Online Training Visualisation}
+\label{sec:training_viz}
+
+A dedicated profile panel on the right half of the interface exposes the online learning state in real time.
+The \texttt{ProfileRadar} component renders a radar chart of engagement signals derived from the user's interaction history (click rate, cart rate, skip rate, interaction count, and recency), giving a compact visual fingerprint of revealed preferences.
+
+A \textit{Train Feed} widget lists the six most recent interactions alongside a per-event training outcome: click and cart events are labelled \texttt{▲ trained} in green, while skip events are labelled \texttt{▼ skipped} in red.
+Below it, a \textit{SASRec Loss} sparkline plots the full Bellman-error loss history as a filled area chart.
+The sparkline annotates the boundary between the pretraining phase (checkpoint-loaded loss, higher scale) and the online fine-tuning phase (per-user gradient steps, lower scale) with a dashed divider, as the loss scales differ between the two phases due to the change in negative sampling strategy.
+When a click or cart event triggers a gradient step, the most recent loss value is flashed as a transient badge (\texttt{↓ 0.xxx trained}) for 2.5 seconds, providing immediate feedback that the model updated.
+
+\subsection{Multimodal Search Interface}
+\label{sec:multimodal_ui}
+
+The search view now accepts both text queries and image queries from a single input area.
+Below the text field, an image drop zone accepts drag-and-drop or file-picker uploads; on image load, the zone transitions from a dashed placeholder to a preview thumbnail with a label confirming that the CLIP encoder will process it.
+Text-only queries bypass the CLIP branch; image-only queries bypass the text encoder; both can be supplied simultaneously for a fused retrieval.
+Search results remain hidden behind skeleton cards until the API response arrives, then replace the skeletons without a page reload or scroll reset.
+
+A dark mode toggle in the header applies a site-wide colour scheme switch (light to dark and back) using Tailwind CSS \texttt{dark:} variants and a \texttt{document.documentElement} class toggle, with no page reload required.
+A persistent \textit{Recently Viewed} strip in the header displays book cover thumbnails from the user's interaction history, providing a continuous navigation context.
+Toast notifications confirm every significant action — search completion, cart addition, model update, and cold-start-to-personalised transition — using a 3-second auto-dismiss overlay rack in the top-right corner.

@@ -13,11 +13,7 @@ Figure~\ref{fig:ingestion_pipeline} illustrates the ingestion pipeline.
 
 \begin{figure}[H]
 \centering
-\fbox{\begin{minipage}{0.90\textwidth}
-\centering\vspace{2.0cm}
-\textit{[PLACEHOLDER: Data ingestion pipeline diagram. Left to right: Raw source files (JSON/CSV) → Schema parser → Validation filter → MongoDB bulk insert. Show also a separate branch for item metadata CSV → Parquet conversion → item\_metadata.parquet. Indicate batch-only execution with no streaming path.]}
-\vspace{2.0cm}
-\end{minipage}}
+\includegraphics[width=0.90\textwidth]{images/chapter3/fig_ingestion_pipeline}
 \caption{Current data ingestion pipeline. All ingestion is performed offline in batch; there is no streaming or incremental update path.}
 \label{fig:ingestion_pipeline}
 \end{figure}
@@ -82,11 +78,7 @@ Figure~\ref{fig:prior_ui} shows the current search interface.
 
 \begin{figure}[H]
 \centering
-\fbox{\begin{minipage}{0.90\textwidth}
-\centering\vspace{2.5cm}
-\textit{[PLACEHOLDER: Screenshot or mockup of the current (prior) search UI. Should show: a search bar at the top, a list of result cards below (book cover, title, author), and a sidebar with the user's recent history. The UI should look basic/minimal to contrast with the improved version in Chapter~6.]}
-\vspace{2.5cm}
-\end{minipage}}
+\includegraphics[width=0.90\textwidth]{images/chapter3/fig_prior_ui}
 \caption{Current search interface. Results are displayed as a flat list with no filtering, sorting, or pagination controls.}
 \label{fig:prior_ui}
 \end{figure}
@@ -105,11 +97,7 @@ Figure~\ref{fig:gru_seqdqn} shows its architecture.
 
 \begin{figure}[H]
 \centering
-\fbox{\begin{minipage}{0.90\textwidth}
-\centering\vspace{2.0cm}
-\textit{[PLACEHOLDER: GRU-SeqDQN architecture diagram. Show: (1) Interaction sequence as input on the left; (2) GRU encoder producing a fixed-size hidden state; (3) DQN policy network taking the hidden state and outputting Q-values over the item catalogue; (4) Argmax selection of the top-N recommended items on the right. Label the GRU bottleneck and the large action space as the two known failure points.]}
-\vspace{2.0cm}
-\end{minipage}}
+\includegraphics[width=0.90\textwidth]{images/chapter3/fig_gru_seqdqn}
 \caption{GRU-SeqDQN recommendation architecture. A GRU encoder compresses the interaction sequence into a fixed-size state vector, which a DQN policy network maps to Q-values over the item catalogue.}
 \label{fig:gru_seqdqn}
 \end{figure}

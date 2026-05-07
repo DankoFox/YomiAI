@@ -1,2 +1,19 @@
-\section{Problem Statement}
+\section{Application Overview}
+\label{sec:app_overview}
 
+The deployed application is a multimodal book discovery platform that allows users to find books through natural-language text queries, image queries, or both, and to receive personalised recommendations that adapt to their interaction history.
+
+The application serves three practical user needs.
+First, catalogue scale: the index covers approximately 3 million book items, making unguided browsing impractical.
+Second, language diversity: Vietnamese-speaking users can query the catalogue through the integrated NLLB-200 translation pipeline, which translates queries to English before encoding.
+Third, adaptive personalisation: a cold-start user receives co-purchase-based suggestions from the Cleora graph immediately; once five interactions accumulate, DIF-SASRec sequential recommendations engage automatically.
+
+The full application stack is:
+\begin{itemize}
+    \item \textbf{Frontend}: React 19 + Vite 8 + Tailwind CSS, served at \texttt{http://localhost:5173}.
+    \item \textbf{Backend}: FastAPI + uvicorn, served at \texttt{http://localhost:8000}. Seven route groups: \texttt{/search}, \texttt{/recommend}, \texttt{/interact}, \texttt{/profile}, \texttt{/auth}, \texttt{/ask\_llm}, \texttt{/health}.
+    \item \textbf{Infrastructure}: MongoDB (\texttt{nba\_logs} database) and Redis (interaction write-queue), both provisioned via Docker Compose.
+\end{itemize}
+
+A \textit{Mock / Live} toggle in the application header allows the frontend to operate entirely with pre-defined mock data without requiring the backend to be running, which is useful for UI development and demonstrations when the ML models are not loaded.
+User identity is persisted in \texttt{localStorage} so that returning users bypass the login gate automatically.
