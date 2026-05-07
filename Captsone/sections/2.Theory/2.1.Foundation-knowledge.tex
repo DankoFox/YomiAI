@@ -1,2 +1,98 @@
 \section{Foundation Knowledge}
+\label{sec:foundation}
+
+\subsection{Recommendation Systems and Sequential Modelling}
+\label{sec:seq_rec}
+
+A recommendation system aims to predict items that a user is likely to interact with, given their historical behaviour.
+Three broad paradigms have been studied in the literature.
+\textit{Collaborative filtering} constructs a user–item interaction matrix and exploits co-occurrence patterns, typically via matrix factorisation, to infer latent user and item factors.
+\textit{Content-based filtering} represents items by their attributes (title, genre, description) and retrieves items similar to those a user has previously consumed.
+\textit{Hybrid} approaches combine both signals to mitigate the individual weaknesses of each: collaborative methods suffer from the cold-start problem when a new item has no interactions, while content-based methods ignore the community-level purchasing signals that often drive discovery.
+
+Sequential recommendation refines the problem further by treating a user's interactions as an ordered sequence and predicting the \textit{next} item.
+The key observation is that a user's near-term intent is more accurately reflected by their most recent interactions than by their full historical profile.
+Early sequential methods applied recurrent neural networks (RNNs) to model temporal dynamics~\cite{hidasi2016gru4rec}, but RNNs encode history into a fixed-size state vector, creating an information bottleneck for long sequences.
+
+Self-attention, introduced in the Transformer architecture~\cite{vaswani2017attention}, eliminates this bottleneck by computing a weighted sum over all positions in the sequence for each query position.
+The attention weight between positions $i$ and $j$ is:
+\begin{equation}
+  \alpha_{ij} = \frac{\exp((\mathbf{q}_i \mathbf{k}_j^\top) / \sqrt{d})}{\sum_{l} \exp((\mathbf{q}_i \mathbf{k}_l^\top) / \sqrt{d})}
+\end{equation}
+where $\mathbf{q}_i$, $\mathbf{k}_j$ are query and key projections of the $i$-th and $j$-th sequence positions, and $d$ is the head dimension.
+SASRec~\cite{kang2018self} adapts this to recommendation with a \textit{causal} (left-to-right) mask so that only past interactions influence each prediction, matching the sequential nature of the task.
+BERT4Rec~\cite{sun2019bert4rec} instead uses bidirectional attention with masked-item training, achieving higher accuracy but at a greater inference cost.
+
+DIF-SASRec~\cite{xie2022difsasrec} extends SASRec by incorporating \textit{side information} — item attributes such as textual content and categorical metadata — through decoupled attention streams.
+Rather than fusing attribute embeddings into item ID embeddings before attention (which conflates the two signals), DIF-SASRec maintains separate attention modules for content and category features and combines them at the output layer.
+This decoupling preserves the ability to attend to content-relevant history and category-relevant history independently, improving performance on items with rich metadata.
+
+\subsection{Graph-Based Behavioural Embedding: Cleora}
+\label{sec:cleora}
+
+Graph-based embedding methods represent items as nodes in a graph and learn dense vector representations that encode the graph's structural proximity.
+In a co-purchase graph, items are connected by an edge if they are frequently bought together; the edge weight reflects the strength of that co-occurrence.
+Dense items in tightly connected communities — such as books in the same series or by the same author — receive similar embeddings, enabling efficient candidate retrieval by nearest-neighbour search.
+
+Cleora~\cite{rychalska2021cleora} is an unsupervised graph embedding scheme based on iterative feature propagation.
+Starting from random node features, each iteration replaces every node's embedding with the weighted average of its neighbours' embeddings, followed by row-wise $\ell_2$ normalisation.
+Formally, for node $v$ at iteration $t$:
+\begin{equation}
+  \mathbf{e}_v^{(t)} = \frac{\sum_{u \in \mathcal{N}(v)} w_{uv}\, \mathbf{e}_u^{(t-1)}}{\left\| \sum_{u \in \mathcal{N}(v)} w_{uv}\, \mathbf{e}_u^{(t-1)} \right\|_2}
+\end{equation}
+where $\mathcal{N}(v)$ is the neighbour set of $v$ and $w_{uv}$ is the edge weight.
+Unlike DeepWalk or Node2Vec, Cleora requires no random-walk sampling and no contrastive objective, making it substantially faster and scalable to hundreds of thousands of nodes on a single CPU.
+After a fixed number of iterations (typically two to three), the resulting embeddings are compact representations of co-purchase community membership.
+
+\subsection{Dense and Sparse Retrieval with Hybrid Fusion}
+\label{sec:retrieval}
+
+\subsubsection{Bi-Encoder Dense Retrieval}
+
+Dense retrieval represents both queries and documents as fixed-length vectors and retrieves candidates by computing the inner product (or cosine similarity) between query and document embeddings.
+A \textit{bi-encoder} architecture uses two independent encoders — one for queries and one for items — allowing item vectors to be pre-computed and indexed offline.
+At query time, only the query encoding and a vector lookup are needed, making dense retrieval highly efficient.
+
+BGE-M3~\cite{chen2024bge} (\texttt{BAAI/bge-m3}) is the encoder used in this system.
+It supports 100+ languages and produces 1{,}024-dimensional dense embeddings.
+Its multilingual pre-training via self-knowledge distillation enables strong retrieval quality on both English and Vietnamese queries without language-specific fine-tuning.
+
+\subsubsection{Approximate Nearest Neighbour Search}
+
+Exact nearest-neighbour search over millions of vectors scales as $O(n \cdot d)$ per query, where $d$ is the embedding dimension.
+For $n = 1{,}700{,}000$ vectors of dimension 1{,}024 this is prohibitively slow at interactive latencies.
+Hierarchical Navigable Small World (HNSW)~\cite{malkov2018hnsw} graphs provide approximate nearest-neighbour search in $O(\log n)$ expected time.
+HNSW builds a layered proximity graph: lower layers are dense with short-range edges and upper layers are sparse with long-range edges.
+At query time, a greedy search descends from the sparser upper layers to progressively refine the candidate set, allowing large portions of the index to be skipped.
+FAISS~\cite{johnson2021faiss} provides a GPU-accelerated implementation of both HNSW and flat (exact) indices used in this system.
+
+\subsubsection{Sparse Retrieval and Reciprocal Rank Fusion}
+
+BM25 is a probabilistic sparse retrieval model that scores a document $d$ for query $q$ as:
+\begin{equation}
+  \text{BM25}(q, d) = \sum_{t \in q} \text{IDF}(t) \cdot \frac{f(t, d) \cdot (k_1 + 1)}{f(t, d) + k_1 \left(1 - b + b \cdot \frac{|d|}{\text{avgdl}}\right)}
+\end{equation}
+where $f(t, d)$ is the term frequency of token $t$ in document $d$, $|d|$ is document length, $\text{avgdl}$ is the corpus average document length, and $k_1 = 1.2$, $b = 0.75$ are standard hyperparameters.
+Tantivy, a Rust-native full-text search library, provides BM25 indexing and retrieval over the item catalogue.
+
+Dense and sparse rankings capture complementary signals — dense retrieval finds semantically similar items even when the query shares no tokens with the document, while BM25 excels at exact-match term recall.
+Reciprocal Rank Fusion (RRF)~\cite{cormack2009rrf} combines two ranked lists without score normalisation:
+\begin{equation}
+  \text{RRF}(d) = \sum_{r \in \mathcal{R}} \frac{1}{k + r_i(d)}
+\end{equation}
+where $\mathcal{R}$ is the set of input rankings, $r_i(d)$ is the rank of document $d$ in ranking $i$, and $k = 60$ is a smoothing constant.
+RRF is robust to score scale differences between retrieval systems and has been shown to outperform learned rank aggregation methods in low-resource settings~\cite{cormack2009rrf}.
+
+\subsection{Multimodal and Multilingual Extensions}
+\label{sec:multimodal}
+
+\paragraph{Visual Search (CLIP) —}
+CLIP~\cite{radford2021clip} is a vision-language model pre-trained via contrastive learning on 400 million image–text pairs.
+It maps both images and text descriptions into a shared embedding space, enabling zero-shot image search: a query image can be encoded and matched against text-based item embeddings without domain-specific fine-tuning.
+In the system, a CLIP HNSW index over 3 million item cover images enables cover-image-based book search.
+
+\paragraph{Multilingual Query Handling (NLLB) —}
+When a query arrives in Vietnamese, the NLLB-200 model~\cite{nllb2022} translates it to English before the BGE-M3 encoding step.
+NLLB-200 is a 54-billion-parameter mixture-of-experts model supporting 202 languages, trained specifically to improve translation quality for low-resource languages.
+Query-time translation enables the system to leverage the full semantic richness of the BGE-M3 English-dominant training distribution while still accepting Vietnamese input natively.
 

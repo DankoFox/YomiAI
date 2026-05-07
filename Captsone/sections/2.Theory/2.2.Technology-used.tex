@@ -1,2 +1,44 @@
 \section{Technology}
+\label{sec:technology}
+
+Table~\ref{tab:technology_stack} summarises the principal technologies used in the implementation of the system, organised by architectural layer.
+
+\begin{table}[H]
+\centering
+\caption{Technology stack by architectural layer.}
+\label{tab:technology_stack}
+\begin{tabular}{p{3.8cm} p{2.0cm} p{7.2cm}}
+\hline
+\textbf{Technology} & \textbf{Version} & \textbf{Role} \\
+\hline
+\multicolumn{3}{l}{\textit{Backend}} \\
+Python             & 3.11       & Primary backend language \\
+FastAPI            & —          & Asynchronous REST API framework \\
+uvicorn            & —          & ASGI production server \\
+\hline
+\multicolumn{3}{l}{\textit{Frontend}} \\
+React              & 19         & Component-based UI library \\
+Vite               & 8          & Frontend build tool and dev server \\
+Tailwind CSS       & —          & Utility-first CSS framework \\
+\hline
+\multicolumn{3}{l}{\textit{Infrastructure}} \\
+MongoDB            & —          & Document store for interaction logs \\
+Redis              & —          & Embedding and response cache \\
+Docker             & —          & Service orchestration (Compose) \\
+\hline
+\multicolumn{3}{l}{\textit{Machine Learning}} \\
+PyTorch            & —          & Model training and GPU inference \\
+HuggingFace Transformers & —   & Pre-trained model loading (BGE-M3, NLLB) \\
+sentence-transformers    & —   & Batched embedding generation \\
+\hline
+\multicolumn{3}{l}{\textit{Search and Indexing}} \\
+FAISS~\cite{johnson2021faiss} & — & HNSW and flat ANN vector indices \\
+Tantivy            & —          & Rust-native BM25 full-text index \\
+\hline
+\end{tabular}
+\end{table}
+
+FastAPI is chosen for its native support for Python type hints and asynchronous request handling, enabling concurrent retrieval calls to the FAISS and Tantivy indices without blocking the event loop.
+MongoDB stores per-user interaction logs in a schema-flexible document format, while Redis caches encoded item embeddings and recent query responses to eliminate redundant GPU inference on repeated inputs.
+Docker Compose orchestrates MongoDB and Redis as isolated services, ensuring reproducible deployment across environments.
 

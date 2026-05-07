@@ -1,2 +1,37 @@
 \section{Existing Solutions}
+\label{sec:existing_solutions}
+
+\subsection{Evolution of Sequential Recommendation Models}
+
+Sequential recommendation has evolved through several model families, each addressing a limitation of its predecessor.
+
+\paragraph{GRU4Rec —}
+Hidasi et al.~\cite{hidasi2016gru4rec} first demonstrated that recurrent neural networks could outperform matrix factorisation on session-based recommendation tasks.
+A gated recurrent unit (GRU) encoder reads the interaction sequence and produces a hidden state that is used to rank candidate items.
+The principal limitation is the sequential nature of the GRU: the hidden state at each step depends on the previous step, preventing parallelisation during training and creating an information bottleneck for long sequences.
+
+\paragraph{SASRec —}
+Kang and McAuley~\cite{kang2018self} replaced the GRU with a causal self-attention Transformer, enabling parallel computation over the full sequence during training.
+SASRec significantly outperforms GRU-based models on standard benchmarks and is substantially faster to train.
+However, it uses only item ID embeddings and does not incorporate item content features, limiting its ability to generalise to new or rare items.
+
+\paragraph{BERT4Rec —}
+Sun et al.~\cite{sun2019bert4rec} applied bidirectional attention with a Cloze-style masked-item objective.
+Access to future context improves accuracy on held-out items but requires a slower, more complex inference procedure (masking the target position and re-encoding).
+
+\paragraph{DIF-SASRec —}
+Xie et al.~\cite{xie2022difsasrec} observed that prior methods fuse side information (text, category) into item embeddings before self-attention, which prevents the model from differentiating between content-relevant and co-occurrence-relevant attention patterns.
+DIF-SASRec decouples these streams into separate attention modules and shows consistent gains over SASRec and BERT4Rec across multiple datasets.
+This architecture is adopted as Pipeline~B of the proposed system.
+
+\subsection{The Prior System: GRU-SeqDQN}
+
+The system evaluated in this report supersedes a prior implementation (hereafter GRU-SeqDQN) that paired a GRU sequence encoder with a Deep Q-Network (DQN) policy for recommendation.
+The DQN formulates recommendation as a reinforcement learning problem: the agent receives a reward signal from user interactions and learns a Q-function mapping (user state, candidate item) pairs to expected return.
+
+While this formulation is theoretically appealing, the evaluation reported in Chapter~5 shows that GRU-SeqDQN achieves an HR@10 of only 0.0823 — near the random baseline of 0.1000 — on the 100{,}000-user evaluation set.
+Two structural limitations explain this failure.
+First, the GRU encoder inherits the sequential bottleneck identified above.
+Second, DQN training is highly sample-inefficient at the scale of millions of items: the action space is too large for the Q-function to converge reliably in a reasonable number of training steps.
+The proposed DIF-SASRec (Pipeline B) and Cleora-based (Pipeline A) pipelines directly address both limitations.
 

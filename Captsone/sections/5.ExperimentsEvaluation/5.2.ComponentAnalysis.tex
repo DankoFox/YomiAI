@@ -8,7 +8,7 @@ Three aspects are examined: the text encoder choice, the approximate nearest-nei
 
 The system uses BGE-M3~\cite{chen2024bge} as the primary text encoder.
 BGE-M3 (\texttt{BAAI/bge-m3}) is a multilingual model producing 1{,}024-dimensional embeddings, and is the production encoder for both the recommendation profile and the semantic search pipeline.
-As a comparison point, the legacy encoder BLaIR~\cite{ni2021pretrain} (\texttt{hyp1231/blair-roberta-large}) was evaluated on the same held-out set.
+As a comparison point, the legacy encoder BLaIR~\cite{hou2024blair} (\texttt{hyp1231/blair-roberta-large}) was evaluated on the same held-out set.
 
 The comparison was conducted on 20{,}000 test users with $N = 99$ negatives, using identical evaluation logic.
 The results are reported in Table~\ref{tab:encoder_comparison}.
