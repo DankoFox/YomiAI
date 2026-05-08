@@ -1,0 +1,130 @@
+digraph mongo_schema {
+    graph [
+        rankdir=LR
+        bgcolor="transparent"
+        fontname="Helvetica Neue"
+        pad="0"
+        margin="0"
+        nodesep="0.4"
+    ]
+
+    node [shape=none fontname="Helvetica Neue" margin="0"]
+
+    interactions [label=<
+        <TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" COLOR="#c9d1d9" BGCOLOR="transparent">
+            <TR>
+                <TD COLSPAN="3" BGCOLOR="#f0f3f8" ALIGN="LEFT" CELLPADDING="10">
+                    <B><FONT POINT-SIZE="12" COLOR="#1a1f2e">interactions</FONT></B>
+                    <FONT POINT-SIZE="8" COLOR="#6e7891">    append-only</FONT>
+                </TD>
+            </TR>
+            <HR/>
+            <TR>
+                <TD ALIGN="LEFT" CELLPADDING="5" BGCOLOR="#f6f8fa"><FONT POINT-SIZE="8" COLOR="#6e7891">FIELD</FONT></TD>
+                <TD ALIGN="LEFT" CELLPADDING="5" BGCOLOR="#f6f8fa"><FONT POINT-SIZE="8" COLOR="#6e7891">TYPE</FONT></TD>
+                <TD ALIGN="LEFT" CELLPADDING="5" BGCOLOR="#f6f8fa"><FONT POINT-SIZE="8" COLOR="#6e7891">NOTES</FONT></TD>
+            </TR>
+            <HR/>
+            <TR>
+                <TD ALIGN="LEFT" CELLPADDING="7" BGCOLOR="transparent"><B><FONT FACE="Courier New" POINT-SIZE="10" COLOR="#1a1f2e">user_id</FONT></B></TD>
+                <TD ALIGN="LEFT" CELLPADDING="7" BGCOLOR="transparent"><FONT POINT-SIZE="10" COLOR="#0550ae">string</FONT></TD>
+                <TD ALIGN="LEFT" CELLPADDING="7" BGCOLOR="transparent"><FONT POINT-SIZE="8" COLOR="#1a7f37">index</FONT></TD>
+            </TR>
+            <TR>
+                <TD ALIGN="LEFT" CELLPADDING="7" BGCOLOR="#f5f7fa"><FONT FACE="Courier New" POINT-SIZE="10" COLOR="#1a1f2e">asin</FONT></TD>
+                <TD ALIGN="LEFT" CELLPADDING="7" BGCOLOR="#f5f7fa"><FONT POINT-SIZE="10" COLOR="#0550ae">string</FONT></TD>
+                <TD ALIGN="LEFT" CELLPADDING="7" BGCOLOR="#f5f7fa"><FONT POINT-SIZE="8" COLOR="#6e7891">not null</FONT></TD>
+            </TR>
+            <TR>
+                <TD ALIGN="LEFT" CELLPADDING="7" BGCOLOR="transparent"><FONT FACE="Courier New" POINT-SIZE="10" COLOR="#1a1f2e">action</FONT></TD>
+                <TD ALIGN="LEFT" CELLPADDING="7" BGCOLOR="transparent"><FONT POINT-SIZE="10" COLOR="#0550ae">string</FONT></TD>
+                <TD ALIGN="LEFT" CELLPADDING="7" BGCOLOR="transparent"><FONT POINT-SIZE="8" COLOR="#9a3300">click · cart · skip</FONT></TD>
+            </TR>
+            <TR>
+                <TD ALIGN="LEFT" CELLPADDING="7" BGCOLOR="#f5f7fa"><FONT FACE="Courier New" POINT-SIZE="10" COLOR="#1a1f2e">timestamp</FONT></TD>
+                <TD ALIGN="LEFT" CELLPADDING="7" BGCOLOR="#f5f7fa"><FONT POINT-SIZE="10" COLOR="#0550ae">string</FONT></TD>
+                <TD ALIGN="LEFT" CELLPADDING="7" BGCOLOR="#f5f7fa"><FONT POINT-SIZE="8" COLOR="#6e7891">ISO 8601</FONT></TD>
+            </TR>
+            <TR>
+                <TD ALIGN="LEFT" CELLPADDING="7" BGCOLOR="transparent"><FONT FACE="Courier New" POINT-SIZE="10" COLOR="#1a1f2e">session_id</FONT></TD>
+                <TD ALIGN="LEFT" CELLPADDING="7" BGCOLOR="transparent"><FONT POINT-SIZE="10" COLOR="#0550ae">string</FONT></TD>
+                <TD ALIGN="LEFT" CELLPADDING="7" BGCOLOR="transparent"><I><FONT POINT-SIZE="8" COLOR="#6e7891">optional</FONT></I></TD>
+            </TR>
+            <TR>
+                <TD ALIGN="LEFT" CELLPADDING="7" BGCOLOR="#f5f7fa"><FONT FACE="Courier New" POINT-SIZE="10" COLOR="#1a1f2e">source</FONT></TD>
+                <TD ALIGN="LEFT" CELLPADDING="7" BGCOLOR="#f5f7fa"><FONT POINT-SIZE="10" COLOR="#0550ae">string</FONT></TD>
+                <TD ALIGN="LEFT" CELLPADDING="7" BGCOLOR="#f5f7fa"><I><FONT POINT-SIZE="8" COLOR="#6e7891">optional</FONT></I></TD>
+            </TR>
+            <TR>
+                <TD ALIGN="LEFT" CELLPADDING="7" BGCOLOR="transparent"><FONT FACE="Courier New" POINT-SIZE="10" COLOR="#1a1f2e">is_guest</FONT></TD>
+                <TD ALIGN="LEFT" CELLPADDING="7" BGCOLOR="transparent"><FONT POINT-SIZE="10" COLOR="#b35a00">bool</FONT></TD>
+                <TD ALIGN="LEFT" CELLPADDING="7" BGCOLOR="transparent"><I><FONT POINT-SIZE="8" COLOR="#6e7891">optional</FONT></I></TD>
+            </TR>
+        </TABLE>
+    >]
+
+    profiles [label=<
+        <TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" COLOR="#c9d1d9" BGCOLOR="transparent">
+            <TR>
+                <TD COLSPAN="3" BGCOLOR="#f0f3f8" ALIGN="LEFT" CELLPADDING="10">
+                    <B><FONT POINT-SIZE="12" COLOR="#1a1f2e">profiles</FONT></B>
+                    <FONT POINT-SIZE="8" COLOR="#6e7891">    one doc per user · upsert</FONT>
+                </TD>
+            </TR>
+            <HR/>
+            <TR>
+                <TD ALIGN="LEFT" CELLPADDING="5" BGCOLOR="#f6f8fa"><FONT POINT-SIZE="8" COLOR="#6e7891">FIELD</FONT></TD>
+                <TD ALIGN="LEFT" CELLPADDING="5" BGCOLOR="#f6f8fa"><FONT POINT-SIZE="8" COLOR="#6e7891">TYPE</FONT></TD>
+                <TD ALIGN="LEFT" CELLPADDING="5" BGCOLOR="#f6f8fa"><FONT POINT-SIZE="8" COLOR="#6e7891">NOTES</FONT></TD>
+            </TR>
+            <HR/>
+            <TR>
+                <TD ALIGN="LEFT" CELLPADDING="7" BGCOLOR="transparent"><B><FONT FACE="Courier New" POINT-SIZE="10" COLOR="#1a1f2e">user_id</FONT></B></TD>
+                <TD ALIGN="LEFT" CELLPADDING="7" BGCOLOR="transparent"><FONT POINT-SIZE="10" COLOR="#0550ae">string</FONT></TD>
+                <TD ALIGN="LEFT" CELLPADDING="7" BGCOLOR="transparent"><B><FONT POINT-SIZE="8" COLOR="#c91818">pk · index</FONT></B></TD>
+            </TR>
+            <TR>
+                <TD ALIGN="LEFT" CELLPADDING="7" BGCOLOR="#f5f7fa"><FONT FACE="Courier New" POINT-SIZE="10" COLOR="#1a1f2e">recent_history</FONT></TD>
+                <TD ALIGN="LEFT" CELLPADDING="7" BGCOLOR="#f5f7fa"><FONT POINT-SIZE="10" COLOR="#6639ba">object[]</FONT></TD>
+                <TD ALIGN="LEFT" CELLPADDING="7" BGCOLOR="#f5f7fa"><FONT POINT-SIZE="8" COLOR="#6e7891">max 50 · {item_id, action, ts}</FONT></TD>
+            </TR>
+            <TR>
+                <TD ALIGN="LEFT" CELLPADDING="7" BGCOLOR="transparent"><FONT FACE="Courier New" POINT-SIZE="10" COLOR="#1a1f2e">recent_searches</FONT></TD>
+                <TD ALIGN="LEFT" CELLPADDING="7" BGCOLOR="transparent"><FONT POINT-SIZE="10" COLOR="#6639ba">object[]</FONT></TD>
+                <TD ALIGN="LEFT" CELLPADDING="7" BGCOLOR="transparent"><FONT POINT-SIZE="8" COLOR="#6e7891">max 20 · {query, results, modality}</FONT></TD>
+            </TR>
+            <TR>
+                <TD ALIGN="LEFT" CELLPADDING="7" BGCOLOR="#f5f7fa"><FONT FACE="Courier New" POINT-SIZE="10" COLOR="#1a1f2e">recent_recs</FONT></TD>
+                <TD ALIGN="LEFT" CELLPADDING="7" BGCOLOR="#f5f7fa"><FONT POINT-SIZE="10" COLOR="#6639ba">object[]</FONT></TD>
+                <TD ALIGN="LEFT" CELLPADDING="7" BGCOLOR="#f5f7fa"><FONT POINT-SIZE="8" COLOR="#6e7891">max 20 · {item_ids[], timestamp}</FONT></TD>
+            </TR>
+            <TR>
+                <TD ALIGN="LEFT" CELLPADDING="7" BGCOLOR="transparent"><FONT FACE="Courier New" POINT-SIZE="10" COLOR="#1a1f2e">recent_interactions</FONT></TD>
+                <TD ALIGN="LEFT" CELLPADDING="7" BGCOLOR="transparent"><FONT POINT-SIZE="10" COLOR="#0969da">string[]</FONT></TD>
+                <TD ALIGN="LEFT" CELLPADDING="7" BGCOLOR="transparent"><FONT POINT-SIZE="8" COLOR="#6e7891">max 50 · asin deque</FONT></TD>
+            </TR>
+            <TR>
+                <TD ALIGN="LEFT" CELLPADDING="7" BGCOLOR="#f5f7fa"><FONT FACE="Courier New" POINT-SIZE="10" COLOR="#1a1f2e">text_profile</FONT></TD>
+                <TD ALIGN="LEFT" CELLPADDING="7" BGCOLOR="#f5f7fa"><FONT POINT-SIZE="10" COLOR="#116329">float[]</FONT></TD>
+                <TD ALIGN="LEFT" CELLPADDING="7" BGCOLOR="#f5f7fa"><FONT POINT-SIZE="8" COLOR="#6e7891">BGE-M3 · d=1024</FONT></TD>
+            </TR>
+            <TR>
+                <TD ALIGN="LEFT" CELLPADDING="7" BGCOLOR="transparent"><FONT FACE="Courier New" POINT-SIZE="10" COLOR="#1a1f2e">visual_profile</FONT></TD>
+                <TD ALIGN="LEFT" CELLPADDING="7" BGCOLOR="transparent"><FONT POINT-SIZE="10" COLOR="#116329">float[]</FONT></TD>
+                <TD ALIGN="LEFT" CELLPADDING="7" BGCOLOR="transparent"><FONT POINT-SIZE="8" COLOR="#6e7891">CLIP · d=512</FONT></TD>
+            </TR>
+            <TR>
+                <TD ALIGN="LEFT" CELLPADDING="7" BGCOLOR="#f5f7fa"><FONT FACE="Courier New" POINT-SIZE="10" COLOR="#1a1f2e">cleora_profile</FONT></TD>
+                <TD ALIGN="LEFT" CELLPADDING="7" BGCOLOR="#f5f7fa"><FONT POINT-SIZE="10" COLOR="#116329">float[]</FONT></TD>
+                <TD ALIGN="LEFT" CELLPADDING="7" BGCOLOR="#f5f7fa"><I><FONT POINT-SIZE="8" COLOR="#6e7891">co-purchase · optional</FONT></I></TD>
+            </TR>
+            <TR>
+                <TD ALIGN="LEFT" CELLPADDING="7" BGCOLOR="transparent"><FONT FACE="Courier New" POINT-SIZE="10" COLOR="#1a1f2e">last_updated</FONT></TD>
+                <TD ALIGN="LEFT" CELLPADDING="7" BGCOLOR="transparent"><FONT POINT-SIZE="10" COLOR="#0550ae">string</FONT></TD>
+                <TD ALIGN="LEFT" CELLPADDING="7" BGCOLOR="transparent"><FONT POINT-SIZE="8" COLOR="#6e7891">ISO 8601 · auto</FONT></TD>
+            </TR>
+        </TABLE>
+    >]
+
+    { rank=same; interactions; profiles }
+}

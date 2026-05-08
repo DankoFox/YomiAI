@@ -25,3 +25,21 @@ The logged document includes: \texttt{user\_id}, \texttt{asin}, \texttt{action} 
 Guest interactions are retained in MongoDB for analytics but are excluded from the Cleora co-purchase graph update (Section~\ref{sec:cleora_incremental}) to avoid polluting the graph with transient, unauthenticated traffic.
 
 The background worker also maintains a counter; when the counter reaches \texttt{CLEORA\_REFIT\_THRESHOLD} = 50, the incremental Cleora refit pipeline is triggered automatically as a non-blocking \texttt{asyncio.create\_task}, as described in Section~\ref{sec:cleora_trigger}.
+
+\subsection{Persistent Storage Schema}
+\label{sec:mongo_schema}
+
+Figure~\ref{fig:mongo_schema} presents the document schema for the two MongoDB collections maintained within the \texttt{nba\_logs} database.
+The \texttt{interactions} collection is append-only: one document is inserted per user event and no document is ever updated, preserving a complete immutable audit log suitable for offline retraining and Cleora graph augmentation.
+The \texttt{profiles} collection follows an upsert pattern: a single document per user is atomically updated after every interaction via \texttt{update\_one} with \texttt{upsert=True}.
+The three embedding fields---\texttt{text\_profile}, \texttt{visual\_profile}, and \texttt{cleora\_profile}---store temporally-decayed mean-pool vectors recomputed over the full click history at write time, with dimensions matching the respective encoder outputs (BGE-M3: $d = 1{,}024$; CLIP: $d = 512$).
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.78\textwidth]{images/chapter6/mongo_schema}
+\captionsetup{font=small}
+\caption{Document schema for the \texttt{nba\_logs} MongoDB database.
+(a)~\texttt{interactions}: append-only collection recording every user event with action type (\texttt{click}/\texttt{cart}/\texttt{skip}), session context, and guest flag.
+(b)~\texttt{profiles}: one document per user, upserted on each interaction, storing the full behavioural history and three aggregated embedding vectors used by the recommendation pipelines at inference time.}
+\label{fig:mongo_schema}
+\end{figure}
