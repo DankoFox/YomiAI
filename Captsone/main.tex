@@ -14,7 +14,7 @@
 \usepackage{lastpage}
 \usepackage{tabularx}
 \usepackage{amsmath}
-\usetikzlibrary{positioning}
+\usetikzlibrary{positioning,arrows.meta,backgrounds,fit,calc}
 \usepackage{anyfontsize}
 \usepackage{float}
 \usepackage{titlesec}
@@ -39,6 +39,9 @@
 }
 \usepackage{subcaption}
 \usepackage{xcolor}
+\emergencystretch=3em
+\hyphenpenalty=500
+\tolerance=1000
 
 \definecolor{myjsoncolor}{RGB}{128, 0, 128} % You can customize this color
 
@@ -146,6 +149,8 @@
 \input{sections/4.ProposedSolutions/4.2.ImprovementsInDataIngestionModule}
 \input{sections/4.ProposedSolutions/4.3.ImprovementsInDataVisualizationModule}
 \input{sections/4.ProposedSolutions/4.4.ImprovementsInDataStorageModule}
+\input{sections/4.ProposedSolutions/4.6.AgentPoolAndCheckpoints}
+\input{sections/4.ProposedSolutions/4.7.ModelTraining}
 \input{sections/4.ProposedSolutions/4.5.ChapterConclusion}
 
 \chapter{Experiments and Evaluation}
@@ -169,6 +174,7 @@
 \input{sections/6.Application/6.6.Result}
 \input{sections/6.Application/6.7.DataRetrieval}
 \input{sections/6.Application/6.8.OtherFunctions}
+\input{sections/6.Application/6.9.SystemPerformance}
 
 \chapter{Conclusion}
 \textit{This chapter summarizes the achievements of the Capstone Project, evaluates the objectives established by the team, and proposes future enhancements for the system.}

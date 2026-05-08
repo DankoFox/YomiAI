@@ -1,20 +1,18 @@
 \chapter*{Abstract}
 
-This report presents the design, implementation, and evaluation of a dual-mode multimodal book recommendation system built on a data platform with modular ingestion, storage, and retrieval components, backed by MongoDB for persistent interaction logs and Redis as an asynchronous interaction write-queue.
-The system addresses two distinct recommendation scenarios: proactive candidate generation based on long-term behavioural history, and intent-sensitive ranking based on recent interaction sequences.
+This report presents the design, implementation, and evaluation of a dual-mode multimodal book recommendation system.
+The system addresses two distinct scenarios: proactive candidate generation based on long-term behavioural history, and intent-sensitive ranking based on recent interaction sequences.
 
 Two complementary pipelines are proposed.
-Pipeline~A retrieves candidates through a Cleora co-purchase graph embedding index covering 375{,}280 items, then re-ranks them using a BGE-M3 semantic profile vector constructed by mean-pooling the user's interaction embeddings.
-Pipeline~B applies a DIF-SASRec transformer with decoupled content and category attention streams, pretrained on 100{,}000 users, to model sequential reading intent.
-A content veto filter (cosine threshold $\tau = 0.3$) removes semantically unrelated candidates before re-ranking.
-The final recommendations are formed by the union of the top-10 outputs of both pipelines.
+Pipeline~A retrieves candidates from a Cleora co-purchase graph embedding index and re-ranks them using a BGE-M3 semantic user profile.
+Pipeline~B applies a DIF-SASRec transformer with decoupled content and category attention streams to model sequential reading intent, with a content veto filter to remove semantically unrelated candidates.
+The final recommendations are formed by the union of the top outputs of both pipelines.
 
-The system is evaluated on the Amazon Book Reviews dataset using a leave-one-out protocol with sampled negatives.
-On 100{,}000 test users with $N = 99$ negatives, the combined system achieves \textbf{HR@10 = 0.9736} and \textbf{NDCG@10 = 0.5571} — a 124\% improvement in hit rate over the content-only baseline and an improvement of more than $8\times$ over the prior GRU-SeqDQN approach.
-Evaluation across five random seeds confirms stability ($\sigma = 0.0024$ for HR@10).
+The system is evaluated on the Amazon Book Reviews dataset using a leave-one-out protocol.
+The combined system achieves \textbf{HR@10 = 0.9736} and \textbf{NDCG@10 = 0.5571} — a 124\% improvement over the content-only baseline and more than $8\times$ over the prior GRU-SeqDQN approach.
 
-An active text search pipeline supports semantic retrieval over 3 million items via FAISS HNSW approximate search, BM25 re-ranking through RRF fusion, and NLLB-based Vietnamese query translation.
-Latency optimisations reduce end-to-end query response time from 1{,}102 ms to 59 ms (warm cache), an 18.6$\times$ improvement.
-BGE-M3 achieves up to 11$\times$ higher Precision@10 than the legacy BLaIR encoder on Vietnamese queries, validating the choice of a multilingual encoder for the target user population.
+An active search pipeline supports semantic retrieval over 3 million items via FAISS HNSW, BM25 re-ranking through RRF fusion, and NLLB-based Vietnamese query translation.
+End-to-end search latency is reduced from 1{,}102\,ms to 59\,ms, an 18.6$\times$ improvement.
+The system is deployed as a full-stack interactive book discovery application.
 
 

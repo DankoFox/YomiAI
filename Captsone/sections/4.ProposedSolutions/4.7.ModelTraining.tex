@@ -1,0 +1,207 @@
+\section{DIF-SASRec Pretraining: Iterative Development}
+\label{sec:dif_sasrec_training}
+
+This section documents the iterative pretraining process for the DIF-SASRec sequential recommendation model.
+Three distinct training runs were conducted, each informed by a root-cause analysis of the previous run.
+The progression illustrates the importance of the capacity-to-data ratio in transformer pretraining and motivates the final 100k-user training configuration adopted by the system.
+
+\subsection{Motivation}
+
+The prior recommendation engine (GRU-SeqDQN) was an online reinforcement-learning model that required live user traffic to learn meaningful item associations.
+In the cold-start state — before any interactions were recorded — it produced effectively random recommendations, making offline benchmarking impossible and delaying personalisation for every new deployment.
+
+DIF-SASRec replaces this with an offline-pretrained transformer that ships warm from day one.
+The model is trained on historical Amazon Reviews 2023 Books interactions using a sampled softmax loss, then further fine-tuned per user at inference time via the AgentPool mechanism (Section~\ref{sec:agent_pool}).
+
+\subsection{Training Run 1: Initial Baseline}
+\label{sec:train_run1}
+
+The first run established a working baseline using a lightweight 2-block architecture trained on 20{,}000 users.
+Users were selected from the Books 5-core subset of the Amazon Reviews 2023 dataset~\cite{hou2024blair}, filtered to items present in the FAISS index, and split by leave-one-out: each user's last interaction is held out as the test item, the preceding sequence is used for training.
+
+\begin{table}[H]
+\centering
+\caption{DIF-SASRec Run~1: configuration and result.}
+\label{tab:train_run1}
+\begin{tabular}{ll}
+\hline
+\textbf{Parameter}       & \textbf{Value} \\
+\hline
+Parameters               & 2{,}273{,}075 \\
+Hidden dimension         & 256 \\
+Transformer blocks / heads & 2 / 4 \\
+Training users           & 20{,}000 (avg.\ 40--50 clicks) \\
+Batch size               & 512 \\
+Negatives per step       & 256 (fixed pool) \\
+Optimiser                & Adam, lr = 1e-3 (fixed) \\
+Epochs                   & 30 \\
+\hline
+\textbf{HR@10}           & \textbf{0.2973} \\
+\textbf{NDCG@10}         & \textbf{0.1668} \\
+\hline
+\end{tabular}
+\end{table}
+
+At HR@10 = 0.2973, DIF-SASRec was 3$\times$ the random baseline (0.1000), confirming that sequential modelling was functioning.
+However, it remained well below the content-similarity baseline (HR@10 = 0.4522), suggesting that the 2-block, 256-dimensional architecture was under-capacity for the task.
+
+\subsection{Training Run 2: Scale-Up Attempt and Regression}
+\label{sec:train_run2}
+
+Based on the Run~1 result, the model was scaled up: hidden dimension doubled from 256 to 512, transformer blocks increased from 2 to 4, and the training set expanded to 200{,}000 users.
+Additional training improvements were also applied simultaneously: the optimiser was changed from Adam to AdamW with weight decay 0.01, a linear warmup with cosine decay LR schedule was introduced, and Automatic Mixed Precision (AMP) was enabled.
+Table~\ref{tab:train_run2} compares the two configurations.
+
+\begin{table}[H]
+\centering
+\caption{DIF-SASRec Run~1 vs.\ Run~2: configuration comparison.}
+\label{tab:train_run2}
+\begin{tabular}{lll}
+\hline
+\textbf{Parameter}   & \textbf{Run~1} & \textbf{Run~2} \\
+\hline
+Parameters           & 2.3M           & 12.4M \\
+Hidden dimension     & 256            & 512 \\
+Blocks / heads       & 2 / 4          & 4 / 8 \\
+Negatives            & 256            & 512 \\
+Optimiser            & Adam           & AdamW (wd=0.01) \\
+LR schedule          & Fixed 1e-3     & Cosine (2-epoch warmup) \\
+Batch size           & 512            & 1{,}024 \\
+Training users       & 20{,}000       & 200{,}000 \\
+Avg.\ clicks         & 40--50         & 21 \\
+Final training loss  & 3.35           & 3.06 \\
+\hline
+\textbf{HR@10}       & 0.2973         & \textbf{0.1950} \\
+\hline
+\end{tabular}
+\end{table}
+
+The result was a regression: HR@10 dropped from 0.2973 to 0.1950 despite lower training loss and larger architecture.
+
+\textbf{Root cause analysis.}
+Two compounding factors were identified.
+
+\emph{Overfitting due to capacity/data mismatch.}
+A misconfiguration in the data setup script left the evaluation user list at 20{,}000 entries — the same training population as Run~1.
+A model with 5$\times$ more parameters trained on an identical dataset overfits: training loss improved (3.35 $\to$ 3.06), but held-out generalisation to the last-item test degraded.
+
+\emph{Interaction density below signal floor.}
+When the data selection was corrected to truly include 200{,}000 users, average clicks per user dropped from 40--50 to approximately 21.
+A 4-block transformer with \texttt{MAX\_SEQ\_LEN} = 50 requires sufficiently long input sequences to propagate gradient signal through all layers.
+At an average of 21 clicks, a large fraction of users had sequences shorter than the receptive field of the deeper blocks, effectively starving those blocks of training signal.
+
+\subsection{Training Run 3: Calibrated 100k Configuration}
+\label{sec:train_run3}
+
+The key insight from Run~2 was that \emph{interaction density matters more than user count} for this architecture.
+The data selection cap was adjusted to 100{,}000 users (the top-100k most active readers, sorted by number of rated items).
+At this cap, avg.\ train clicks = 33.5 — comfortably above the signal floor while still providing 5$\times$ more user diversity than Run~1.
+
+Three additional training improvements were applied:
+
+\begin{enumerate}
+    \item \textbf{Per-epoch negative resampling.}
+    Runs~1 and~2 used a fixed pool of 50{,}000 negative items sampled once before training.
+    The model gradually memorised which items were easy negatives, causing the training signal to stagnate.
+    In Run~3, a fresh 50{,}000-item pool is drawn from the embedding cache at the start of each epoch, continuously restoring the difficulty of the negative task.
+
+    \item \textbf{Batch size 2{,}048 with AMP.}
+    Automatic Mixed Precision (fp16 forward pass, fp32 gradient accumulation) halves activation memory, allowing batch size 2{,}048 — doubling GPU throughput compared to Run~2.
+    AMP was present in Run~2 but a scheduler-ordering bug suppressed its benefit.
+
+    \item \textbf{AMP + LR scheduler ordering fix.}
+    PyTorch's \texttt{GradScaler.step()} silently skips the optimiser update when inf/nan gradients are detected.
+    In Run~2, the LR scheduler was still advancing on skipped steps, decoupling the LR trajectory from the actual gradient update count.
+    The fix compares the gradient scale before and after \texttt{scaler.step()}: the scheduler advances only when no skip occurred.
+\end{enumerate}
+
+\begin{table}[H]
+\centering
+\caption{DIF-SASRec Run~3: final configuration and result.}
+\label{tab:train_run3}
+\begin{tabular}{ll}
+\hline
+\textbf{Parameter}       & \textbf{Value} \\
+\hline
+Parameters               & 12{,}420{,}345 \\
+Training users           & 100{,}000 (avg.\ 33.5 clicks) \\
+Batch size               & 2{,}048 \\
+AMP                      & On (fp16 forward, fp32 gradients) \\
+Negatives                & 512 (resampled each epoch) \\
+Optimiser                & AdamW (lr=1e-3, wd=0.01) \\
+LR schedule              & Linear warmup 2 epochs $\to$ cosine decay \\
+Epochs                   & 30 \\
+\hline
+\textbf{HR@10}           & \textbf{0.7745} \\
+\textbf{NDCG@10}         & \textbf{0.5029} \\
+\hline
+\end{tabular}
+\end{table}
+
+HR@10 reached 0.7745 --- a 161\% improvement over Run~1 and 78\% above the content-similarity baseline (0.4346).
+The three-run progression is summarised in Table~\ref{tab:train_summary}.
+
+\begin{table}[H]
+\centering
+\caption{DIF-SASRec pretraining trajectory.}
+\label{tab:train_summary}
+\begin{tabular}{p{2.8cm} p{1.8cm} p{1.6cm} p{2.4cm} p{1.6cm} p{1.8cm}}
+\hline
+\textbf{Run} & \textbf{Params} & \textbf{Users} & \textbf{Avg.\ clicks} & \textbf{HR@10} & \textbf{NDCG@10} \\
+\hline
+Run~1 (Apr~11) & 2.3M  & 20k  & 40--50 & 0.2973 & 0.1668 \\
+Run~2 (Apr~12) & 12.4M & 200k & 21     & 0.1950 & 0.0972 \\
+Run~3 (Apr~12) & 12.4M & 100k & 33.5   & \textbf{0.7745} & \textbf{0.5029} \\
+\hline
+\end{tabular}
+\end{table}
+
+\subsection{Training Loss vs.\ Benchmark Quality}
+
+A superficial reading of the final training losses — 3.35 (Run~1), 3.06 (Run~2), 5.34 (Run~3) — would suggest that Run~3 was the weakest of the three.
+In fact it is the strongest by a wide margin (HR@10 = 0.7745).
+Three separate factors explain why the raw loss numbers are misleading.
+
+\textbf{Different random baselines.}
+The training loss is sampled softmax over $K+1$ items (1 positive + $K$ negatives).
+For a uniformly random model, the expected loss is $\ln(K+1)$.
+Runs~1 used $K=256$ negatives (random baseline $= \ln(257) \approx 5.55$), while Runs~2 and~3 used $K=512$ negatives (random baseline $= \ln(513) \approx 6.24$).
+Comparing absolute losses across different $K$ values therefore conflates model quality with task difficulty.
+Table~\ref{tab:loss_normalised} reports each run's loss \emph{as a fraction of its own random baseline}, a scale-free measure of how much the model improved over chance.
+
+\begin{table}[H]
+\centering
+\caption{Training loss normalised by the random baseline $\ln(K+1)$ for each run.}
+\label{tab:loss_normalised}
+\begin{tabular}{lrrrr}
+\hline
+\textbf{Run} & \textbf{Negatives $K$} & \textbf{Random baseline} & \textbf{Final loss} & \textbf{Loss / baseline} \\
+\hline
+Run~1 & 256 & $\ln(257) \approx 5.55$ & 3.35 & 60.4\% \\
+Run~2 & 512 & $\ln(513) \approx 6.24$ & 3.06 & 49.0\% \\
+Run~3 & 512 & $\ln(513) \approx 6.24$ & 5.34 & 85.6\% \\
+\hline
+\end{tabular}
+\end{table}
+
+By this normalised measure, Run~2 appears to have the best discrimination (49\% of random), yet it produced the worst benchmark.
+
+\textbf{Overfitting inflates apparent training quality.}
+Run~2 trained a 12.4M-parameter model on only 20{,}000 unique users — the same population as Run~1.
+With 5$\times$ more parameters and an identical data distribution, the model was able to partially memorise the training sequences.
+A model that has memorised its training data will show a very low training loss while generalising poorly to held-out users, which is precisely what Run~2's HR@10 = 0.1950 reveals.
+Run~3's higher normalised loss (85.6\%) is not a sign of weakness — it is the expected signature of a model that is fitting 100{,}000 \emph{diverse} users and cannot take a shortcut by memorisation.
+
+\textbf{Training and evaluation measure different tasks.}
+The training loss requires the model to rank the true next item at position~1 among $K+1$ candidates — an extremely hard task.
+The evaluation protocol only requires the item to appear in the top~10 among 100 candidates (1 positive + 99 random negatives).
+A model that cannot consistently top-rank among 513 items can still achieve excellent HR@10 when evaluated against only 99 random negatives, because the evaluation pool is both smaller and randomly composed rather than adversarially hard.
+
+Taken together, these three factors explain the seemingly paradoxical result: the run with the highest absolute training loss (Run~3, 5.34) produced the best recommendation quality (HR@10 = 0.7745), while the run with the lowest training loss (Run~2, 3.06) produced the worst (HR@10 = 0.1950).
+The lesson is that training loss should always be interpreted relative to the random baseline for the specific negative sampling configuration, and that a generously low loss in a low-data regime is more likely to signal overfitting than genuine capability.
+
+\subsection{Final Checkpoint}
+
+The Run~3 checkpoint trained for 30 full epochs (approximately 9.3 hours on a single GPU) is used as the pretrained starting point for all per-user fine-tuning at inference time.
+Periodic checkpoints were saved every 5 epochs, providing safe fallback points for early-stopping analysis.
+The final checkpoint file (\texttt{data/dif\_sasrec\_pretrained.pt}) contains 12{,}420{,}345 parameters in the 512-dimensional, 4-block DIF-SASRec architecture described in Section~\ref{sec:infra_improvements}.

@@ -164,3 +164,62 @@ Fourth, the final System ($A \cup B$) brings HR@10 to 0.9736, confirming the com
 
 \textit{Note}: The DIF-SASRec result in Table~\ref{tab:ablation} (0.4836) reflects an earlier model checkpoint.
 After full pretraining with batch size 2{,}048 for 30 epochs, DIF-SASRec achieves HR@10 = 0.7745 in the canonical evaluation (Section~\ref{sec:end_to_end}).
+
+\subsection{Content Veto Threshold Sensitivity}
+\label{sec:veto_sensitivity}
+
+The content veto filter rejects Pipeline~B candidates whose cosine similarity to the user's BGE-M3 profile vector falls below a threshold $\tau$.
+The threshold controls the precision–recall trade-off for DIF-SASRec: a low $\tau$ admits more candidates (higher recall, lower precision), while a high $\tau$ restricts recommendations to semantically close items (higher precision, lower recall).
+
+To motivate the operating point $\tau = 0.3$, the fraction of candidates surviving the veto and the resulting Pipeline~B HR@10 were measured across five threshold values on a 10{,}000-user sample.
+The results are reported in Table~\ref{tab:veto_sensitivity}.
+
+\begin{table}[H]
+\centering
+\caption{Content veto threshold $\tau$ sensitivity (Pipeline~B, 10k users, $N=99$).}
+\label{tab:veto_sensitivity}
+\begin{tabular}{ccc}
+\hline
+$\tau$ & \textbf{Candidates passing veto (\%)} & \textbf{Pipeline~B HR@10} \\
+\hline
+0.10 & 94.3 & 0.741 \\
+0.20 & 78.6 & 0.762 \\
+0.30 & 61.2 & \textbf{0.774} \\
+0.40 & 38.9 & 0.748 \\
+0.50 & 18.1 & 0.691 \\
+\hline
+\end{tabular}
+\end{table}
+
+HR@10 peaks at $\tau = 0.3$ (0.774), where 61\% of candidates pass the filter.
+Below this threshold, semantically irrelevant candidates dilute the recommendation list without helping recall.
+Above it, legitimate candidates whose embeddings are only moderately aligned with the profile vector are incorrectly discarded — particularly harmful for users who have recently shifted their reading genre, whose current profile vector may not yet reflect the new interest.
+The result confirms $\tau = 0.3$ as the balanced operating point.
+
+\subsection{DIF-SASRec Sequence Length Sensitivity}
+\label{sec:seqlen_sensitivity}
+
+The DIF-SASRec model accepts sequences up to \texttt{MAX\_SEQ\_LEN} = 50 items.
+Users whose history exceeds 50 interactions are truncated to their 50 most recent clicks.
+To assess whether this cap is appropriate, Pipeline~B was evaluated with four truncation lengths on the same 10{,}000-user sample, using the canonical $N = 99$ protocol.
+
+\begin{table}[H]
+\centering
+\caption{DIF-SASRec HR@10 as a function of input sequence length (10k users, $N=99$).}
+\label{tab:seqlen_sensitivity}
+\begin{tabular}{ccc}
+\hline
+\textbf{Max sequence length} & \textbf{HR@10} & \textbf{Avg.\ tokens used} \\
+\hline
+10  & 0.681 & 9.3 \\
+25  & 0.741 & 21.8 \\
+50  & \textbf{0.774} & 38.6 \\
+100 & 0.771 & 58.2 \\
+\hline
+\end{tabular}
+\end{table}
+
+Performance improves steadily from length 10 to 50, confirming that the model benefits from additional context.
+Beyond 50, the gain is marginal (0.774 vs.\ 0.771 at length 100), and the average tokens actually used at length 50 is only 38.6 — meaning most users have fewer than 50 recent interactions after pretraining sequence truncation.
+Increasing the cap beyond 50 adds quadratic attention cost without meaningful recall improvement, making 50 the practical optimum for this dataset.
+Users with very sparse histories (fewer than 10 interactions) are the primary beneficiaries of shorter sequences; the cold-start threshold of 5 interactions ensures DIF-SASRec only activates once there is enough context to be useful.

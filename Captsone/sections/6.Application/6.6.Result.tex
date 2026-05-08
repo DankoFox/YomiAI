@@ -18,15 +18,21 @@ Figure~\ref{fig:search_demo} shows the result page for a representative search q
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=0.80\textwidth]{images/chapter6/fig_search_text}
-\subcaption{Text query: RRF and BGE-M3 badges.}
-\label{fig:search_text}
+\begin{subfigure}{\textwidth}
+    \centering
+    \includegraphics[width=0.80\textwidth]{images/chapter6/fig_search_text}
+    \caption{Text query: RRF and BGE-M3 badges.}
+    \label{fig:search_text}
+\end{subfigure}
 
 \vspace{8pt}
 
-\includegraphics[width=0.80\textwidth]{images/chapter6/fig_search_multimodal}
-\subcaption{Combined text + image query: RRF, BGE-M3, and CLIP badges.}
-\label{fig:search_multimodal}
+\begin{subfigure}{\textwidth}
+    \centering
+    \includegraphics[width=0.80\textwidth]{images/chapter6/fig_search_multimodal}
+    \caption{Combined text + image query: RRF, BGE-M3, and CLIP badges.}
+    \label{fig:search_multimodal}
+\end{subfigure}
 
 \caption{Active Search results (Mode 1). Each result card presents cover image, title, author, genre, score badges, and four interaction controls: \textit{Interested}, \textit{Skip}, \textit{Ask AI} (streaming LLM popover), and \textit{Add to Cart}. (a)~Text-only query shows RRF and BGE-M3 badges. (b)~Combined text and image query additionally shows a CLIP badge, demonstrating the multimodal fusion path.}
 \label{fig:search_demo}
@@ -51,15 +57,21 @@ Figure~\ref{fig:rec_demo} shows the recommendation panel for a warm user.
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=0.80\textwidth]{images/chapter6/fig_rec_pab}
-\subcaption{People Also Buy (Pipeline~A): BGE-M3 and CLIP cosine-similarity badges with a \textit{Cleora~+~BGE-M3} or \textit{Cleora~+~CLIP} layer tag.}
-\label{fig:rec_pab}
+\begin{subfigure}{\textwidth}
+    \centering
+    \includegraphics[width=0.80\textwidth]{images/chapter6/fig_rec_pab}
+    \caption{People Also Buy (Pipeline~A): BGE-M3 and CLIP cosine-similarity badges with a \textit{Cleora~+~BGE-M3} or \textit{Cleora~+~CLIP} layer tag.}
+    \label{fig:rec_pab}
+\end{subfigure}
 
 \vspace{8pt}
 
-\includegraphics[width=0.80\textwidth]{images/chapter6/fig_rec_yml}
-\subcaption{You Might Like (Pipeline~B): normalised SASRec intent score with a \textit{DIF-SASRec} layer tag and the input-sequence strip above the cards.}
-\label{fig:rec_yml}
+\begin{subfigure}{\textwidth}
+    \centering
+    \includegraphics[width=0.80\textwidth]{images/chapter6/fig_rec_yml}
+    \caption{You Might Like (Pipeline~B): normalised SASRec intent score with a \textit{DIF-SASRec} layer tag and the input-sequence strip above the cards.}
+    \label{fig:rec_yml}
+\end{subfigure}
 
 \caption{Personalised Recommendations (Mode 2) for a warm user. The \textit{DIF-SASRec active} status pill confirms personalised mode is engaged. (a)~Pipeline~A surfaces co-purchase neighbours re-ranked by profile similarity, with per-modality scores shown directly on each card. (b)~Pipeline~B applies the DIF-SASRec sequential model; the input-sequence strip makes the model's click-history input visible to the user.}
 \label{fig:rec_demo}

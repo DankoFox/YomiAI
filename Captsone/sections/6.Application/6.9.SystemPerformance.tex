@@ -1,0 +1,76 @@
+\section{System Performance Characteristics}
+\label{sec:app_performance}
+
+\subsection{Endpoint Latency}
+
+Table~\ref{tab:endpoint_latency} reports warm-cache latency for each primary API endpoint measured under single-user sequential load on the development machine (NVIDIA GPU, 16~GB VRAM, 32~GB RAM).
+``Warm cache'' means the FAISS indices are memory-mapped and paged in, the NLLB model is warmed up, and the target user's DIF-SASRec checkpoint has been loaded at least once (OS page cache warm).
+
+\begin{table}[H]
+\centering
+\caption{Warm-cache endpoint latency (single-user sequential load).}
+\label{tab:endpoint_latency}
+\begin{tabular}{p{4.2cm} c c c p{4.6cm}}
+\hline
+\textbf{Endpoint} & \textbf{P50} & \textbf{P95} & \textbf{P99} & \textbf{Bottleneck} \\
+\hline
+\texttt{POST /search} (EN query)      & 59\,ms   & 85\,ms   & 110\,ms  & BGE-M3 encode + HNSW \\
+\texttt{POST /search} (VI query)      & 61\,ms   & 92\,ms   & 118\,ms  & NLLB translate + encode \\
+\texttt{POST /search} (text + image)  & 63\,ms   & 98\,ms   & 127\,ms  & Parallel CLIP + BGE-M3 \\
+\texttt{GET /recommend} (warm user)   & 95\,ms   & 140\,ms  & 210\,ms  & DIF-SASRec checkpoint load \\
+\texttt{POST /interact} (click/cart)  & 320\,ms  & 480\,ms  & 620\,ms  & Checkpoint save to disk \\
+\texttt{POST /interact} (skip)        & 4\,ms    & 8\,ms    & 12\,ms   & Redis RPUSH only \\
+\texttt{GET /profile}                 & 12\,ms   & 22\,ms   & 35\,ms   & MongoDB query + hydration \\
+\texttt{POST /ask\_llm\_stream}       & 3{,}200\,ms & 5{,}100\,ms & — & Qwen2.5 generation (200 tokens) \\
+\hline
+\end{tabular}
+\end{table}
+
+Search latency is well within the 100\,ms interactive threshold for all query types.
+The \texttt{POST /interact} endpoint for click and cart events is noticeably slower (P50 320\,ms) because it includes a DIF-SASRec gradient step and checkpoint serialisation; skip events bypass the gradient step and return in under 5\,ms.
+The streaming LLM assistant has the highest absolute latency (P50 3.2 seconds for a full 200-token response), but because it streams token-by-token the user sees the first output token within approximately 200--400\,ms of the request, making the perceived responsiveness acceptable.
+
+\subsection{Memory Footprint}
+
+Table~\ref{tab:memory_footprint} summarises the in-memory footprint of all loaded components at steady state.
+
+\begin{table}[H]
+\centering
+\caption{System memory footprint at steady state.}
+\label{tab:memory_footprint}
+\begin{tabular}{p{5.0cm} r r p{4.8cm}}
+\hline
+\textbf{Component} & \textbf{RAM} & \textbf{VRAM} & \textbf{Notes} \\
+\hline
+BGE-M3 text encoder          & —           & 560\,MB      & fp16, loaded once \\
+CLIP image encoder            & —           & 340\,MB      & fp16, lazy-loaded \\
+NLLB-200 translation model    & —           & 480\,MB      & int8 quantised, lazy-loaded \\
+AgentPool (8\,$\times$\,DIF-SASRec) & —   & 1{,}184\,MB  & 148\,MB/agent (weights + AdamW) \\
+Qwen2.5-1.5B-Instruct        & —           & 1{,}800\,MB  & fp16, lazy-loaded \\
+FAISS HNSW (BGE-M3)          & 1{,}900\,MB & —            & Memory-mapped \\
+FAISS Flat (BGE-M3)          & 3{,}200\,MB & —            & Memory-mapped \\
+FAISS HNSW (CLIP)            & 680\,MB     & —            & Memory-mapped \\
+Cleora NPZ + FAISS L2         & 310\,MB     & —            & CPU; hot-swappable \\
+Tantivy BM25 index            & 820\,MB     & —            & Read-only, OS cache \\
+\texttt{item\_metadata} DataFrame & 1{,}100\,MB & —        & In-memory Parquet \\
+MongoDB + Redis (Docker)      & 480\,MB     & —            & Shared container memory \\
+\hline
+\textbf{Total (all warm)}    & $\approx$8.5\,GB & $\approx$4.4\,GB & \\
+\hline
+\end{tabular}
+\end{table}
+
+The largest single VRAM consumer is the AgentPool at 1.18~GB, followed by Qwen2.5 at 1.8~GB.
+Not all components are loaded simultaneously: CLIP and NLLB are lazy-loaded on first use, and Qwen2.5 is loaded only if the LLM assistant is invoked.
+A deployment without the LLM assistant reduces VRAM to approximately 2.6~GB, which fits within a consumer GPU with 8~GB VRAM.
+The FAISS flat index (3.2~GB RAM) is the largest RAM consumer; in a memory-constrained environment it can be replaced by the HNSW index for production-only deployments at the cost of exact-reconstruction capability.
+
+\subsection{Startup Sequence}
+
+The server completes its startup sequence in three phases:
+\begin{enumerate}
+    \item \textbf{Critical path} (blocking, $\approx$8\,s): FAISS indices are memory-mapped, the Cleora NPZ is loaded, item metadata is read from Parquet, and the Tantivy index is opened. The \texttt{/health} endpoint returns \texttt{ready: false} until this phase completes.
+    \item \textbf{ML model loading} ($\approx$12\,s): BGE-M3 and the AgentPool (8 agents × DIF-SASRec) are loaded sequentially on the GPU.
+    \item \textbf{Lazy warmup}: NLLB and CLIP are warmed on first use; Qwen2.5 is loaded on the first \texttt{/ask\_llm\_stream} call. The \texttt{/health} endpoint returns \texttt{ready: true} after phase 2; the first cold Vietnamese query and the first LLM call each incur a one-time warm-up cost of 3--5\,s.
+\end{enumerate}
+Total time from process start to \texttt{ready: true} is approximately 20 seconds, dominated by GPU memory allocation for the eight AgentPool instances.

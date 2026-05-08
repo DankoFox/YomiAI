@@ -1,0 +1,144 @@
+\begin{figure}[H]
+\centering
+\makebox[\textwidth][c]{%
+\resizebox{1.0\textwidth}{!}{%
+\begin{tikzpicture}[
+  >=Stealth,
+  every path/.style={line width=0.6pt},
+  % ── Styles ──
+  data/.style   ={draw=gray!80, fill=gray!10, rounded corners=2pt, align=center, inner sep=5pt, font=\small, minimum width=3.8cm, minimum height=1.0cm},
+  model/.style  ={draw=violet!70, fill=violet!5, rounded corners=4pt, align=center, thick, inner sep=6pt, font=\small\bfseries, minimum width=3.8cm, minimum height=1.0cm},
+  latent/.style ={draw=teal!70, fill=teal!5, rectangle, align=center, dashed, inner sep=5pt, font=\footnotesize, minimum width=3.8cm, minimum height=0.9cm},
+  task/.style   ={draw=blue!60, fill=blue!5, rounded corners=2pt, align=center, inner sep=5pt, font=\small, minimum width=3.8cm, minimum height=1.0cm},
+  fusion/.style ={draw=orange!80, fill=orange!10, rounded corners=6pt, thick, align=center, font=\footnotesize\bfseries, inner sep=4pt, minimum width=3.6cm, minimum height=0.9cm},
+  output/.style ={draw=yellow!60!orange, fill=yellow!15, rounded corners=4pt, thick, align=center, font=\small\bfseries, minimum width=3.8cm, minimum height=0.9cm},
+  label/.style  ={font=\scriptsize, text=gray!70, align=center}
+]
+
+% ╔══════════════════════════════════════════════════╗
+%   GRID DEFINITIONS (REVISED FOR SWAP)
+% ╚══════════════════════════════════════════════════╝
+% Phase 1 Columns
+\def\pOneL{-7.5}    % Textual
+\def\pOneC{0.0}     % Visual (Swapped to center)
+\def\pOneR{7.5}     % Behavioral (Swapped to right)
+
+% Phase 2 Justification
+\def\colPhaseA{-7.5}    % Search Column (Matches Textual)
+\def\colPhaseB{5.5}     % Rec Group Center
+\def\colRecL{3.0}       % People Also Buy
+\def\colRecR{8.0}       % You Might Like
+
+% Rows
+\def\rowData{0}
+\def\rowModel{-2.2}
+\def\rowLatent{-4.4}
+\def\rowTask{-7.8}
+\def\rowPipe{-10.2}
+\def\rowVeto{-12.2}
+\def\rowOut{-14.2}
+
+% ╔══════════════════════════════════════════════════╗
+%   1. REPRESENTATION LEARNING LAYER
+% ╚══════════════════════════════════════════════════╝
+% Column Left: Text
+\node[data]  (d_text)  at (\pOneL, \rowData)  {Item Metadata\\(Title, Genres, Desc.)};
+\node[model] (m_bge)    at (\pOneL, \rowModel) {BGE-M3 \& BM25\\(Semantic \& Lexical)};
+\node[latent] (l_sem)   at (\pOneL, \rowLatent) {Textual\\Latent Space};
+
+% Column Center: Visual (Swapped here)
+\node[data]  (d_img)   at (\pOneC, \rowData)  {Item Cover Images\\(Visual Corpus)};
+\node[model] (m_clip)   at (\pOneC, \rowModel) {CLIP Vision Encoder\\(Contrastive Learning)};
+\node[latent] (l_vis)   at (\pOneC, \rowLatent) {Visual\\Latent Space};
+
+% Column Right: Behavioral (Swapped here)
+\node[data]  (d_graph) at (\pOneR, \rowData)  {User-Item Interactions\\(Co-purchase Graph)};
+\node[model] (m_cleora) at (\pOneR, \rowModel) {Cleora Embeddings\\(Markov Random Walks)};
+\node[latent] (l_behav) at (\pOneR, \rowLatent) {Behavioral\\Latent Space};
+
+% Primary Flow Arrows
+\draw[->] (d_text) -- (m_bge); \draw[->] (m_bge) -- (l_sem);
+\draw[->] (d_img) -- (m_clip); \draw[->] (m_clip) -- (l_vis);
+\draw[->] (d_graph) -- (m_cleora); \draw[->] (m_cleora) -- (l_behav);
+
+% ╔══════════════════════════════════════════════════╗
+%   2A. PHASE 2A: SEARCH (West Aligned)
+% ╚══════════════════════════════════════════════════╝
+\node[task]   (t_search)   at (\colPhaseA, \rowTask) {\textbf{Multi-Modal Query}\\Text or Image Input};
+\node[fusion] (f_rrf)      at (\colPhaseA, \rowPipe) {Reciprocal Rank\\Fusion (RRF)};
+\node[output] (out_search) at (\colPhaseA, \rowOut)  {Search Results};
+
+% Text Entry (Side Z-entry as requested)
+\draw (l_vis.south) -- ++(0, -0.8) coordinate (junction) -| (l_sem.south);
+\draw[->] (t_search) -- (f_rrf);
+\draw[->] (f_rrf) -- (out_search);
+
+% Visual Entry (Now from Center - much shorter)
+\draw[->] (l_sem.south) -- (t_search.north) 
+      node[pos=0.4, circle, fill=gray, inner sep=1pt] {};
+
+% ╔══════════════════════════════════════════════════╗
+%   2B. PHASE 2B: RECOMMENDATION (East Aligned)
+% ╚══════════════════════════════════════════════════╝
+\node[task] (t_profile) at (\colPhaseB, \rowTask) {\textbf{Dynamic User Profile}\\Sequential Click History};
+
+\node[task]   (p_collab) at (\colRecL, \rowPipe) {\textbf{Graph Retrieval}\\(Cleora KNN)};
+\node[fusion] (f_veto)   at (\colRecL, \rowVeto) {Content Veto\\($\tau \geq 0.3$)};
+\node[output] (out_pab)  at (\colRecL, \rowOut)  {People Also Buy};
+
+\node[task]   (p_seq)    at (\colRecR, \rowPipe) {\textbf{DIF-SASRec}\\(Decoupled Attention)};
+\node[output] (out_yml)  at (\colRecR, \rowOut)  {You Might Like};
+
+% Behavioral Entry (Down-elbow from Right to Center-Right)
+\draw[->] (l_behav.south) -- ++(0,-0.8) -| (t_profile.north);
+
+\draw[->] (t_profile.south) -- ++(0,-0.4) -| (p_collab.north);
+\draw[->] (t_profile.south) -- ++(0,-0.4) -| (p_seq.north);
+\draw[->] (p_collab) -- (f_veto);
+\draw[->] (f_veto)   -- (out_pab);
+\draw[->] (p_seq)    -- (out_yml);
+
+% ╔══════════════════════════════════════════════════╗
+%   3. DEPENDENCIES & FEEDBACK
+% ╚══════════════════════════════════════════════════╝
+% Text -> Veto (Z-shape across the diagram)
+\draw[->, dashed, gray] (l_sem.south) -- ++(0,-1.2) -| ([xshift=-0.8cm]f_veto.west) -- (f_veto.west);
+
+% Text -> SASRec (Z-shape)
+\draw[->, dashed, gray] (l_sem.south) -- ++(0,-1.2) -| (p_seq.north);
+
+% Online Feedback Loop (SASRec) - Tighter Loop
+\draw[->, thick, dashed, orange!80] (out_yml.east) -- ++(0.5, 0) |- (p_seq.east);
+
+% Online Feedback Loop (Cleora) - Now routes to the Right-side Model
+\draw[->, thick, dashed, orange!80] (out_pab.south) -- ++(0,-0.6) -| ([xshift=1.0cm]m_cleora.east) -- (m_cleora.east);
+
+% ╔══════════════════════════════════════════════════╗
+%   BOUNDING BOXES
+% ╚══════════════════════════════════════════════════╝
+\begin{pgfonlayer}{background}
+  \node[draw=gray!30, fill=gray!2, rounded corners, dashed, inner sep=12pt,
+        fit=(d_text)(d_graph)(l_sem)(l_behav)(m_clip)] (bg_rep) {};
+  
+  \node[draw=blue!20, fill=blue!2, rounded corners, dashed, inner sep=10pt,
+        fit=(t_search)(out_search)] (bg_search) {};
+  
+  \node[draw=green!20, fill=green!2, rounded corners, dashed, inner sep=10pt,
+        fit=(t_profile)(out_pab)(out_yml)] (bg_rec) {};
+
+% Labels moved 5pt left and 10pt up from the corner
+  \node[anchor=south west, font=\sffamily\bfseries\color{gray!70}] 
+        at ([shift={(-5pt, 2pt)}]bg_rep.north west) {Phase 1};
+        
+  \node[anchor=south west, font=\sffamily\bfseries\color{blue!50}] 
+        at ([shift={(-5pt, 2pt)}]bg_search.north west) {Phase 2A};
+        
+  \node[anchor=south west, font=\sffamily\bfseries\color{green!60!black}] 
+        at ([shift={(-5pt, 2pt)}]bg_rec.north west) {Phase 2B};
+\end{pgfonlayer}
+
+\end{tikzpicture}%
+}%
+}
+\caption{Revised system architecture. The primary changes relative to the prior system are the BGE-M3 HNSW text index, the NLLB-200 translation stage, and the dual-mode Cleora + DIF-SASRec recommendation backend.}
+\end{figure}

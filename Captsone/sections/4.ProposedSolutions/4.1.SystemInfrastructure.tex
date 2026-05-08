@@ -6,10 +6,145 @@ Figure~\ref{fig:new_system_overview} shows the revised architecture.
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=0.92\textwidth]{images/chapter4/fig_new_system_overview}
+\makebox[\textwidth][c]{%
+\resizebox{1.0\textwidth}{!}{%
+\begin{tikzpicture}[
+  >=Stealth,
+  every path/.style={line width=0.6pt},
+  data/.style   ={draw=gray!80, fill=gray!10, rounded corners=2pt, align=center, inner sep=5pt, font=\small, minimum width=3.8cm, minimum height=1.0cm},
+  model/.style  ={draw=violet!70, fill=violet!5, rounded corners=4pt, align=center, thick, inner sep=6pt, font=\small\bfseries, minimum width=3.8cm, minimum height=1.0cm},
+  latent/.style ={draw=teal!70, fill=teal!5, rectangle, align=center, dashed, inner sep=5pt, font=\footnotesize, minimum width=3.8cm, minimum height=0.9cm},
+  task/.style   ={draw=blue!60, fill=blue!5, rounded corners=2pt, align=center, inner sep=5pt, font=\small, minimum width=3.8cm, minimum height=1.0cm},
+  fusion/.style ={draw=orange!80, fill=orange!10, rounded corners=6pt, thick, align=center, font=\footnotesize\bfseries, inner sep=4pt, minimum width=3.6cm, minimum height=0.9cm},
+  output/.style ={draw=yellow!60!orange, fill=yellow!15, rounded corners=4pt, thick, align=center, font=\small\bfseries, minimum width=3.8cm, minimum height=0.9cm},
+  label/.style  ={font=\scriptsize, text=gray!70, align=center}
+]
+
+\def\pOneL{-7.5}
+\def\pOneC{0.0}
+\def\pOneR{7.5}
+
+\def\colPhaseA{-7.5}
+\def\colPhaseB{5.5}
+\def\colRecL{3.0}
+\def\colRecR{8.0}
+
+\def\rowData{0}
+\def\rowModel{-2.2}
+\def\rowLatent{-4.4}
+\def\rowTask{-7.8}
+\def\rowPipe{-10.2}
+\def\rowVeto{-12.2}
+\def\rowOut{-14.2}
+
+% Representation learning layer
+\node[data]   (d_text)  at (\pOneL, \rowData)  {Item Metadata\\(Title, Genres, Desc.)};
+\node[model]  (m_bge)   at (\pOneL, \rowModel) {BGE-M3 \& BM25\\(Semantic \& Lexical)};
+\node[latent] (l_sem)   at (\pOneL, \rowLatent){Textual\\Latent Space};
+
+\node[data]   (d_img)   at (\pOneC, \rowData)  {Item Cover Images\\(Visual Corpus)};
+\node[model]  (m_clip)  at (\pOneC, \rowModel) {CLIP Vision Encoder\\(Contrastive Learning)};
+\node[latent] (l_vis)   at (\pOneC, \rowLatent){Visual\\Latent Space};
+
+\node[data]   (d_graph) at (\pOneR, \rowData)  {User-Item Interactions\\(Co-purchase Graph)};
+\node[model]  (m_cleora)at (\pOneR, \rowModel) {Cleora Embeddings\\(Markov Random Walks)};
+\node[latent] (l_behav) at (\pOneR, \rowLatent){Behavioral\\Latent Space};
+
+\draw[->] (d_text) -- (m_bge);   \draw[->] (m_bge)    -- (l_sem);
+\draw[->] (d_img)  -- (m_clip);  \draw[->] (m_clip)   -- (l_vis);
+\draw[->] (d_graph)-- (m_cleora);\draw[->] (m_cleora) -- (l_behav);
+
+% Phase 2A: Search
+\node[task]   (t_search)   at (\colPhaseA, \rowTask) {\textbf{Multi-Modal Query}\\Text or Image Input};
+\node[fusion] (f_rrf)      at (\colPhaseA, \rowPipe) {Reciprocal Rank\\Fusion (RRF)};
+\node[output] (out_search) at (\colPhaseA, \rowOut)  {Search Results};
+
+\draw (l_vis.south) -- ++(0,-0.8) coordinate (junction) -| (l_sem.south);
+\draw[->] (t_search) -- (f_rrf);
+\draw[->] (f_rrf)    -- (out_search);
+\draw[->] (l_sem.south) -- (t_search.north)
+      node[pos=0.4, circle, fill=gray, inner sep=1pt] {};
+
+% Phase 2B: Recommendation
+\node[task]   (t_profile) at (\colPhaseB, \rowTask) {\textbf{Dynamic User Profile}\\Sequential Click History};
+
+\node[task]   (p_collab) at (\colRecL, \rowPipe) {\textbf{Graph Retrieval}\\(Cleora KNN)};
+\node[fusion] (f_veto)   at (\colRecL, \rowVeto) {Content Veto\\($\tau \geq 0.3$)};
+\node[output] (out_pab)  at (\colRecL, \rowOut)  {People Also Buy};
+
+\node[task]   (p_seq)    at (\colRecR, \rowPipe) {\textbf{DIF-SASRec}\\(Decoupled Attention)};
+\node[output] (out_yml)  at (\colRecR, \rowOut)  {You Might Like};
+
+\draw[->] (l_behav.south) -- ++(0,-0.8) -| (t_profile.north);
+\draw[->] (t_profile.south) -- ++(0,-0.4) -| (p_collab.north);
+\draw[->] (t_profile.south) -- ++(0,-0.4) -| (p_seq.north);
+\draw[->] (p_collab) -- (f_veto);
+\draw[->] (f_veto)   -- (out_pab);
+\draw[->] (p_seq)    -- (out_yml);
+
+% Cross-pipeline dependencies
+\draw[->, dashed, gray] (l_sem.south) -- ++(0,-1.2) -| ([xshift=-0.8cm]f_veto.west) -- (f_veto.west);
+\draw[->, dashed, gray] (l_sem.south) -- ++(0,-1.2) -| (p_seq.north);
+
+% Online feedback loops
+\draw[->, thick, dashed, orange!80] (out_yml.east)  -- ++(0.5,0) |- (p_seq.east);
+\draw[->, thick, dashed, orange!80] (out_pab.south) -- ++(0,-0.6) -| ([xshift=1.0cm]m_cleora.east) -- (m_cleora.east);
+
+% Bounding boxes
+\begin{pgfonlayer}{background}
+  \node[draw=gray!30, fill=gray!2, rounded corners, dashed, inner sep=12pt,
+        fit=(d_text)(d_graph)(l_sem)(l_behav)(m_clip)] (bg_rep) {};
+  \node[draw=blue!20, fill=blue!2, rounded corners, dashed, inner sep=10pt,
+        fit=(t_search)(out_search)] (bg_search) {};
+  \node[draw=green!20, fill=green!2, rounded corners, dashed, inner sep=10pt,
+        fit=(t_profile)(out_pab)(out_yml)] (bg_rec) {};
+  \node[anchor=south west, font=\sffamily\bfseries\color{gray!70}]
+        at ([shift={(-5pt,2pt)}]bg_rep.north west)    {Phase 1};
+  \node[anchor=south west, font=\sffamily\bfseries\color{blue!50}]
+        at ([shift={(-5pt,2pt)}]bg_search.north west) {Phase 2A};
+  \node[anchor=south west, font=\sffamily\bfseries\color{green!60!black}]
+        at ([shift={(-5pt,2pt)}]bg_rec.north west)    {Phase 2B};
+\end{pgfonlayer}
+
+\end{tikzpicture}%
+}%
+}
 \caption{Revised system architecture. The primary changes relative to the prior system are the BGE-M3 HNSW text index, the NLLB-200 translation stage, and the dual-mode Cleora + DIF-SASRec recommendation backend.}
 \label{fig:new_system_overview}
 \end{figure}
+
+\subsection{Technology Selection Rationale}
+\label{sec:tech_rationale}
+
+Each major architectural component was selected after evaluating alternatives against the specific constraints of this system: 3-million-item scale, real-time latency budget (sub-100\,ms warm cache), Vietnamese-language support, and a single-machine deployment target.
+Table~\ref{tab:tech_rationale} summarises the key decisions.
+
+\begin{table}[htbp]
+\centering
+\caption{Architecture decision rationale: chosen option, primary alternative, and deciding factor.}
+\label{tab:tech_rationale}
+\begin{tabular}{p{3.2cm} p{2.8cm} p{2.8cm} p{4.2cm}}
+\hline
+\textbf{Component} & \textbf{Chosen} & \textbf{Alternative} & \textbf{Deciding factor} \\
+\hline
+Web framework    & FastAPI       & Flask / Django     & Native \texttt{async}/\texttt{await} eliminates thread-per-request overhead for concurrent FAISS + Redis I/O \\
+\hline
+Database         & MongoDB       & PostgreSQL         & Schema-free documents accommodate variable-length interaction logs without migrations; nested arrays store click sequences natively \\
+\hline
+Interaction queue & Redis RPUSH  & Direct MongoDB write & Decouples the \texttt{/interact} hot path from disk I/O; background worker drains asynchronously, keeping P50 latency below 5\,ms \\
+\hline
+Search library   & Tantivy (Rust) & Elasticsearch / OpenSearch & Zero JVM overhead, sub-millisecond BM25 on the 3M-item title index; no cluster management required for single-machine deployment \\
+\hline
+ANN index        & FAISS HNSW    & ScaNN / Annoy      & GPU-accelerated HNSW construction and retrieval; mature FAISS Python API integrates with PyTorch tensors without copies \\
+\hline
+Graph embedding  & Cleora        & LightGCN / GraphSAGE & Cleora converges in minutes on 375K nodes; GNN alternatives require days of training and GPU memory proportional to neighbourhood depth \\
+\hline
+Seq. model       & DIF-SASRec    & BERT4Rec / SASRec  & Decoupled content and category streams directly exploit BGE-M3 embeddings; bidirectional BERT4Rec is incompatible with online fine-tuning \\
+\hline
+Frontend         & React 19 + Vite & Vue 3 / Svelte   & Largest ecosystem for streaming UI patterns (\texttt{TextIteratorStreamer} popover, sparkline SVG); Vite HMR supports the rapid iteration required \\
+\hline
+\end{tabular}
+\end{table}
 
 \subsection{Text Encoder Upgrade: BLaIR to BGE-M3}
 \label{sec:encoder_upgrade}

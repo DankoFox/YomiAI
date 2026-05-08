@@ -30,11 +30,46 @@ In mock mode, search results return five fixed titles, recommendations return tw
 This mode supports frontend development, demonstrations, and thesis presentations when the full machine-learning backend is not running.
 
 \subsection{Streaming LLM Book Assistant}
+\label{sec:llm_assistant}
 
 Each book card exposes an \textit{Ask AI} button that opens an inline popover and calls \texttt{POST /ask\_llm\_stream}.
-The Qwen2.5-1.5B-Instruct model generates a structured response in three sections — \textbf{Genre}, \textbf{Plot Summary}, and \textbf{Pitch} — grounded by a Google Books or Wikipedia extract that is semantically re-ranked by BGE-M3 before being passed to the model.
-The response streams token-by-token into the popover; the first token dismisses the loading indicator and content builds progressively.
-The popover is dismissed by re-clicking the button.
+The Qwen2.5-1.5B-Instruct model~\cite{qwen2025} generates a structured response in three sections — \textbf{Genre}, \textbf{Plot Summary}, and \textbf{Pitch} — grounded by a retrieved external description that is semantically re-ranked by BGE-M3 before being passed to the model.
+The response streams token-by-token into the popover via \texttt{TextIteratorStreamer}; the first token dismisses the loading indicator and content builds progressively.
+
+\subsubsection{Grounding Pipeline}
+
+To reduce hallucination and produce content-specific descriptions rather than generic summaries from training knowledge, the assistant uses a two-stage grounding pipeline before LLM generation:
+
+\begin{enumerate}
+    \item \textbf{Context retrieval}: The system first queries the Google Books API using \texttt{intitle:} and \texttt{inauthor:} operators for precision, falling back to a Wikipedia search with progressively broader queries (volume-specific → series-level → title-only) if Google Books returns no description.
+    Rate-limiting logic backs off for 120 seconds after a 429 response, and an \texttt{@lru\_cache(maxsize=128)} stores results so repeated queries for the same title cost 0~ms.
+    \item \textbf{Semantic re-ranking}: The raw retrieved text is split into sentences and each sentence is scored by cosine similarity to a query embedding \texttt{``plot summary arc story characters events \{title\} volume \{vol\}''}.
+    The top-5 highest-scoring sentences are selected and concatenated as the grounding context.
+    This step, implemented using the same BGE-M3 encoder used throughout the system, suppresses author biography sentences and publisher marketing text in favour of plot-relevant content.
+\end{enumerate}
+
+\subsubsection{Prompt Design}
+
+The Qwen2.5 model is invoked with a two-turn chat template.
+The system prompt constrains the model to rewrite only the provided context without drawing on its own training knowledge:
+
+\begin{quote}
+\texttt{You are a book description assistant. Your ONLY job is to rewrite the provided book description into the output format. Do NOT use your own knowledge. Do NOT add plot points not in the description. Use ONLY what is written in the description below.}
+\end{quote}
+
+The user turn specifies the exact output format and mirrors the Genre field from the item's metadata, preventing the model from inferring or inventing genre labels:
+
+\begin{quote}
+\texttt{Rewrite the description above into this exact format:}\\
+\texttt{**Genre:** \{genre\}}\\
+\texttt{**Plot Summary:** [2--3 sentences using ONLY the description above]}\\
+\texttt{**Pitch:** [1 sentence on why to read this specific volume]}\\
+\texttt{Do not add anything not in the description.}
+\end{quote}
+
+Generation uses greedy decoding (\texttt{do\_sample=False}) with a 200-token budget.
+Greedy decoding is preferred over sampling because the structured output format requires exact heading placement; temperature-sampled outputs occasionally reorder or omit headings.
+If no grounding context is available (e.g., the item has no Google Books or Wikipedia entry), a static fallback response is emitted without invoking the model, avoiding a generation that would be entirely hallucinated.
 
 \subsection{User Profile Endpoint}
 

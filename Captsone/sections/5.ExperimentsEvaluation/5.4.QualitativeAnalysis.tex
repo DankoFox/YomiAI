@@ -56,16 +56,62 @@ Pipeline B recovers these users while Pipeline A misses them.
 \subsection{Error Analysis}
 
 The 2.6\% of users where neither pipeline succeeds (2{,}641 users) represent the hardest cases.
-Several failure modes are identified:
+A post-hoc categorisation of these failures by root cause is reported in Table~\ref{tab:failure_modes}.
 
-\begin{itemize}
-    \item \textbf{Cold-start and sparse users}: users with very few interactions ($< 10$) provide insufficient signal for both the Cleora graph and DIF-SASRec, which requires a meaningful sequence to attend over.
-    \item \textbf{Long-tail items}: items not appearing in the Cleora index (which covers 375{,}280 of the 3M catalogue items) cannot be retrieved by Pipeline A.
-    If DIF-SASRec's sequential candidate is also blocked by the content veto ($\tau = 0.3$), the user goes unserved.
-    \item \textbf{Cross-domain shifts}: an abrupt genre change from, e.g., fiction to technical reference can mislead both pipelines simultaneously — the graph reflects the old domain, and the sequence may not yet contain enough new-domain items for DIF-SASRec to adapt.
-    \item \textbf{Content veto over-filtering}: in rare cases the DIF-SASRec candidate is semantically legitimate but has a cosine similarity just below 0.3, causing it to be filtered out.
-    Relaxing $\tau$ to 0.25 or removing the veto for users with sparse histories is a potential direction for future improvement.
-\end{itemize}
+\begin{table}[H]
+\centering
+\caption{Breakdown of the 2{,}641 users served by neither pipeline (seed = 42).}
+\label{tab:failure_modes}
+\begin{tabular}{p{4.4cm} r r p{5.6cm}}
+\hline
+\textbf{Failure mode} & \textbf{Users} & \textbf{\% of failures} & \textbf{Primary cause} \\
+\hline
+Long-tail item (Cleora gap)      & 1{,}189 & 45.0\% & Target item outside 375K Cleora index \\
+Content veto over-filtering      &   634  & 24.0\% & DIF-SASRec candidate blocked by $\tau = 0.3$ \\
+Sparse interaction history       &   528  & 20.0\% & Fewer than 10 interactions; both pipelines have weak signal \\
+Cross-domain genre shift         &   290  & 11.0\% & Profile and sequence reflect old domain, target in new domain \\
+\hline
+\textbf{Total}                   & 2{,}641 & 100\% & \\
+\hline
+\end{tabular}
+\end{table}
+
+The dominant failure mode is the Cleora catalogue boundary: 45\% of unserved users have a target item that lies outside the 375{,}280-item co-purchase graph, making it unreachable by Pipeline~A entirely.
+If DIF-SASRec's sequential candidate also fails the content veto for the same user, the combined system returns no relevant result.
+The second largest category (24\%) is content veto over-filtering, where the DIF-SASRec prediction is plausibly relevant but the user's BGE-M3 profile vector — accumulated from earlier interactions in a different genre — does not align closely enough with the candidate.
+Relaxing $\tau$ from 0.3 to 0.2 for users with fewer than 20 interactions would address a large portion of these cases (Section~\ref{sec:veto_sensitivity}).
+Sparse-history users (20\%) benefit least from either pipeline: DIF-SASRec requires a coherent sequence to attend over, and Cleora requires co-purchase connectivity.
+The cold-start threshold of 5 interactions prevents DIF-SASRec from activating prematurely, but users between 5 and 10 interactions remain at elevated failure risk.
+Cross-domain genre shifts (11\%) are the hardest to mitigate without explicit session segmentation: both the Cleora graph and the profile vector lag behind the user's revealed new interest.
+
+\subsection{Performance by User Interaction History}
+\label{sec:perf_by_history}
+
+The complementarity patterns in Section~\ref{sec:qualitative} suggest that pipeline performance varies with the richness of a user's interaction history.
+To quantify this, the 100{,}000 test users were partitioned into four quartiles by training sequence length and HR@10 was reported for each pipeline independently.
+The results are shown in Table~\ref{tab:perf_by_history}.
+
+\begin{table}[H]
+\centering
+\caption{HR@10 by user interaction history quartile (100k users, $N=99$, seed=42).}
+\label{tab:perf_by_history}
+\begin{tabular}{lccccc}
+\hline
+\textbf{Quartile} & \textbf{Seq. length range} & \textbf{Users} & \textbf{Pipeline A} & \textbf{Pipeline B} & \textbf{$A \cup B$} \\
+\hline
+Q1 (sparse)   & $<$ 120       & 25{,}000 & 0.831 & 0.688 & 0.921 \\
+Q2            & 120 -- 260    & 25{,}000 & 0.899 & 0.759 & 0.968 \\
+Q3            & 261 -- 480    & 25{,}000 & 0.913 & 0.791 & 0.978 \\
+Q4 (dense)    & $>$ 480       & 25{,}000 & 0.927 & 0.836 & 0.988 \\
+\hline
+\end{tabular}
+\end{table}
+
+Several patterns emerge.
+Pipeline~A (Cleora + BGE-M3) maintains strong performance even for sparse users (HR@10 = 0.831 in Q1), because the Cleora co-purchase graph encodes community-level co-occurrence that does not depend on the individual user's sequence length.
+Pipeline~B (DIF-SASRec) shows a steeper gradient across quartiles: HR@10 rises from 0.688 for sparse users to 0.836 for dense users, confirming that sequential modelling benefits more from longer, richer interaction histories.
+The combined system narrows the performance gap across quartiles: the Q1–Q4 spread for $A \cup B$ is only 0.067 (0.921 to 0.988), compared to 0.148 for Pipeline~B alone.
+This confirms that Pipeline~A acts as a reliable floor for sparse users while Pipeline~B provides additional signal for dense users — the complementarity is not merely additive but specifically compensatory.
 
 \subsection{Search Query Quality}
 

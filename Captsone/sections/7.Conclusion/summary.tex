@@ -66,6 +66,76 @@ The most significant result is the HR@10 improvement from 0.1031 to 0.9736, whic
 
 ---
 
+\section{Research Contributions}
+\label{sec:contributions}
+
+This project makes the following specific technical contributions:
+
+\begin{enumerate}
+    \item \textbf{Incremental Cleora hot-swap pipeline.}
+    A three-stage fault-isolated pipeline (delta export → graph augmentation → atomic in-memory swap) enables the Cleora co-purchase embeddings to be updated from live interaction logs without server restart.
+    The atomic swap guarantees that concurrent in-flight recommendation requests observe a consistent index state throughout the update.
+
+    \item \textbf{DIF-SASRec decoupled attention with learnable fusion scalar.}
+    The implementation extends the original DIF-SASRec formulation with a sigmoid-gated fusion scalar $\alpha$ that is initialised to favour the category stream ($\alpha_0 = 0.7$) and is learned jointly during pretraining.
+    This allows the model to adapt the relative importance of content and category attention to the characteristics of the Amazon Books domain.
+
+    \item \textbf{Min-max normalised DIF-SASRec intent scores for UI transparency.}
+    Raw DIF-SASRec dot-product scores are unbounded and vary by orders of magnitude across users.
+    The backend applies per-request min-max normalisation so that the top-ranked candidate always receives score 1.0 and all remaining candidates are proportional to their dot-product gap.
+    This makes the per-card score badges on the \textit{You Might Like} panel directly interpretable by users.
+
+    \item \textbf{Dual-panel recommendation interface with per-pipeline attribution.}
+    The frontend exposes two recommendation panels that directly mirror the two backend pipelines, with per-card layer tags (\textit{Cleora\,+\,BGE-M3}, \textit{Cleora\,+\,CLIP}, \textit{DIF-SASRec}) and the DIF-SASRec input-sequence strip.
+    This design makes the recommendation provenance visible to users and provides a basis for future A/B testing of pipeline variants.
+
+    \item \textbf{Bellman-error loss sparkline as training transparency.}
+    A live SVG sparkline in the right-panel profile view plots the full per-user Bellman-error loss history with an annotated phase boundary between pretraining and online fine-tuning.
+    This provides immediate, per-interaction visual confirmation that the DIF-SASRec model has updated — a transparency mechanism with no equivalent in existing open-source recommendation systems.
+
+    \item \textbf{BGE-M3-based semantic re-ranking for LLM grounding.}
+    Rather than passing raw Wikipedia or Google Books extracts to the Qwen2.5 assistant, the grounding pipeline uses the same BGE-M3 encoder deployed throughout the system to select the top-5 plot-relevant sentences from the retrieved text.
+    This suppresses author biography sentences and marketing language without requiring a separate re-ranking model.
+\end{enumerate}
+
+---
+
+\section{Generalisation to Other Domains}
+\label{sec:generalisation}
+
+The system was designed with a modular architecture in which domain-specific and domain-agnostic components are cleanly separated.
+Table~\ref{tab:generalisation} assesses the portability of each component to a hypothetical new domain.
+
+\begin{table}[htbp]
+\centering
+\caption{Component portability to a new recommendation domain.}
+\label{tab:generalisation}
+\begin{tabular}{p{4.0cm} p{2.0cm} p{6.5cm}}
+\hline
+\textbf{Component} & \textbf{Portability} & \textbf{Notes} \\
+\hline
+FastAPI + React SPA framework & Drop-in & No domain coupling; only API schemas change \\
+HNSW + FAISS retrieval        & Drop-in & Accepts any fixed-dimensional embedding \\
+RRF fusion                    & Drop-in & Parameter-free; works with any pair of ranked lists \\
+NLLB translation pipeline     & Drop-in & Supports 202 languages regardless of domain \\
+Tantivy BM25 index            & Drop-in & Domain-agnostic text index \\
+Interaction logging (Redis + MongoDB) & Drop-in & Schema generalises to any item-action event \\
+BGE-M3 encoder                & Reusable & Multilingual; re-embedding required for new item catalogue \\
+CLIP image index               & Reusable & Re-embedding required if image modality differs \\
+AgentPool + checkpoint system  & Reusable & Architecture is independent of domain; pretraining required \\
+DIF-SASRec pretrained weights  & Domain-specific & Pretrained on Amazon Books; retraining needed for new domain \\
+Cleora co-purchase graph       & Domain-specific & Requires domain interaction logs to build the co-purchase graph \\
+item\_metadata Parquet store   & Domain-specific & Schema (title, genre, image URL) maps naturally to many product domains \\
+\hline
+\end{tabular}
+\end{table}
+
+The retrieval infrastructure (HNSW, RRF, NLLB, Tantivy, Redis, MongoDB) requires no changes to support a new domain.
+The encoder and model layers (BGE-M3, CLIP, DIF-SASRec) require re-embedding and retraining on domain-specific data, but the training code and serving infrastructure are reusable.
+Only the Cleora graph is tightly coupled to the co-purchase interaction pattern; an analogous collaborative signal (e.g., co-view, co-play, co-purchase in another product domain) would enable direct reuse.
+
+---
+
 \section{Limitations}
 \label{sec:conclusion_limitations}
 

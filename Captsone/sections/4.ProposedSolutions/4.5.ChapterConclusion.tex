@@ -16,4 +16,7 @@ Section~\ref{sec:storage_improvements} introduced a dual FAISS index strategy â€
 The HNSW index reduces P50 search latency from 612.19 ms to 119.56 ms (a 5.12$\times$ speedup), at a recall of 0.521 that is partially compensated by the BM25 re-ranking stage.
 The Cleora behavioural embeddings are maintained as a separate hot-swappable archive covering 375{,}280 catalogue items.
 
+Section~\ref{sec:agent_pool} described the \texttt{AgentPool} architecture that underpins concurrent personalisation: a fixed pool of eight independent DIF-SASRec instances backed by an \texttt{asyncio.Queue}, each maintaining its own weight and optimiser state, with per-user checkpoints serialised to disk between requests.
+The pool provides natural backpressure under concurrency without dropped requests or shared-model race conditions, at a VRAM cost of approximately 1.18~GB for the full pool of eight agents.
+
 Chapter~5 evaluates these changes quantitatively, reporting recommendation accuracy across 100{,}000 test users, multilingual retrieval precision across five query-type groups, and end-to-end latency across four optimisation stages.

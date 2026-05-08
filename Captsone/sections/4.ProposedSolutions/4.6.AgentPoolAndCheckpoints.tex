@@ -1,0 +1,60 @@
+\section{AgentPool and Per-User Checkpoint Management}
+\label{sec:agent_pool}
+
+\subsection{Motivation}
+
+The DIF-SASRec model performs per-user online fine-tuning, meaning each user's gradient history must be maintained in isolation.
+A naive implementation would load a single model into GPU memory and serialise updates sequentially — a design that serialises all recommendation and training requests across concurrent users.
+The \texttt{AgentPool} architecture solves this by maintaining a fixed set of independent model instances, each capable of serving a distinct user request without shared mutable state.
+
+\subsection{Pool Architecture}
+
+The pool consists of $P = 8$ independent \texttt{DIFSASRecAgent} instances, each holding its own copy of:
+\begin{itemize}
+    \item A \texttt{DIFSASRecModel} with separate weight tensors on the GPU.
+    \item An AdamW optimiser with its own first and second moment buffers.
+    \item A loss history list for sparkline rendering.
+\end{itemize}
+Each agent occupies approximately 148~MB of VRAM (model weights plus AdamW moments), so the full pool of eight agents requires approximately 1.18~GB of VRAM.
+
+The pool is backed by an \texttt{asyncio.Queue} of size $P$.
+Callers acquire an agent via \texttt{async with pool.borrow() as agent}, which removes the agent from the queue (blocking if none is available) and returns it automatically on exit regardless of whether an exception occurred.
+Figure~\ref{fig:agent_pool} illustrates the borrow-use-return lifecycle.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.80\textwidth]{images/chapter4/fig_agent_pool}
+\caption{AgentPool borrow-use-return lifecycle. Each incoming \texttt{/interact} or \texttt{/recommend} request acquires one of the eight idle agents from the asyncio queue. The agent loads the per-user checkpoint from disk, performs inference or a gradient step, saves the updated checkpoint, then is returned to the pool for the next request. A ninth concurrent request waits in the queue with no error or dropped request.}
+\label{fig:agent_pool}
+\end{figure}
+
+\subsection{Per-User Checkpoint Protocol}
+
+Because agents are stateless between requests, user-specific weights are maintained as on-disk checkpoints rather than in-pool state.
+The checkpoint lifecycle for a single interaction is:
+
+\begin{enumerate}
+    \item \textbf{Acquire}: The route borrows an idle agent from the pool.
+    \item \textbf{Load}: \texttt{agent.load\_user(user\_id, data\_dir)} reads the user's \texttt{.pt} file from disk into the agent's model and optimiser.
+        If no checkpoint exists (first interaction), the agent retains the global pretrained weights.
+    \item \textbf{Infer or train}: For \texttt{/recommend}, the agent runs a forward pass over the user's click sequence and scores candidate items.
+        For \texttt{/interact}, the agent additionally runs one backward pass and updates the model weights.
+    \item \textbf{Save}: After a gradient step, the updated weights and optimiser state are serialised back to \texttt{data/user\_checkpoints/\{user\_id\}.pt}.
+    \item \textbf{Release}: The agent is returned to the pool in a clean state, ready for the next user.
+\end{enumerate}
+
+\subsection{Concurrency and Backpressure}
+
+Because the pool is bounded, it provides natural backpressure under high concurrency: if all eight agents are occupied, the ninth caller blocks on the \texttt{asyncio.Queue.get()} coroutine.
+This behaviour is preferable to spawning unbounded threads (which would exhaust GPU memory) or returning errors (which would degrade the user experience).
+In the single-user development setting, all eight agents are idle and the queue wait time is negligible.
+
+The pool is initialised during the FastAPI lifespan startup via \texttt{await pool.warmup()}.
+Since GPU weight loading is blocking, the warmup runs in a background thread via \texttt{run\_in\_executor} to avoid stalling the event loop.
+The eight agents are loaded sequentially within the thread; total warmup time at 148~MB per agent is approximately 3–5 seconds on the development GPU.
+
+\subsection{Checkpoint Size and Latency}
+
+A per-user checkpoint stores the full model weight tensor ($\approx$48~MB) plus the AdamW moment buffers ($\approx$96~MB), totalling approximately 144~MB per user.
+Checkpoint load and save via \texttt{torch.load} / \texttt{torch.save} each take approximately 1–2 seconds for a new user; repeated calls benefit from the OS page cache, reducing this to 100–400~ms for warm users.
+This per-request serialisation overhead is the primary bottleneck of the \texttt{POST /interact} handler and is identified in Section~\ref{sec:conclusion_limitations} as a candidate for asynchronous offloading in future work.

@@ -24,6 +24,33 @@ Xie et al.~\cite{xie2022difsasrec} observed that prior methods fuse side informa
 DIF-SASRec decouples these streams into separate attention modules and shows consistent gains over SASRec and BERT4Rec across multiple datasets.
 This architecture is adopted as Pipeline~B of the proposed system.
 
+\subsection{Comparison of Sequential Recommendation Architectures}
+\label{sec:seq_model_comparison}
+
+Table~\ref{tab:seq_model_comparison} summarises the key architectural properties of the sequential recommendation models discussed above, including the proposed DIF-SASRec system.
+
+\begin{table}[H]
+\centering
+\caption{Comparison of sequential recommendation architectures.}
+\label{tab:seq_model_comparison}
+\begin{tabular}{p{2.6cm} p{1.7cm} p{1.8cm} p{2.0cm} p{2.0cm} p{2.2cm}}
+\hline
+\textbf{Model} & \textbf{Encoder} & \textbf{Training} & \textbf{Side info} & \textbf{Cold-start} & \textbf{Online update} \\
+\hline
+GRU4Rec~\cite{hidasi2016gru4rec}    & GRU            & Sequential & None    & Poor   & Possible \\
+SASRec~\cite{kang2018self}          & Causal Attn    & Parallel   & None    & Poor   & Possible \\
+BERT4Rec~\cite{sun2019bert4rec}     & Bidir.\ Attn   & Masked     & None    & Poor   & Incompatible$^\dagger$ \\
+GRU-SeqDQN (prior)                  & GRU + DQN      & RL         & None    & Poor   & Online RL \\
+DIF-SASRec~\cite{xie2022difsasrec} & Decoupled Attn & Parallel   & Content + Category & Via content & Per-interaction \\
+\hline
+\multicolumn{6}{l}{\footnotesize $^\dagger$ BERT4Rec requires masked-item retraining; incremental online updates are not well-defined.} \\
+\end{tabular}
+\end{table}
+
+DIF-SASRec uniquely combines parallel (non-sequential) training, explicit side-information integration, and support for per-interaction online fine-tuning.
+The bidirectional masking of BERT4Rec makes it incompatible with causal inference and online adaptation, ruling it out for the real-time personalisation objective of this system.
+GRU-based models (GRU4Rec, GRU-SeqDQN) are parallelisation-constrained and scale poorly to the 200-item sequences present in the Amazon Books evaluation set.
+
 \subsection{The Prior System: GRU-SeqDQN}
 
 The system evaluated in this report supersedes a prior implementation (hereafter GRU-SeqDQN) that paired a GRU sequence encoder with a Deep Q-Network (DQN) policy for recommendation.

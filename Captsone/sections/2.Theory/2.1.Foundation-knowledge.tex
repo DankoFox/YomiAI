@@ -22,10 +22,176 @@ The attention weight between positions $i$ and $j$ is:
 where $\mathbf{q}_i$, $\mathbf{k}_j$ are query and key projections of the $i$-th and $j$-th sequence positions, and $d$ is the head dimension.
 SASRec~\cite{kang2018self} adapts this to recommendation with a \textit{causal} (left-to-right) mask so that only past interactions influence each prediction, matching the sequential nature of the task.
 BERT4Rec~\cite{sun2019bert4rec} instead uses bidirectional attention with masked-item training, achieving higher accuracy but at a greater inference cost.
+Figure~\ref{fig:causal_attn} illustrates the causal masking pattern for a four-item sequence.
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+  >=Stealth,
+  every path/.style={line width=0.6pt},
+  ibox/.style={draw=blue!45, fill=blue!7, rounded corners=2pt,
+               minimum width=0.85cm, minimum height=0.58cm,
+               align=center, font=\small},
+  obox/.style={draw=orange!55, fill=orange!7, rounded corners=2pt,
+               minimum width=0.85cm, minimum height=0.58cm,
+               align=center, font=\small},
+  lbl/.style={font=\footnotesize, text=gray!75},
+]
+
+% ── Grid parameters ──────────────────────────────────────────────────
+% Column c (0..3) centre: x = c * 1.35
+% Row    r (0..3) centre: y = -r * 1.35
+% Cell half-size: 0.48
+
+% ── Fill cells ───────────────────────────────────────────────────────
+% Row 0 (q_1): only col 0 allowed
+\fill[teal!22]  (-0.48,-0.48) rectangle ( 0.48, 0.48);
+\fill[gray!14]  ( 0.87,-0.48) rectangle ( 1.83, 0.48);
+\fill[gray!14]  ( 2.22,-0.48) rectangle ( 3.18, 0.48);
+\fill[gray!14]  ( 3.57,-0.48) rectangle ( 4.53, 0.48);
+% Row 1 (q_2): cols 0,1 allowed
+\fill[teal!22]  (-0.48,-1.83) rectangle ( 0.48,-0.87);
+\fill[teal!22]  ( 0.87,-1.83) rectangle ( 1.83,-0.87);
+\fill[gray!14]  ( 2.22,-1.83) rectangle ( 3.18,-0.87);
+\fill[gray!14]  ( 3.57,-1.83) rectangle ( 4.53,-0.87);
+% Row 2 (q_3): cols 0,1,2 allowed
+\fill[teal!22]  (-0.48,-3.18) rectangle ( 0.48,-2.22);
+\fill[teal!22]  ( 0.87,-3.18) rectangle ( 1.83,-2.22);
+\fill[teal!22]  ( 2.22,-3.18) rectangle ( 3.18,-2.22);
+\fill[gray!14]  ( 3.57,-3.18) rectangle ( 4.53,-2.22);
+% Row 3 (q_4): all allowed
+\fill[teal!22]  (-0.48,-4.53) rectangle ( 0.48,-3.57);
+\fill[teal!22]  ( 0.87,-4.53) rectangle ( 1.83,-3.57);
+\fill[teal!22]  ( 2.22,-4.53) rectangle ( 3.18,-3.57);
+\fill[teal!22]  ( 3.57,-4.53) rectangle ( 4.53,-3.57);
+
+% ── Cell borders ─────────────────────────────────────────────────────
+\foreach \c in {0,1,2,3} {
+  \foreach \r in {0,1,2,3} {
+    \draw[gray!45] ({-0.48+\c*1.35},{-0.48-\r*1.35})
+                rectangle ({0.48+\c*1.35},{ 0.48-\r*1.35});
+  }
+}
+
+% ── Masked cell labels ────────────────────────────────────────────────
+\node[lbl] at (1.35, 0)    {$-\infty$};
+\node[lbl] at (2.70, 0)    {$-\infty$};
+\node[lbl] at (4.05, 0)    {$-\infty$};
+\node[lbl] at (2.70,-1.35) {$-\infty$};
+\node[lbl] at (4.05,-1.35) {$-\infty$};
+\node[lbl] at (4.05,-2.70) {$-\infty$};
+
+% ── Check marks in allowed cells ─────────────────────────────────────
+\foreach \pos in {(0,0),(0,-1.35),(1.35,-1.35),
+                  (0,-2.70),(1.35,-2.70),(2.70,-2.70),
+                  (0,-4.05),(1.35,-4.05),(2.70,-4.05),(4.05,-4.05)} {
+  \node[font=\small, text=teal!60!black] at \pos {$\checkmark$};
+}
+
+% ── Input items (above grid, one per column) ──────────────────────────
+\node[ibox] (in1) at (0.00, 1.15) {$i_1$};
+\node[ibox] (in2) at (1.35, 1.15) {$i_2$};
+\node[ibox] (in3) at (2.70, 1.15) {$i_3$};
+\node[ibox] (in4) at (4.05, 1.15) {$i_4$};
+
+% Key labels above input items
+\node[lbl] at (0.00, 1.78) {$k_1$};
+\node[lbl] at (1.35, 1.78) {$k_2$};
+\node[lbl] at (2.70, 1.78) {$k_3$};
+\node[lbl] at (4.05, 1.78) {$k_4$};
+
+% Arrows: input → top of corresponding column
+\draw[->] (in1.south) -- (0.00, 0.48);
+\draw[->] (in2.south) -- (1.35, 0.48);
+\draw[->] (in3.south) -- (2.70, 0.48);
+\draw[->] (in4.south) -- (4.05, 0.48);
+
+% ── Query labels (left of each row) ──────────────────────────────────
+\node[lbl, anchor=east] at (-0.72, 0.00)  {$\mathbf{q}_1$};
+\node[lbl, anchor=east] at (-0.72,-1.35)  {$\mathbf{q}_2$};
+\node[lbl, anchor=east] at (-0.72,-2.70)  {$\mathbf{q}_3$};
+\node[lbl, anchor=east] at (-0.72,-4.05)  {$\mathbf{q}_4$};
+
+% ── Output hidden states (right of each row) ─────────────────────────
+\node[obox] (o1) at (5.30, 0.00)  {$h_1$};
+\node[obox] (o2) at (5.30,-1.35)  {$h_2$};
+\node[obox] (o3) at (5.30,-2.70)  {$h_3$};
+\node[obox] (o4) at (5.30,-4.05)  {$h_4$};
+
+\draw[->] (4.53, 0.00)  -- (o1.west);
+\draw[->] (4.53,-1.35)  -- (o2.west);
+\draw[->] (4.53,-2.70)  -- (o3.west);
+\draw[->] (4.53,-4.05)  -- (o4.west);
+
+% ── Legend (two rows, stacked vertically to avoid overlap) ───────────
+\fill[teal!22]  (-0.48,-5.4) rectangle (0.18,-5.0);
+\draw[gray!45]  (-0.48,-5.4) rectangle (0.18,-5.0);
+\node[font=\footnotesize, anchor=west] at (0.28,-5.2)
+  {Attends ($\alpha_{ij}$ computed normally)};
+\fill[gray!14]  (-0.48,-6.0) rectangle (0.18,-5.6);
+\draw[gray!45]  (-0.48,-6.0) rectangle (0.18,-5.6);
+\node[font=\footnotesize, anchor=west] at (0.28,-5.8)
+  {Masked to $-\infty$ before softmax};
+
+\end{tikzpicture}
+\caption{Causal self-attention mask for a 4-item sequence. Rows are query positions $(\mathbf{q}_i)$; columns are key positions $(k_j)$. Teal cells are allowed: position $i$ can attend to any position $j \leq i$. Grey cells are masked to $-\infty$ before softmax, preventing the model from attending to future items. The same input items $i_1$--$i_4$ serve as both queries (rows) and keys (columns).}
+\label{fig:causal_attn}
+\end{figure}
 
 DIF-SASRec~\cite{xie2022difsasrec} extends SASRec by incorporating \textit{side information} — item attributes such as textual content and categorical metadata — through decoupled attention streams.
 Rather than fusing attribute embeddings into item ID embeddings before attention (which conflates the two signals), DIF-SASRec maintains separate attention modules for content and category features and combines them at the output layer.
 This decoupling preserves the ability to attend to content-relevant history and category-relevant history independently, improving performance on items with rich metadata.
+
+\subsubsection{DIF-SASRec Architecture}
+\label{sec:difsasrec_arch}
+
+Let $S = [i_1, i_2, \ldots, i_n]$ be a user's interaction sequence of length $n$, where each item $i_t$ is associated with three representation components:
+\begin{itemize}
+    \item A \textbf{content embedding} $\mathbf{c}_{i_t} \in \mathbb{R}^{1024}$ — the item's pre-computed BGE-M3 text embedding, projected to the hidden dimension $d$ via a shared \texttt{ContentProjector} (Linear + LayerNorm + Dropout).
+    \item A \textbf{category embedding} $\mathbf{k}_{i_t} \in \mathbb{R}^{d}$ — a learned embedding for the item's discrete genre category.
+    \item A \textbf{position embedding} $\mathbf{p}_t \in \mathbb{R}^{d}$ — added to the content embedding to encode sequence order.
+\end{itemize}
+
+Each DIF attention layer maintains two independent multi-head attention streams operating over the same sequence.
+The content stream computes queries, keys, and values entirely from projected content embeddings:
+\begin{equation}
+  \mathbf{A}^{\text{content}} = \text{softmax}\!\left(\frac{\mathbf{Q}_c \mathbf{K}_c^\top}{\sqrt{d_h}} + \mathbf{M}\right)
+\end{equation}
+where $\mathbf{Q}_c = \mathbf{H}\mathbf{W}^Q_c$, $\mathbf{K}_c = \mathbf{H}\mathbf{W}^K_c$, $\mathbf{H}$ is the content hidden state, $d_h = d / H$ is the per-head dimension, and $\mathbf{M}$ is a causal lower-triangular mask (positions above the diagonal are set to $-\infty$ before softmax).
+
+The category stream computes queries and keys from category embeddings but contributes no values (values are always drawn from the content stream):
+\begin{equation}
+  \mathbf{A}^{\text{cat}} = \text{softmax}\!\left(\frac{\mathbf{Q}_k \mathbf{K}_k^\top}{\sqrt{d_h}} + \mathbf{M}\right)
+\end{equation}
+where $\mathbf{Q}_k = \mathbf{K}_{\text{emb}}\mathbf{W}^Q_k$ and $\mathbf{K}_k = \mathbf{K}_{\text{emb}}\mathbf{W}^K_k$ are projections of the category embedding matrix $\mathbf{K}_{\text{emb}}$.
+
+The two attention maps are fused via a learnable scalar $\alpha \in (0, 1)$:
+\begin{equation}
+  \mathbf{A}^{\text{fused}} = \alpha\,\mathbf{A}^{\text{cat}} + (1 - \alpha)\,\mathbf{A}^{\text{content}}
+\end{equation}
+The fused attention is applied to the content value matrix $\mathbf{V} = \mathbf{H}\mathbf{W}^V$ to produce the layer output, which is passed through a position-wise feed-forward network with a pre-norm residual connection.
+The scalar $\alpha$ is initialised via a logit so that $\text{sigmoid}(\alpha_{\text{logit}}) = 0.7$, giving the category stream a slight initial advantage while allowing the model to learn the optimal balance during training.
+
+After $L = 4$ stacked DIF blocks, the hidden state at the last non-padding position is extracted as the \textit{intent vector} $\mathbf{h}_n \in \mathbb{R}^{d}$.
+For next-item prediction, candidate items are projected by the same \texttt{ContentProjector} to produce $\mathbf{e}_{i^+}$, and the score is the dot product $s(i) = \mathbf{h}_n^\top \mathbf{e}_i$.
+
+\subsubsection{Pretraining and Online Fine-Tuning}
+\label{sec:difsasrec_training}
+
+During offline pretraining, the model is trained with a \textit{sampled softmax} loss.
+For each training step the positive item is the ground-truth next item, and 512 hard negative items are sampled uniformly from the catalogue:
+\begin{equation}
+  \mathcal{L}_{\text{main}} = -\log\frac{\exp(\mathbf{h}_n^\top \mathbf{e}_{i^+})}{\exp(\mathbf{h}_n^\top \mathbf{e}_{i^+}) + \sum_{j \in \mathcal{N}} \exp(\mathbf{h}_n^\top \mathbf{e}_j)}
+\end{equation}
+An auxiliary category prediction loss is added to reinforce the category stream:
+\begin{equation}
+  \mathcal{L}_{\text{cat}} = \text{CrossEntropy}\!\left(\mathbf{W}_{\text{cat}}\mathbf{h}_n,\; k_{i^+}\right)
+\end{equation}
+where $\mathbf{W}_{\text{cat}}$ is the category classification head and $k_{i^+}$ is the target item's category.
+The combined pretraining loss is $\mathcal{L} = \mathcal{L}_{\text{main}} + \lambda\,\mathcal{L}_{\text{cat}}$ with $\lambda = 0.1$.
+
+At runtime, each click or cart event triggers one online gradient step using the same loss with the interacted item as the positive and negatives drawn from the full 3-million-item catalogue.
+The personal checkpoint is immediately serialised to disk; the loss value is returned to the frontend to drive the Bellman-error sparkline.
 
 \subsection{Graph-Based Behavioural Embedding: Cleora}
 \label{sec:cleora}
@@ -82,6 +248,69 @@ Reciprocal Rank Fusion (RRF)~\cite{cormack2009rrf} combines two ranked lists wit
 \end{equation}
 where $\mathcal{R}$ is the set of input rankings, $r_i(d)$ is the rank of document $d$ in ranking $i$, and $k = 60$ is a smoothing constant.
 RRF is robust to score scale differences between retrieval systems and has been shown to outperform learned rank aggregation methods in low-resource settings~\cite{cormack2009rrf}.
+Figure~\ref{fig:rrf_fusion} illustrates how the two ranked lists are merged.
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+  >=Stealth,
+  every path/.style={line width=0.65pt},
+  listbox/.style={draw=gray!55, fill=white, rounded corners=3pt,
+                  minimum width=3.4cm, align=left,
+                  inner sep=7pt, font=\small},
+  fusebox/.style={draw=orange!65, fill=orange!7, rounded corners=4pt,
+                  thick, align=center, font=\small,
+                  minimum width=7.2cm, minimum height=1.1cm, inner sep=8pt},
+  outbox/.style={draw=teal!55, fill=teal!5, rounded corners=3pt,
+                 minimum width=3.4cm, align=left,
+                 inner sep=7pt, font=\small},
+]
+
+% ── Dense ranked list (left) ──────────────────────────────────────────
+\node[listbox, anchor=north] (dense) at (-3.8, 2.0) {%
+  \textbf{Dense (FAISS)}\\[3pt]
+  \#1\enskip Item~A\\
+  \#2\enskip Item~B\\
+  \#3\enskip Item~C\\
+  \#4\enskip Item~D
+};
+
+% ── Sparse ranked list (right) ────────────────────────────────────────
+\node[listbox, anchor=north] (bm25) at (3.8, 2.0) {%
+  \textbf{Sparse (BM25)}\\[3pt]
+  \#1\enskip Item~C\\
+  \#2\enskip Item~A\\
+  \#3\enskip Item~E\\
+  \#4\enskip Item~B
+};
+
+% ── RRF fusion box ────────────────────────────────────────────────────
+\node[fusebox] (fusion) at (0, -4.0) {%
+  \textbf{Reciprocal Rank Fusion}\\[4pt]
+  $\mathrm{RRF}(d)=\dfrac{1}{k+r_{\mathrm{dense}}(d)}+\dfrac{1}{k+r_{\mathrm{bm25}}(d)},\quad k=60$
+};
+
+% ── Fused output list ─────────────────────────────────────────────────
+\node[outbox, anchor=north] (merged) at (0, -5.6) {%
+  \textbf{Fused Results}\\[3pt]
+  \#1\enskip Item~A\quad $\tfrac{1}{62}+\tfrac{1}{62}=0.0323$\\
+  \#2\enskip Item~C\quad $\tfrac{1}{63}+\tfrac{1}{61}=0.0323$\\
+  \#3\enskip Item~B\quad $\tfrac{1}{62}+\tfrac{1}{64}=0.0317$\\
+  \#4\enskip Item~E\quad $0+\tfrac{1}{63}=0.0159$
+};
+
+% ── Arrows ────────────────────────────────────────────────────────────
+% Dense → Fusion: down then elbow into fusion.west
+\draw[->] (dense.south) -- (fusion.north);
+% BM25 → Fusion: down then elbow into fusion.east
+\draw[->] (bm25.south) -- (fusion.north);
+% Fusion → Merged
+\draw[->] (fusion.south) -- (merged.north);
+
+\end{tikzpicture}
+\caption{Reciprocal Rank Fusion combining dense FAISS and sparse BM25 rankings. Each document's RRF score sums its reciprocal ranks across both lists; the constant $k=60$ prevents any single top-ranked item from dominating. Items absent from one list receive no contribution from that list (Item~E is absent from the dense list).}
+\label{fig:rrf_fusion}
+\end{figure}
 
 \subsection{Multimodal and Multilingual Extensions}
 \label{sec:multimodal}
