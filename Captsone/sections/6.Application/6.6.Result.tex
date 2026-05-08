@@ -11,15 +11,24 @@ They type the Vietnamese query \textit{``sách về trí tuệ nhân tạo''} (b
 Internally, the NLLB-200 pipeline detects Vietnamese in under 1\,ms and translates the query to ``books about artificial intelligence''.
 The translated query is encoded by BGE-M3, searched against the HNSW text index, and fused with Tantivy BM25 scores via RRF.
 While the request is in flight, four animated skeleton placeholder cards occupy the result area.
-On response arrival, the placeholders are replaced by result cards showing the cover image, title, author, genre, and score badges.
+On response arrival, the placeholders are replaced by result cards showing the cover image, title, author, genre, and score badges: an RRF fusion badge on every card, plus a BGE-M3 badge reflecting text-channel similarity and a CLIP badge reflecting visual-channel similarity where applicable.
 Warm-cache end-to-end latency for this step is approximately 59\,ms.
 
 Figure~\ref{fig:search_demo} shows the result page for a representative search query.
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=0.92\textwidth]{images/chapter6/fig_search_demo}
-\caption{Active Search results (Mode 1). Each result card presents cover image, title, author, genre, relevance score badges, and four interaction controls: \textit{Interested}, \textit{Skip}, \textit{Ask AI} (streaming LLM popover), and \textit{Add to Cart}.}
+\includegraphics[width=0.80\textwidth]{images/chapter6/fig_search_text}
+\subcaption{Text query: RRF and BGE-M3 badges.}
+\label{fig:search_text}
+
+\vspace{8pt}
+
+\includegraphics[width=0.80\textwidth]{images/chapter6/fig_search_multimodal}
+\subcaption{Combined text + image query: RRF, BGE-M3, and CLIP badges.}
+\label{fig:search_multimodal}
+
+\caption{Active Search results (Mode 1). Each result card presents cover image, title, author, genre, score badges, and four interaction controls: \textit{Interested}, \textit{Skip}, \textit{Ask AI} (streaming LLM popover), and \textit{Add to Cart}. (a)~Text-only query shows RRF and BGE-M3 badges. (b)~Combined text and image query additionally shows a CLIP badge, demonstrating the multimodal fusion path.}
 \label{fig:search_demo}
 \end{figure}
 
@@ -42,8 +51,17 @@ Figure~\ref{fig:rec_demo} shows the recommendation panel for a warm user.
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=0.92\textwidth]{images/chapter6/fig_rec_demo}
-\caption{Personalised Recommendations (Mode 2) for a warm user. The \textit{DIF-SASRec active} status pill (top) confirms personalised ranking is engaged. The \textit{You Might Like} sub-tab renders the DIF-SASRec input sequence strip above the recommendation cards, making the model's input visible to the user.}
+\includegraphics[width=0.80\textwidth]{images/chapter6/fig_rec_pab}
+\subcaption{People Also Buy (Pipeline~A): BGE-M3 and CLIP cosine-similarity badges with a \textit{Cleora~+~BGE-M3} or \textit{Cleora~+~CLIP} layer tag.}
+\label{fig:rec_pab}
+
+\vspace{8pt}
+
+\includegraphics[width=0.80\textwidth]{images/chapter6/fig_rec_yml}
+\subcaption{You Might Like (Pipeline~B): normalised SASRec intent score with a \textit{DIF-SASRec} layer tag and the input-sequence strip above the cards.}
+\label{fig:rec_yml}
+
+\caption{Personalised Recommendations (Mode 2) for a warm user. The \textit{DIF-SASRec active} status pill confirms personalised mode is engaged. (a)~Pipeline~A surfaces co-purchase neighbours re-ranked by profile similarity, with per-modality scores shown directly on each card. (b)~Pipeline~B applies the DIF-SASRec sequential model; the input-sequence strip makes the model's click-history input visible to the user.}
 \label{fig:rec_demo}
 \end{figure}
 

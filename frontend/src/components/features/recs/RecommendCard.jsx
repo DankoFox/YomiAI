@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { BookCover } from "../../ui/BookCover";
 import { LayerTag } from "../../ui/LayerTag";
+import { ScoreBadge } from "../../ui/ScoreBadge";
 
 function parseAuthor(raw) {
   if (!raw) return "Unknown Author";
@@ -52,7 +53,6 @@ export function RecommendCard({ book, onInteract, onAskAIStream, rank, isNew = f
 
   const cover  = book.cover_color || "#1e1b4b";
   const author = parseAuthor(book.author);
-  const match  = Math.min(99, Math.max(60, Math.floor((book.score || 0.5) * 80 + 15)));
 
   return (
     <div className="flex gap-3 p-3 rounded-xl border border-[#babbbd] dark:border-[#627d9a]/60
@@ -81,32 +81,41 @@ export function RecommendCard({ book, onInteract, onAskAIStream, rank, isNew = f
       </div>
 
       <div className="flex-1 min-w-0">
-        <p className="font-serif font-semibold leading-snug text-[#2e3257] dark:text-[#fffef7]" style={{ fontSize: 12 }}>
-          {book.title}
-        </p>
-        <p className="text-[#627d9a] dark:text-[#babbbd] mt-0.5" style={{ fontSize: 10 }}>{author}</p>
+        <div className="flex items-start justify-between gap-2">
+          <div className="min-w-0">
+            <p className="font-serif font-semibold leading-snug text-[#2e3257] dark:text-[#fffef7]" style={{ fontSize: 12 }}>
+              {book.title}
+            </p>
+            <p className="text-[#627d9a] dark:text-[#babbbd] mt-0.5" style={{ fontSize: 10 }}>{author}</p>
 
-        <div className="flex items-center flex-wrap gap-1.5 mt-1.5">
-          {book.genre && (
-            <span className="px-2 py-0.5 rounded-full text-[9px]
-                             bg-[#dfc5a4]/25 text-[#627d9a] dark:text-[#babbbd]">
-              {book.genre}
-            </span>
-          )}
-          {book.sub_genre && book.sub_genre !== book.genre && (
-            <span className="px-2 py-0.5 rounded-full text-[9px]
-                             bg-[#babbbd]/15 dark:bg-[#627d9a]/15
-                             text-[#babbbd] dark:text-[#627d9a]">
-              {book.sub_genre}
-            </span>
-          )}
-        </div>
+            <div className="flex items-center flex-wrap gap-1.5 mt-1.5">
+              {book.genre && (
+                <span className="px-2 py-0.5 rounded-full text-[9px]
+                                 bg-[#dfc5a4]/25 text-[#627d9a] dark:text-[#babbbd]">
+                  {book.genre}
+                </span>
+              )}
+              {book.sub_genre && book.sub_genre !== book.genre && (
+                <span className="px-2 py-0.5 rounded-full text-[9px]
+                                 bg-[#babbbd]/15 dark:bg-[#627d9a]/15
+                                 text-[#babbbd] dark:text-[#627d9a]">
+                  {book.sub_genre}
+                </span>
+              )}
+            </div>
 
-        <div className="flex items-center gap-2 mt-1">
-          {book.layer && <LayerTag label={book.layer} />}
-          <span className="font-mono text-[#babbbd] dark:text-[#627d9a]" style={{ fontSize: 9 }}>
-            match: {match}%
-          </span>
+            <div className="mt-1">
+              {book.layer && <LayerTag label={book.layer} />}
+            </div>
+          </div>
+
+          <div className="flex gap-1.5 flex-shrink-0 items-start">
+            {book.text_sim > 0 && <ScoreBadge score={book.text_sim} label="BGE-M3" />}
+            {book.img_sim  > 0 && <ScoreBadge score={book.img_sim}  label="CLIP"   />}
+            {(!book.text_sim && !book.img_sim) && (
+              <ScoreBadge score={book.score || 0} label="SASRec" />
+            )}
+          </div>
         </div>
 
         {/* Row 1 */}

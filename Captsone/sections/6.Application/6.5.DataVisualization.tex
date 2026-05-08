@@ -39,7 +39,8 @@ The \textit{Active Search} tab contains a text input field, a search button, and
 When an image file is loaded, the drop zone transitions from a dashed placeholder to a thumbnail preview confirming that the CLIP encoder will process it; the image can be cleared via a dismiss button.
 An encoder legend below the input shows the three retrieval signals: BGE-M3 (text semantics), CLIP (visual features), and RRF (fusion score).
 While a search request is in flight, four animated skeleton placeholder cards occupy the result area.
-On response arrival, each result is rendered as a card containing the cover image, title, author, genre tag(s), and relevance score badges (overall match, text similarity, and image similarity).
+On response arrival, each result is rendered as a card containing the cover image, title, author, genre tag(s), and relevance score badges.
+An RRF badge is present on every card; a BGE-M3 badge appears when a text query is active and a CLIP badge appears when an image is active, so that up to three badges are shown for a combined text-and-image query.
 Each card provides four interaction controls: \textit{Interested} (logs a click), \textit{Skip} (logs a skip), \textit{Ask AI} (opens a streaming book-description popover), and \textit{Add to Cart} (logs a cart event).
 
 \subsection{Left Panel — Recommendations (Mode 2)}
@@ -50,7 +51,10 @@ The \textit{People Also Buy} sub-tab renders Pipeline~A output (Cleora co-purcha
 The \textit{You Might Like} sub-tab renders Pipeline~B output (DIF-SASRec sequential recommendations).
 When \textit{You Might Like} is active and the user is in personalised mode, a horizontal input-sequence strip is displayed above the recommendation cards.
 This strip shows the user's most recent click and cart interactions — up to eight items — in chronological order, representing the exact sequence that DIF-SASRec reads when generating the next-item prediction.
-Each recommendation card carries a pipeline layer label, and items that are new since the previous refresh are highlighted for four seconds.
+Each recommendation card carries a coloured pipeline layer tag and score badges.
+People Also Buy cards (Pipeline~A) display BGE-M3 and CLIP cosine-similarity badges reflecting the alignment between the user's profile vector and the candidate item; the layer tag reads \textit{Cleora~+~BGE-M3} or \textit{Cleora~+~CLIP} depending on which signal was dominant.
+You Might Like cards (Pipeline~B) display a normalised SASRec intent score, scaled so that the top-ranked candidate receives 1.0 and the remaining candidates are proportional to their actual dot-product gap; the layer tag reads \textit{DIF-SASRec}.
+Items that are new since the previous refresh are highlighted for four seconds.
 
 \subsection{Right Panel — User Profile and Activity History}
 \label{sec:app_profile_panel}

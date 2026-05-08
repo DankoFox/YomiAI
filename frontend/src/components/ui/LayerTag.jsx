@@ -1,6 +1,7 @@
 const TAG = {
   "Cleora + BGE-M3": "bg-[#2e3257]/10 dark:bg-[#fffef7]/10 border-[#2e3257]/25 dark:border-[#fffef7]/25 text-[#2e3257] dark:text-[#fffef7]",
   "Cleora + CLIP":   "bg-[#627d9a]/10 dark:bg-[#627d9a]/20 border-[#627d9a]/30 text-[#627d9a] dark:text-[#babbbd]",
+  "DIF-SASRec":      "bg-emerald-500/10 dark:bg-emerald-400/10 border-emerald-500/30 dark:border-emerald-400/30 text-emerald-700 dark:text-emerald-400",
   "RL-DQN":          "bg-[#dfc5a4]/20 border-[#dfc5a4]/50 text-[#627d9a] dark:text-[#dfc5a4]",
   // legacy compat
   "Cleora + BLaIR":  "bg-[#2e3257]/10 dark:bg-[#fffef7]/10 border-[#2e3257]/25 dark:border-[#fffef7]/25 text-[#2e3257] dark:text-[#fffef7]",

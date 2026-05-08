@@ -67,10 +67,17 @@ class PassiveRecommendationEngine:
                 key=lambda x: max(x["text_score"], x["visual_score"]),
                 reverse=True,
             )
-            people_also_buy = [
-                (item["asin"], float(max(item["text_score"], item["visual_score"])), "Retrieval")
-                for item in pab_ranked[:top_k]
-            ]
+            people_also_buy = []
+            for item in pab_ranked[:top_k]:
+                text_s = float(item["text_score"])
+                vis_s  = float(item["visual_score"])
+                layer  = "Cleora + BGE-M3" if text_s >= vis_s else "Cleora + CLIP"
+                people_also_buy.append((
+                    item["asin"],
+                    float(max(text_s, vis_s)),
+                    layer,
+                    {"text_sim": text_s, "img_sim": vis_s},
+                ))
         else:
             people_also_buy = []
 
@@ -120,11 +127,13 @@ class PassiveRecommendationEngine:
         candidate_asins = [item["asin"] for item in verified]
         scores = agent.get_candidate_scores(asins, cat_ids, candidate_asins)
 
-        ranked = sorted(scores.items(), key=lambda x: x[1], reverse=True)
-        return [
-            (asin, float(score), "DIF-SASRec")
-            for asin, score in ranked[:top_k]
-        ]
+        ranked = sorted(scores.items(), key=lambda x: x[1], reverse=True)[:top_k]
+        if ranked:
+            raw = [s for _, s in ranked]
+            lo, hi = min(raw), max(raw)
+            span = hi - lo if hi > lo else 1.0
+            ranked = [(a, (s - lo) / span) for a, s in ranked]
+        return [(asin, float(score), "DIF-SASRec") for asin, score in ranked]
 
     # ── Layer 1: Behavioural candidate generation (Pipeline A) ───────────────
 

@@ -37,8 +37,8 @@ async def recommend(user_id: str, container: AppContainer = Depends(require_read
             rec_dict, mode = res, "personalized"
 
     all_rec_ids = (
-        [a for a, _, _ in rec_dict["people_also_buy"]]
-        + [a for a, _, _ in rec_dict["you_might_like"]]
+        [rec[0] for rec in rec_dict["people_also_buy"]]
+        + [rec[0] for rec in rec_dict["you_might_like"]]
     )
     await profile_manager.log_recommendation(user_id, all_rec_ids)
 
@@ -46,12 +46,15 @@ async def recommend(user_id: str, container: AppContainer = Depends(require_read
 
     def enrich_list(recs):
         enriched = []
-        for asin, score, layer in recs:
+        for rec in recs:
+            asin, score, layer = rec[0], rec[1], rec[2]
+            extras = rec[3] if len(rec) > 3 else {}
             if meta_repo.df is not None and len(meta_repo.df) > 0 and asin not in meta_repo.df.index:
                 continue
             details          = meta_repo.get_item(asin)
             details["score"] = float(score)
             details["layer"] = layer
+            details.update(extras)
             enriched.append(details)
         return enriched
 
