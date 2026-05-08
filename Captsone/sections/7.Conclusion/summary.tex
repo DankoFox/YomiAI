@@ -5,7 +5,7 @@ Chapter~2 reviewed the theoretical foundations underpinning the system: sequenti
 These methods were selected on the basis of empirical performance, latency characteristics, and compatibility with the existing data platform.
 
 Chapter~3 analysed the limitations of the prior system.
-The legacy GRU-SeqDQN recommendation module achieved HR@10 = 0.0823 — statistically indistinguishable from the random baseline of 0.1000 — due to the fixed-size GRU bottleneck and the intractable 3-million-item DQN action space.
+The legacy GRU-SeqDQN recommendation module achieved HR@10 = 0.1031 — statistically indistinguishable from the random baseline of 0.1000 — due to the fixed-size GRU bottleneck and the intractable 3-million-item DQN action space.
 The BLaIR text encoder produced Precision@10 $\leq 0.05$ on Vietnamese queries, making the system functionally unusable for the target multilingual user base.
 The FAISS flat index incurred a P50 search latency of 612.19\,ms and a 45-second startup loading penalty, precluding interactive use.
 
@@ -54,9 +54,9 @@ Reduce warm-cache end-to-end search latency below 100\,ms &
 Met &
 Latency reduced from 1{,}102\,ms to 59\,ms (18.6$\times$ improvement, Table~\ref{tab:latency_stages}) \\
 
-Demonstrate platform generality through an application case study &
+Deploy an interactive application integrating all platform components &
 Met &
-Chapter~6 presents the deployed application integrating all platform modules \\
+Chapter~6 presents the deployed book discovery application combining multimodal search, dual-pipeline recommendations, online DIF-SASRec fine-tuning, and the Qwen2.5 LLM assistant \\
 \hline
 \end{tabular}
 \end{table}

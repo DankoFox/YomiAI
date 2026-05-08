@@ -29,7 +29,7 @@ This architecture is adopted as Pipeline~B of the proposed system.
 The system evaluated in this report supersedes a prior implementation (hereafter GRU-SeqDQN) that paired a GRU sequence encoder with a Deep Q-Network (DQN) policy for recommendation.
 The DQN formulates recommendation as a reinforcement learning problem: the agent receives a reward signal from user interactions and learns a Q-function mapping (user state, candidate item) pairs to expected return.
 
-While this formulation is theoretically appealing, the evaluation reported in Chapter~5 shows that GRU-SeqDQN achieves an HR@10 of only 0.0823 — near the random baseline of 0.1000 — on the 100{,}000-user evaluation set.
+While this formulation is theoretically appealing, the evaluation reported in Chapter~5 shows that GRU-SeqDQN achieves an HR@10 of only 0.1031 — near the random baseline of 0.1000 — on the 100{,}000-user evaluation set.
 Two structural limitations explain this failure.
 First, the GRU encoder inherits the sequential bottleneck identified above.
 Second, DQN training is highly sample-inefficient at the scale of millions of items: the action space is too large for the Q-function to converge reliably in a reasonable number of training steps.

@@ -110,3 +110,6 @@ The results are reported in Table~\ref{tab:multiseed} and visualised in Figure~\
 
 The standard deviation across seeds is 0.0024 for HR@10 and 0.0017 for NDCG@10, indicating that the evaluation is highly stable and the reported metrics are not artefacts of a particularly favourable or unfavourable random draw.
 The low variance ($\sigma \approx 0.002$) across 100{,}000 test users confirms that the improvement over baselines is statistically robust and is not driven by evaluation randomness.
+
+Note that the multi-seed experiment uses a shared pretrained DIF-SASRec checkpoint loaded at evaluation time, whereas the canonical result in Table~\ref{tab:main_results} (HR@10 = 0.7745 for seed = 42) was produced from a separately fine-tuned checkpoint with additional training epochs.
+The mean across seeds (HR@10 = 0.7244) reflects the pretrained-checkpoint baseline without post-hoc fine-tuning and therefore underestimates the performance of the fully trained model by approximately 0.050 HR@10.

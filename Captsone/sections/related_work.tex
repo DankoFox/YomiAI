@@ -1,2 +1,42 @@
-\section{Related Works}
+\section{Related Work}
+\label{sec:related_work}
 
+\subsection{Commercial Recommendation Systems}
+
+Large-scale commercial platforms have driven much of the practical advancement in recommendation system design.
+
+Amazon's recommendation engine~\cite{linden2003amazon} pioneered item-to-item collaborative filtering at scale, generating ``customers who bought X also bought Y'' associations from co-purchase logs.
+The central insight — that item-to-item similarity is far more scalable to compute offline than user-to-user similarity — directly motivates the Cleora co-purchase graph used in Pipeline~A of the proposed system.
+Subsequent iterations of Amazon's system incorporate session-based signals, click-through prediction models, and contextual bandit approaches for online exploration, but the co-purchase neighbourhood structure remains a core retrieval mechanism.
+
+Spotify's music recommendation system~\cite{van2013deep} combined collaborative filtering with audio content features derived from a convolutional neural network, demonstrating that modality-specific feature extraction could improve cold-start performance for new tracks with no interaction history.
+This multimodal motivation aligns with the use of BGE-M3 textual embeddings and CLIP visual embeddings in the proposed system: items with zero interactions can still be retrieved by content similarity.
+
+Netflix's recommendation research~\cite{gomez2016deep} has emphasised personalised ranking at scale, deploying deep learning models trained on hundreds of millions of user-item interaction pairs.
+The prize-winning matrix factorisation approaches from the Netflix Prize competition established the importance of latent factor models for capturing long-term preference patterns.
+While the proposed system does not use a dedicated user-embedding matrix, the Cleora co-purchase graph implicitly encodes similar co-occurrence structure within its item embeddings.
+
+Goodreads, as a domain-specific book discovery platform, presents challenges specific to the book domain that motivate this project: extremely long catalogue tails (millions of titles), significant multilingual demand, and user behaviour driven more by genre-level affinity than by fine-grained interaction frequency.
+These domain characteristics favour the content-anchored retrieval strategy of Pipeline~A and the multilingual BGE-M3 encoder over purely behavioural collaborative filtering.
+
+\subsection{Multimodal Recommendation in the Literature}
+
+The incorporation of multiple content modalities — text, image, and structured attributes — into recommendation systems has received substantial attention following the success of vision-language models.
+
+\paragraph{Vision-language embedding for items.}
+Radford et al.~\cite{radford2021clip} demonstrated that contrastive pre-training on image-text pairs produces aligned visual and textual embedding spaces, enabling zero-shot image-to-text retrieval.
+Applied to product recommendation, this alignment allows item cover images and textual descriptions to be compared in a shared space.
+The CLIP index in the proposed system exploits this property: a user can submit a book cover photograph and retrieve semantically related titles even when the exact item is not in the catalogue.
+
+\paragraph{Language-model-augmented recommendation.}
+The BLaIR encoder~\cite{hou2024blair} and its successors applied transformer-based language models to encode product descriptions, review text, and titles into item embeddings suitable for dense retrieval.
+The transition from BLaIR to BGE-M3 in the proposed system reflects a broader trend towards multilingual, multi-granularity encoders: BGE-M3~\cite{chen2024bge} supports 100+ languages and achieves superior performance on both dense retrieval and cross-lingual semantic similarity tasks, addressing the Vietnamese-query failure mode of the legacy system.
+
+\paragraph{Graph neural networks for collaborative signals.}
+LightGCN~\cite{he2020lightgcn} showed that a simplified graph convolutional network propagating signals over the user-item bipartite graph could outperform more complex graph neural network variants on standard collaborative filtering benchmarks.
+Cleora~\cite{rychalska2021cleora} achieves comparable representational quality through a simpler iterative normalisation scheme that is orders of magnitude faster to train on large graphs, making it tractable for the 375{,}280-item co-purchase graph used in Pipeline~A without requiring a full GNN training loop.
+
+\paragraph{Hybrid retrieval with re-ranking.}
+Systems combining sparse lexical matching with dense semantic retrieval have become standard practice in information retrieval.
+Cormack et al.~\cite{cormack2009rrf} proposed Reciprocal Rank Fusion (RRF) as a lightweight, parameter-free method for combining result lists from multiple retrievers.
+The search pipeline in the proposed system applies RRF to fuse HNSW semantic search results with Tantivy BM25 results, reproducing the retrieval architecture used in industrial-scale neural search systems such as Elastic Learned Sparse Retrieval and OpenAI's embedding-based retrieval pipelines.
