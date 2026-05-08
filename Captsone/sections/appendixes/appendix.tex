@@ -5,35 +5,35 @@
 Table~\ref{tab:api_endpoints} documents the seven route groups exposed by the FastAPI backend, together with their HTTP method, path, and primary function.
 All endpoints return JSON and are served at \texttt{http://localhost:8000} in the development configuration.
 
-\begin{table}[H]
+\begin{table}[htbp]
 \centering
 \caption{FastAPI backend endpoint reference.}
 \label{tab:api_endpoints}
-\begin{tabular}{p{1.6cm} p{5.0cm} p{6.4cm}}
+\begin{tabular}{p{1.6cm} p{4.8cm} p{6.6cm}}
 \hline
 \textbf{Method} & \textbf{Path} & \textbf{Function} \\
 \hline
 \multicolumn{3}{l}{\textit{Authentication}} \\
-POST & \texttt{/auth/check}          & Check whether a user ID exists in MongoDB \\
-POST & \texttt{/auth/create}         & Create a new user record and initialise an empty profile \\
+POST & \texttt{/auth/check}       & Check whether a user ID exists in MongoDB \\
+POST & \texttt{/auth/create}      & Create a new user record and initialise an empty profile \\
 \hline
 \multicolumn{3}{l}{\textit{Search}} \\
-POST & \texttt{/search}              & Multimodal query: accepts a text string and/or a base64-encoded image; returns top-$k$ items with RRF, BGE-M3, and CLIP score fields \\
+POST & \texttt{/search}           & Multimodal query (text and/or image); returns top-$k$ items with RRF, BGE-M3, and CLIP score fields \\
 \hline
 \multicolumn{3}{l}{\textit{Recommendations}} \\
-GET  & \texttt{/recommend}           & Dual-pipeline personalised recommendations; returns \texttt{people\_also\_buy} (Pipeline~A) and \texttt{you\_might\_like} (Pipeline~B) lists with per-item score and layer fields \\
+GET  & \texttt{/recommend}        & Dual-pipeline recommendations; returns \texttt{people\_also\_buy} (Pipeline~A) and \texttt{you\_might\_like} (Pipeline~B) with per-item score and layer fields \\
 \hline
 \multicolumn{3}{l}{\textit{Interaction logging}} \\
-POST & \texttt{/interact}            & Log a user interaction event (click, skip, or cart); triggers a DIF-SASRec Bellman-error gradient step for click and cart events; returns updated loss value \\
+POST & \texttt{/interact}         & Log a click, skip, or cart event; triggers a DIF-SASRec gradient step for click and cart; returns updated loss \\
 \hline
 \multicolumn{3}{l}{\textit{User profile}} \\
-GET  & \texttt{/profile}             & Return the user's in-memory profile: click sequence, recent interactions, BGE-M3 profile vector norm, session statistics (CTR, train steps, interactions), and Bellman-error loss history \\
+GET  & \texttt{/profile}          & Return click sequence, session statistics (CTR, train steps, interactions), and Bellman-error loss history \\
 \hline
 \multicolumn{3}{l}{\textit{LLM assistant}} \\
-POST & \texttt{/ask\_llm\_stream}    & Stream a Qwen2.5 book description response; returns an SSE stream of token chunks structured under \textbf{Genre}, \textbf{Plot Summary}, and \textbf{Pitch} headings \\
+POST & \texttt{/ask\_llm\_stream} & Stream Qwen2.5 book description as SSE token chunks (\textbf{Genre}, \textbf{Plot Summary}, \textbf{Pitch}) \\
 \hline
 \multicolumn{3}{l}{\textit{Health check}} \\
-GET  & \texttt{/health}              & Return service status, index loading state, and warm-up flag \\
+GET  & \texttt{/health}           & Return service status and index loading state \\
 \hline
 \end{tabular}
 \end{table}
@@ -43,63 +43,70 @@ GET  & \texttt{/health}              & Return service status, index loading stat
 
 Table~\ref{tab:app_model_config} extends the model configuration summary in Table~\ref{tab:model_config} with additional DIF-SASRec training details and FAISS index construction parameters.
 
-\begin{table}[H]
-\centering
+\begin{longtable}{p{5.5cm} p{7.5cm}}
 \caption{Extended model and index hyperparameters.}
-\label{tab:app_model_config}
-\begin{tabular}{p{5.5cm} p{7.5cm}}
+\label{tab:app_model_config} \\
 \hline
 \textbf{Parameter} & \textbf{Value} \\
 \hline
+\endfirsthead
+\hline
+\textbf{Parameter} & \textbf{Value} \\
+\hline
+\endhead
+\hline
+\endfoot
+\hline
+\endlastfoot
+
 \multicolumn{2}{l}{\textit{DIF-SASRec — Architecture}} \\
-Transformer blocks     & 4 \\
-Attention heads        & 8 \\
-Hidden dimension       & 512 \\
-Feed-forward dimension & 2{,}048 \\
-Dropout rate           & 0.1 \\
-Max sequence length    & 200 \\
-Total parameters       & $\approx$12.4M \\
+Transformer blocks      & 4 \\
+Attention heads         & 8 \\
+Hidden dimension        & 512 \\
+Feed-forward dimension  & 2{,}048 \\
+Dropout rate            & 0.1 \\
+Max sequence length     & 200 \\
+Total parameters        & $\approx$12.4M \\
 \hline
 \multicolumn{2}{l}{\textit{DIF-SASRec — Pre-training}} \\
-Training users         & 100{,}000 \\
-Epochs                 & 30 \\
-Batch size             & 2{,}048 \\
-Optimiser              & AdamW \\
-Learning rate          & $10^{-4}$ with cosine annealing \\
-Weight decay           & 0.01 \\
+Training users          & 100{,}000 \\
+Epochs                  & 30 \\
+Batch size              & 2{,}048 \\
+Optimiser               & AdamW \\
+Learning rate           & $10^{-4}$ with cosine annealing \\
+Weight decay            & 0.01 \\
 Hard negatives per step & 512 \\
 \hline
 \multicolumn{2}{l}{\textit{DIF-SASRec — Online fine-tuning}} \\
-Trigger events         & click (reward 1.0), cart (reward 5.0) \\
+Trigger events          & click (reward 1.0), cart (reward 5.0) \\
 Gradient steps per event & 1 \\
-Online learning rate   & $10^{-5}$ \\
-Negative sample pool   & full 3M-item catalogue \\
-Checkpoint format      & per-user \texttt{.pt} file (disk) \\
+Online learning rate    & $10^{-5}$ \\
+Negative sample pool    & full 3M-item catalogue \\
+Checkpoint format       & per-user \texttt{.pt} file (disk) \\
 \hline
 \multicolumn{2}{l}{\textit{FAISS HNSW index (production)}} \\
-Dimension              & 1{,}024 (BGE-M3) \\
-Vectors                & 1{,}742{,}826 \\
-HNSW $M$               & 32 \\
+Dimension               & 1{,}024 (BGE-M3) \\
+Vectors                 & 1{,}742{,}826 \\
+HNSW $M$                & 32 \\
 $\mathit{efConstruction}$ & 200 \\
-Recall vs.\ flat index & 0.521 \\
-P50 search latency     & 119.56 ms \\
+Recall vs.\ flat index  & 0.521 \\
+P50 search latency      & 119.56\,ms \\
 \hline
 \multicolumn{2}{l}{\textit{FAISS Flat index (evaluation)}} \\
-Dimension              & 1{,}024 \\
-Vectors                & 3{,}080{,}829 \\
-P50 search latency     & 612.19 ms \\
+Dimension               & 1{,}024 \\
+Vectors                 & 3{,}080{,}829 \\
+P50 search latency      & 612.19\,ms \\
 \hline
 \multicolumn{2}{l}{\textit{Cleora graph embedding}} \\
-Graph type             & Co-purchase bipartite graph \\
-Embedding dimension    & 1{,}024 \\
-Items covered          & 375{,}280 \\
-Refit threshold        & 50 new interactions \\
-Refit stages           & delta export → augment → hot-swap \\
+Graph type              & Co-purchase bipartite graph \\
+Embedding dimension     & 1{,}024 \\
+Items covered           & 375{,}280 \\
+Refit threshold         & 50 new interactions \\
+Refit stages            & delta export $\to$ augment $\to$ hot-swap \\
 \hline
 \multicolumn{2}{l}{\textit{RRF fusion}} \\
-Constant $k$           & 60 \\
-Candidates per source  & 100 (HNSW), 100 (BM25) \\
-Output top-$k$         & 10 \\
-\hline
-\end{tabular}
-\end{table}
+Constant $k$            & 60 \\
+Candidates per source   & 100 (HNSW), 100 (BM25) \\
+Output top-$k$          & 10 \\
+
+\end{longtable}
