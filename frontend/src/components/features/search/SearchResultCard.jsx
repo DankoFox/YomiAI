@@ -71,9 +71,9 @@ export function SearchResultCard({ book, onInteract, onAskAIStream }) {
             </div>
           </div>
           <div className="flex gap-2 flex-shrink-0">
-            <ScoreBadge score={book.score} label="Match" />
-            {book.text_sim > 0 && <ScoreBadge score={book.text_sim} label="Text" />}
-            {book.img_sim  > 0 && <ScoreBadge score={book.img_sim}  label="Img"  />}
+            <ScoreBadge score={book.score} label="RRF" />
+            {book.text_sim > 0 && <ScoreBadge score={book.text_sim} label="BGE-M3" />}
+            {book.img_sim  > 0 && <ScoreBadge score={book.img_sim}  label="CLIP"  />}
           </div>
         </div>
 

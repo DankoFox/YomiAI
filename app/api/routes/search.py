@@ -100,10 +100,10 @@ async def _run_pipeline(req: SearchRequest, debug: bool, container: AppContainer
         norm_score = (data["score"] / max_score) ** 0.5 if max_score > 0 else 0
         item["score"] = float(norm_score)
         # Pass through per-modality similarity scores when available
-        if "text_score" in data:
-            item["text_sim"] = float(data["text_score"])
-        if "image_score" in data:
-            item["img_sim"] = float(data["image_score"])
+        if data.get("text_sim", 0.0) > 0:
+            item["text_sim"] = float(data["text_sim"])
+        if data.get("img_sim", 0.0) > 0:
+            item["img_sim"] = float(data["img_sim"])
         enriched.append(item)
 
     timings["metadata_hydration_ms"] = round((time.perf_counter() - t3) * 1000, 2)
