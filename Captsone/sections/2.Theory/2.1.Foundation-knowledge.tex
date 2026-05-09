@@ -12,7 +12,7 @@ Three broad paradigms have been studied in the literature.
 
 Sequential recommendation refines the problem further by treating a user's interactions as an ordered sequence and predicting the \textit{next} item.
 The key observation is that a user's near-term intent is more accurately reflected by their most recent interactions than by their full historical profile.
-Early sequential methods applied recurrent neural networks (RNNs) to model temporal dynamics~\cite{hidasi2016gru4rec}, but RNNs encode history into a fixed-size state vector, creating an information bottleneck for long sequences.
+Early sequential methods applied recurrent neural networks (RNNs) to model temporal dynamics, but RNNs encode history into a fixed size state vector, creating an information bottleneck for long sequences.
 
 Self-attention, introduced in the Transformer architecture~\cite{vaswani2017attention}, eliminates this bottleneck by computing a weighted sum over all positions in the sequence for each query position.
 The attention weight between positions $i$ and $j$ is:
@@ -142,8 +142,45 @@ DIF-SASRec~\cite{xie2022difsasrec} extends SASRec by incorporating \textit{side 
 Rather than fusing attribute embeddings into item ID embeddings before attention (which conflates the two signals), DIF-SASRec maintains separate attention modules for content and category features and combines them at the output layer.
 This decoupling preserves the ability to attend to content-relevant history and category-relevant history independently, improving performance on items with rich metadata.
 
-\subsubsection{DIF-SASRec Architecture}
+
+\medskip
+\noindent\textbf{Limitations of SASRec and BERT4Rec}
+
+
+Although SASRec and BERT4Rec significantly advanced sequential recommendation performance compared with recurrent architectures such as GRU4Rec, both models retain limitations that reduce their suitability for large-scale real-time recommendation systems with rich side information.
+
+SASRec replaces recurrent sequence modelling with a causal self attention Transformer architecture, enabling parallel training.However, the original SASRec design represents each item primarily through an item ID embedding. Consequently, semantic information such as textual descriptions, categories, or visual features is not explicitly modelled within the attention mechanism.
+
+BERT4Rec addresses some sequence modelling limitations by introducing bidirectional self attention with a Cloze style prediction. Unlike SASRec, which predicts the next item autoregressively, BERT4Rec learns contextual representations using both left and right sequence context. Despite these advantages, BERT4Rec has several practical limitations for recommendation systems. First, the training objective is inconsistent with real time  recommendation. Second, BERT4Rec does not explicitly separate collaborative and content based signals within the attention architecture
+
+Finally, both SASRec and BERT4Rec exhibit limited robustness in multilingual and multimodal recommendation environments. Their original formula rely primarily on item identifiers and do not natively incorporate multilingual semantic encoders or visual representations. These limitations motivate the adoption of DIF-SASRec, which introduces decoupled attention mechanisms for different feature modalities. By separating item, content, and category attention streams, DIF-SASRec enables more specialised modelling of heterogeneous recommendation signals.
+
+The below figure compares the item representation learning process used in SASRecF, NOVA-SR, and DIF-SR. Unlike early-fusion approaches that combine all side information into a single representation before attention computation, DIF-SR decouples the attention generation process for different feature modalities and fuses the resulting attention matrices afterwards. This design improves representation flexibility and reduces interference between heterogeneous features.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=1.1\textwidth]{Captsone/images/chapter2/compareItemPresLearning.png}
+\caption{Overview of the proposed network}
+\label{fig:DIF-SASRec }
+\end{figure}
+
 \label{sec:difsasrec_arch}
+
+
+\subsection{DIF-SASRec Architecture}
+DIF-SASRec extends the SASRec sequential recommendation architecture by explicitly decoupling different side information modalities within the self attention mechanism. Instead of combining all item attributes into a single embedding representation before attention computation, DIF-SASRec maintains independent attention streams for content and category information. This design enables the model to capture heterogeneous behavioural patterns more effectively while preserving the parallel training advantages of Transformer based recommendation models.The below figure illustrates the overall architecture of the proposed DIF-SASRec network.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=1.0\textwidth]{Captsone/images/chapter2/architectDecoupled.png}
+\caption{Overview of the proposed network}
+\label{fig:DIF-SASRec }
+\end{figure}
+
+\label{sec:difsasrec_arch}
+
+
+\noindent\textbf{Embedding Module.}
 
 Let $S = [i_1, i_2, \ldots, i_n]$ be a user's interaction sequence of length $n$, where each item $i_t$ is associated with three representation components:
 \begin{itemize}
@@ -151,6 +188,9 @@ Let $S = [i_1, i_2, \ldots, i_n]$ be a user's interaction sequence of length $n$
     \item A \textbf{category embedding} $\mathbf{k}_{i_t} \in \mathbb{R}^{d}$ — a learned embedding for the item's discrete genre category.
     \item A \textbf{position embedding} $\mathbf{p}_t \in \mathbb{R}^{d}$ — added to the content embedding to encode sequence order.
 \end{itemize}
+
+\medskip
+\noindent\textbf{Decoupled Side Information Fusion Module.}
 
 Each DIF attention layer maintains two independent multi-head attention streams operating over the same sequence.
 The content stream computes queries, keys, and values entirely from projected content embeddings:
@@ -172,10 +212,15 @@ The two attention maps are fused via a learnable scalar $\alpha \in (0, 1)$:
 The fused attention is applied to the content value matrix $\mathbf{V} = \mathbf{H}\mathbf{W}^V$ to produce the layer output, which is passed through a position-wise feed-forward network with a pre-norm residual connection.
 The scalar $\alpha$ is initialised via a logit so that $\text{sigmoid}(\alpha_{\text{logit}}) = 0.7$, giving the category stream a slight initial advantage while allowing the model to learn the optimal balance during training.
 
+
+\medskip
+\noindent\textbf{Prediction Module.}
+
 After $L = 4$ stacked DIF blocks, the hidden state at the last non-padding position is extracted as the \textit{intent vector} $\mathbf{h}_n \in \mathbb{R}^{d}$.
 For next-item prediction, candidate items are projected by the same \texttt{ContentProjector} to produce $\mathbf{e}_{i^+}$, and the score is the dot product $s(i) = \mathbf{h}_n^\top \mathbf{e}_i$.
 
-\subsubsection{Pretraining and Online Fine-Tuning}
+\medskip
+\noindent\textbf{Pretraining and Online Fine-Tuning}
 \label{sec:difsasrec_training}
 
 During offline pretraining, the model is trained with a \textit{sampled softmax} loss.

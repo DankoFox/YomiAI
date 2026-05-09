@@ -19,14 +19,6 @@ This pattern is applied uniformly to the search result list (four skeleton cards
 The prior recommendation panel was a single flat list with no indication of how or why items appeared.
 The revised panel exposes the two-pipeline architecture directly in the UI through a pair of sub-tabs.
 
-Figure~\ref{fig:ui_recs} shows the updated recommendation interface.
-
-\begin{figure}[H]
-\centering
-\includegraphics[width=0.90\textwidth]{images/chapter4/fig_ui_recs}
-\caption{Revised recommendation panel. The ``People Also Buy'' sub-tab (Pipeline~A) surfaces Cleora co-purchase neighbours re-ranked by BGE-M3 cosine similarity. The ``You Might Like'' sub-tab (Pipeline~B) shows DIF-SASRec sequential recommendations. A mode pill above the tabs transitions from ``Discovery mode'' (cold start) to a live-dot ``DIF-SASRec active'' badge once the user accumulates sufficient interaction history.}
-\label{fig:ui_recs}
-\end{figure}
 
 The \textit{People Also Buy} sub-tab renders the output of Pipeline~A: Cleora co-purchase neighbours re-ranked by the user's BGE-M3 profile vector.
 The \textit{You Might Like} sub-tab renders Pipeline~B output from the DIF-SASRec \texttt{AgentPool}.

@@ -24,6 +24,19 @@ Xie et al.~\cite{xie2022difsasrec} observed that prior methods fuse side informa
 DIF-SASRec decouples these streams into separate attention modules and shows consistent gains over SASRec and BERT4Rec across multiple datasets.
 This architecture is adopted as Pipeline~B of the proposed system.
 
+\subsection{ Limitations of Early Fusion Side Information Models
+}
+
+Early side information-aware recommendation models typically incorporate textual or categorical metadata by merging side information embeddings with item embeddings before the self attention layer. This introduces several architectural limitations.
+
+First, heterogeneous information sources become entangled within a shared embedding space, making it difficult for the model to distinguish between semantic similarity and behavioural co-occurrence signals. This may introduce noisy correlations during attention computation.
+
+Second, early fusion attention mechanisms suffer from a rank bottleneck: the rank of the resulting attention matrix is constrained by the attention head projection dimension, limiting representational capacity.
+
+Third, additive fusion strategies produce coupled gradient updates for item and attribute embeddings, reducing the model’s ability to learn the relative importance of different information sources independently.
+
+These limitations motivated the development of DIF-SASRec, which performs attention computation separately for content and side-information streams before combining the resulting attention maps.
+
 \subsection{Comparison of Sequential Recommendation Architectures}
 \label{sec:seq_model_comparison}
 
