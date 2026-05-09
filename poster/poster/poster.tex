@@ -1,6 +1,5 @@
 % ============================================================
 %  BRUTALIST THESIS POSTER — A1 Portrait
-%  FIXED: Title tracking, title rules, and complementarity alignment
 % ============================================================
 
 \documentclass{article}
@@ -12,7 +11,7 @@
 \pagestyle{empty}
 
 \usepackage{fontspec}
-\usepackage{microtype}           % REQUIRED for \textls letter-spacing
+\usepackage{microtype}           % required for \textls letter-spacing
 \usepackage{xcolor}
 \usepackage{graphicx}
 \usepackage{booktabs}
@@ -21,7 +20,7 @@
 \usepackage{amsmath}
 \usepackage{adjustbox}
 \usepackage[most]{tcolorbox}
-\usepackage{dashrule}            % \hdashrule
+\usepackage{dashrule}
 \usepackage{calc}
 
 % ── Global base font size (A1 needs ~20pt body) ─────────────
@@ -73,6 +72,7 @@
 \definecolor{TextDark}{HTML}{111111}
 \definecolor{TextMid}{HTML}{444444}
 \definecolor{GreenHL}{HTML}{0A6640}
+\definecolor{SlateBlue}{HTML}{627d9a}
 
 \pagecolor{PaperBg}
 \color{TextDark}
@@ -90,96 +90,92 @@
   \colorbox{GreenHL}{\color{white}\mono\fontsize{17}{19}\selectfont\textbf{#1}}%
 }
 
-% ── Pipeline step macro ─────────────────────────────────────
+% ── Pipeline macros ──────────────────────────────────────────
 \newcommand{\pipestep}[1]{%
   \colorbox{Navy}{\color{white}\mono\fontsize{18}{21}\selectfont\textbf{\ #1\ }}%
 }
 \newcommand{\pipearrow}{%
   {\color{Orange}\bfseries\fontsize{26}{28}\selectfont\ \textrightarrow\ }%
 }
+\newcommand{\pipelabel}[1]{%
+  {\mono\fontsize{15}{18}\selectfont\bfseries\color{TextMid}\textls[100]{#1}}\par
+  \vspace{0.2cm}%
+}
 
-% ── BRUTALIST BOX ───────────────────────────────────────────
-\newtcolorbox{brutebox}[1]{
-  enhanced,
-  colback=BoxBg,
-  colframe=TextDark,
-  boxrule=2.5pt,
-  arc=0pt,
-  outer arc=0pt,
-  colbacktitle=Navy,
-  coltitle=white,
-  fonttitle=\mono\fontsize{24}{28}\selectfont\bfseries,
-  attach boxed title to top left={xshift=0pt, yshift=0pt},
-  boxed title style={
-    colback=Navy,
-    colframe=Navy,
-    arc=0pt,
-    outer arc=0pt,
-    boxrule=0pt,
-    left=0pt, right=0pt,
-    top=12pt, bottom=12pt,
-    width=\linewidth,
-enlarge left by=0pt,
-    % width=\linewidth+5pt,
-    % enlarge left by=-2.5pt,
-  },
-  title={%
+% ── Figure + caption (width optional, default 0.80) ──────────
+\newcommand{\posterfig}[3][0.80]{%
+  {\centering
+  \includegraphics[width=#1\linewidth]{#2}\par
+  \vspace{0.2em}
+  {\mono\fontsize{16}{19}\selectfont\color{TextMid}\textit{#3}}\par}%
+}
+
+% ── Stat box (value + label, for CONCLUSION row) ─────────────
+\newcommand{\statbox}[2]{%
+  \begin{minipage}[t]{0.23\linewidth}
     \centering
-    \hdashrule[0.6ex]{1cm}{1pt}{3pt 3pt}\quad
-    \textls[110]{#1}%
-    \quad\hdashrule[0.6ex]{1cm}{1pt}{3pt 3pt}%
-  },
-  top=0.55cm,
-bottom=0.55cm,
-left=1.0cm,
-right=1.0cm,
-  fontupper=\normalsize,
-  before upper={\vspace{0.1em}}
+    \colorbox{Navy}{\parbox{\linewidth}{\centering\vspace{0.35em}%
+      {\archivo\fontsize{38}{40}\selectfont\color{Orange}#1}\par
+      {\mono\fontsize{13}{16}\selectfont\color{AccentLight}\textls[60]{#2}}%
+      \vspace{0.35em}}}
+  \end{minipage}%
+}
+
+% ── Box environments ─────────────────────────────────────────
+%   brutecommon  — shared style applied to both box envs
+%   brutebox     — main content sections (big padding, 24pt title)
+%   simplebrutebox — tight sections (small padding, 22pt title)
+
+\newcommand{\brutetitle}[1]{%
+  \centering
+  \hdashrule[0.6ex]{1cm}{1pt}{3pt 3pt}\quad
+  \textls[110]{#1}%
+  \quad\hdashrule[0.6ex]{1cm}{1pt}{3pt 3pt}%
+}
+
+\tcbset{
+  brutecommon/.style={
+    enhanced,
+    colback=BoxBg,
+    colframe=TextDark,
+    boxrule=2.5pt,
+    arc=0pt, outer arc=0pt,
+    colbacktitle=Navy,
+    coltitle=white,
+    attach boxed title to top left={xshift=0pt, yshift=0pt},
+    boxed title style={
+      colback=Navy, colframe=Navy,
+      arc=0pt, outer arc=0pt,
+      boxrule=0pt,
+      left=0pt, right=0pt,
+      width=\linewidth, enlarge left by=0pt,
+    },
+    fontupper=\normalsize,
+    before upper={\vspace{0.1em}},
+  }
+}
+
+\newtcolorbox{brutebox}[1]{
+  brutecommon,
+  fonttitle=\mono\fontsize{24}{28}\selectfont\bfseries,
+  boxed title style={top=12pt, bottom=12pt},
+  top=0.55cm, bottom=0.55cm, left=1.0cm, right=1.0cm,
+  title={\brutetitle{#1}},
 }
 
 \newtcolorbox{simplebrutebox}[1]{
-  enhanced,
-  colback=BoxBg,
-  colframe=TextDark,
-  boxrule=2.5pt,
-  arc=0pt,
-  outer arc=0pt,
-  colbacktitle=Navy,
-  coltitle=white,
+  brutecommon,
   fonttitle=\mono\fontsize{22}{26}\selectfont\bfseries,
-  attach boxed title to top left={xshift=0pt, yshift=0pt},
-  boxed title style={
-    colback=Navy,
-    colframe=Navy,
-    arc=0pt,
-    outer arc=0pt,
-    boxrule=0pt,
-    left=0pt, right=0pt,
-    top=8pt, bottom=8pt,
-    width=\linewidth,
-enlarge left by=0pt,
-    % width=\linewidth+5pt,
-    % enlarge left by=-2.5pt,
-  },
-  % title={\centering \textls[110]{#1}},
-  title={%
-  \centering
-  \hdashrule[0.6ex]{1cm}{1pt}{3pt 3pt}\quad
-  \textls[110]{#1}\quad
-  \hdashrule[0.6ex]{1cm}{1pt}{3pt 3pt}
-},
-  top=0.4cm,
-  bottom=0.4cm,
-  left=0.8cm,
-  right=0.8cm,
-  fontupper=\normalsize,
-  before upper={\vspace{0.1em}}
+  boxed title style={top=8pt, bottom=8pt},
+  top=0.4cm, bottom=0.4cm, left=0.8cm, right=0.8cm,
+  title={\brutetitle{#1}},
 }
 
 % ── Bullet list inside boxes ─────────────────────────────────
 \newenvironment{brutelist}{%
-  \begin{list}{{\color{Orange}\bfseries\fontsize{22}{24}\selectfont->}}{%
-    \setlength{\leftmargin}{1.8em}%
+  \begin{list}{{\color{SlateBlue}\mono\fontsize{22}{24}\selectfont❯}}{%
+    \setlength{\leftmargin}{1.6em}%
+    \setlength{\labelsep}{0.3em}%
     \setlength{\itemsep}{0.35em}%
     \setlength{\parsep}{0pt}%
     \normalsize
@@ -194,7 +190,6 @@ enlarge left by=0pt,
 % ============================================================
 \begin{document}
 
-% Force page limits to expand so everything stays strictly on Page 1
 \enlargethispage{30cm}
 
 % ╔══════════════════════════════════════════════════════════╗
@@ -203,12 +198,10 @@ enlarge left by=0pt,
 \begin{tcolorbox}[
     enhanced,
     colback=Navy,
-    % colback=NavyMid,
     colframe=TextDark,
     arc=0pt, outer arc=0pt,
     boxrule=3pt,
     left=1.2cm, right=1.2cm,
-    % top=0.5cm, bottom=0.5cm
     top=0.9cm, bottom=0.9cm
 ]
   \begin{minipage}[c]{0.09\linewidth}
@@ -231,10 +224,10 @@ enlarge left by=0pt,
     \vspace{0.7cm}
     {\archivo\fontsize{36}{46}\selectfont\color{white}%
       \MakeUppercase{Leveraging Multimedia Data For}}\par
-      \vspace{0.8cm}
+    \vspace{0.8cm}
     {\archivo\fontsize{36}{46}\selectfont\color{Orange}%
       \MakeUppercase{Next Best Action}}\par
-      \vspace{0.8cm}
+    \vspace{0.8cm}
     {\archivo\fontsize{36}{46}\selectfont\color{white}%
       \MakeUppercase{Recommendation System}}\par
   \end{minipage}%
@@ -323,9 +316,7 @@ enlarge left by=0pt,
     \end{brutelist}
 
     \vspace{0.4em}
-    {\mono\fontsize{15}{18}\selectfont\bfseries\color{TextMid}%
-      \textls[100]{ACTIVE SEARCH PIPELINE:}}\par
-    \vspace{0.2cm}
+    \pipelabel{ACTIVE SEARCH PIPELINE:}
     \pipestep{Query (VI)}\pipearrow
     \pipestep{NLLB-200}\pipearrow
     \pipestep{BGE-M3+CLIP}\pipearrow
@@ -333,19 +324,14 @@ enlarge left by=0pt,
     \pipestep{FAISS HNSW}\par
 
     \vspace{0.4em}
-    {\mono\fontsize{15}{18}\selectfont\bfseries\color{TextMid}%
-      \textls[100]{PASSIVE RECOMMENDATION:}}\par
-    \vspace{0.2cm}
+    \pipelabel{PASSIVE RECOMMENDATION:}
     \pipestep{User History}\pipearrow
     \pipestep{Cleora Graph}\pipearrow
     \pipestep{DIF-SASRec}\pipearrow
     \pipestep{NBA}\par
 
     \vspace{0.3cm}
-    {\centering
-      \includegraphics[width=0.80\linewidth]{Fig3.1.png}\par
-      \vspace{0.2em}
-      {\mono\fontsize{16}{19}\selectfont\color{TextMid}\textit{Figure 1: Overall system architecture.}}\par}
+    \posterfig{Fig3.1.png}{Figure 1: Overall system architecture.}
   \end{brutebox}
 \end{minipage}%
 \hfill
@@ -386,10 +372,7 @@ enlarge left by=0pt,
     \end{adjustbox}
 
     \vspace{0.3cm}
-    {\centering
-      \includegraphics[width=0.80\linewidth]{fig_main_results.png}\par
-      \vspace{0.2em}
-      {\mono\fontsize{16}{19}\selectfont\color{TextMid}\textit{Figure 2: HR@10 and NDCG@10 across all methods.}}\par}
+    \posterfig{fig_main_results.png}{Figure 2: HR@10 and NDCG@10 across all methods.}
   \end{brutebox}
 
   \vspace{0.3cm}
@@ -420,37 +403,10 @@ enlarge left by=0pt,
 
   \begin{brutebox}{CONCLUSION}
     \noindent
-    \begin{minipage}[t]{0.23\linewidth}
-      \centering
-      \colorbox{Navy}{\parbox{\linewidth}{\centering\vspace{0.35em}%
-        {\archivo\fontsize{38}{40}\selectfont\color{Orange}0.974}\par
-        {\mono\fontsize{13}{16}\selectfont\color{AccentLight}%
-          \textls[60]{HR@10}}\vspace{0.35em}}}
-    \end{minipage}%
-    \hfill
-    \begin{minipage}[t]{0.23\linewidth}
-      \centering
-      \colorbox{Navy}{\parbox{\linewidth}{\centering\vspace{0.35em}%
-        {\archivo\fontsize{38}{40}\selectfont\color{Orange}59ms}\par
-        {\mono\fontsize{13}{16}\selectfont\color{AccentLight}%
-          \textls[60]{LATENCY}}\vspace{0.35em}}}
-    \end{minipage}%
-    \hfill
-    \begin{minipage}[t]{0.23\linewidth}
-      \centering
-      \colorbox{Navy}{\parbox{\linewidth}{\centering\vspace{0.35em}%
-        {\archivo\fontsize{38}{40}\selectfont\color{Orange}11x}\par
-        {\mono\fontsize{13}{16}\selectfont\color{AccentLight}%
-          \textls[60]{VI P@10}}\vspace{0.35em}}}
-    \end{minipage}%
-    \hfill
-    \begin{minipage}[t]{0.23\linewidth}
-      \centering
-      \colorbox{Navy}{\parbox{\linewidth}{\centering\vspace{0.35em}%
-        {\archivo\fontsize{38}{40}\selectfont\color{Orange}843\%}\par
-        {\mono\fontsize{13}{16}\selectfont\color{AccentLight}%
-          \textls[60]{vs GRU-DQN}}\vspace{0.35em}}}
-    \end{minipage}
+    \statbox{0.974}{HR@10}\hfill
+    \statbox{59ms}{LATENCY}\hfill
+    \statbox{11x}{VI P@10}\hfill
+    \statbox{843\%}{vs GRU-DQN}
 
     \vspace{0.45em}
     \begin{brutelist}
@@ -458,7 +414,6 @@ enlarge left by=0pt,
       \item \textbf{Complementarity:} Pipeline A and B capture disjoint user needs; combining them is the critical design decision that pushes performance beyond either single pipeline.
       \item \textbf{Multilingual:} BGE-M3 raises Precision@10 on long Vietnamese queries from 0.05 to \hlgreen{0.55} (\textbf{11$\times$}), enabling equitable access for non-English users.
       \item \textbf{Latency:} Warm-cache search reduced from 1{,}102 ms to \hlnavy{59 ms} (\textbf{18.6$\times$}) via HNSW indexing, quantisation, and Redis caching --- meeting the 100 ms production SLA.
-
     \end{brutelist}
   \end{brutebox}
 \end{minipage}
