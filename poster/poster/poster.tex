@@ -189,6 +189,7 @@
 % ── Column types ─────────────────────────────────────────────
 \newcolumntype{M}[1]{>{\centering\arraybackslash}m{#1}}
 \newcolumntype{D}{>{\mono\fontsize{15}{19}\selectfont\color{TextMid}}r}
+\newcolumntype{T}{>{\normalsize\color{TextDark}}l}
 
 % ============================================================
 \begin{document}
@@ -333,8 +334,14 @@
     \pipestep{DIF-SASRec}\pipearrow
     \pipestep{NBA}\par
 
-    \vspace{0.3cm}
-    \posterfig{Fig3.1.png}{Figure 1: Overall system architecture.}
+    \vspace{0.8em}
+    \begin{tcolorbox}[
+      enhanced, colback=BoxBg, colframe=TextMid,
+      boxrule=0.5pt, arc=3pt, outer arc=3pt,
+      left=4pt, right=4pt, top=4pt, bottom=4pt
+    ]
+      \posterfig[0.95]{Fig3.1.png}{Figure 1: Overall system architecture.}
+    \end{tcolorbox}
   \end{brutebox}
 \end{minipage}%
 \hfill
@@ -349,7 +356,7 @@
     \begin{adjustbox}{width=\linewidth}
     \fontsize{18}{23}\selectfont
     \renewcommand{\arraystretch}{1.55}
-    \begin{tabular}{lDDDD}
+    \begin{tabular}{TDDDD}
       \toprule
       \rowcolor{NavyTint}
       {\mono\color{Navy}\bfseries Method} &
@@ -376,8 +383,14 @@
     \end{tabular}
     \end{adjustbox}
 
-    \vspace{0.3cm}
-    \posterfig{fig_main_results.png}{Figure 2: HR@10 and NDCG@10 across all methods.}
+    \vspace{0.8em}
+    \begin{tcolorbox}[
+      enhanced, colback=BoxBg, colframe=TextMid,
+      boxrule=0.5pt, arc=3pt, outer arc=3pt,
+      left=0pt, right=0pt, top=0pt, bottom=4pt
+    ]
+      \posterfig[1.0]{fig_main_results.png}{Figure 2: HR@10 and NDCG@10 across all methods.}
+    \end{tcolorbox}
   \end{brutebox}
 
   \vspace{0.3cm}
