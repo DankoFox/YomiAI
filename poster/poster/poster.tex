@@ -73,6 +73,8 @@
 \definecolor{TextMid}{HTML}{444444}
 \definecolor{GreenHL}{HTML}{0A6640}
 \definecolor{SlateBlue}{HTML}{627d9a}
+\definecolor{NavyTint}{HTML}{E8ECF5}
+\definecolor{OrangeTint}{HTML}{FEF3E4}
 
 \pagecolor{PaperBg}
 \color{TextDark}
@@ -184,8 +186,9 @@
   \end{list}%
 }
 
-% ── Centred column type ──────────────────────────────────────
+% ── Column types ─────────────────────────────────────────────
 \newcolumntype{M}[1]{>{\centering\arraybackslash}m{#1}}
+\newcolumntype{D}{>{\mono\fontsize{15}{19}\selectfont\color{TextMid}}r}
 
 % ============================================================
 \begin{document}
@@ -344,29 +347,31 @@
     \vspace{0.35cm}
 
     \begin{adjustbox}{width=\linewidth}
-    \renewcommand{\arraystretch}{1.75}
-    \begin{tabular}{lcccc}
+    \fontsize{18}{23}\selectfont
+    \renewcommand{\arraystretch}{1.55}
+    \begin{tabular}{lDDDD}
       \toprule
-      \rowcolor{Navy}
-      {\color{white}\bfseries Method} &
-      {\color{AccentLight}\bfseries HR@5} &
-      {\color{AccentLight}\bfseries HR@10} &
-      {\color{AccentLight}\bfseries NDCG@10} &
-      {\color{AccentLight}\bfseries MRR@10} \\
-      \midrule
-      Random Baseline              & 0.050 & 0.100 & 0.045 & --- \\
+      \rowcolor{NavyTint}
+      {\mono\color{Navy}\bfseries Method} &
+      {\mono\color{Navy}\bfseries HR@5} &
+      {\mono\color{Navy}\bfseries HR@10} &
+      {\mono\color{Navy}\bfseries NDCG@10} &
+      {\mono\color{Navy}\bfseries MRR@10} \\
+      \specialrule{0.5pt}{0.3em}{0.3em}
+      Random Baseline              & 0.050 & 0.100 & 0.045 & {---} \\
       \rowcolor{TableStripe}
       Content Baseline             & 0.360 & 0.435 & 0.302 & 0.261 \\
       GRU-SeqDQN                   & 0.052 & 0.103 & 0.047 & 0.031 \\
       \rowcolor{TableStripe}
       DIF-SASRec (Pipeline B)      & 0.588 & 0.775 & 0.502 & 0.419 \\
       Pipeline A (Cleora+BGE-M3)   & 0.575 & 0.905 & 0.539 & 0.430 \\
-      \rowcolor{Navy}
-      {\color{white}\bfseries >> System ($A \cup B$)} &
-      {\color{AccentLight}---} &
+      \specialrule{0.5pt}{0.3em}{0.3em}
+      \rowcolor{OrangeTint}
+      {\bfseries System ($A \cup B$)} &
+      {---} &
       {\color{Orange}\bfseries 0.974} &
       {\color{Orange}\bfseries 0.557} &
-      {\color{AccentLight}---} \\
+      {---} \\
       \bottomrule
     \end{tabular}
     \end{adjustbox}
