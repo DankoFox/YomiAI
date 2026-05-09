@@ -175,7 +175,7 @@
 
 % ── Bullet list inside boxes ─────────────────────────────────
 \newenvironment{brutelist}{%
-  \begin{list}{{\color{SlateBlue}\mono\fontsize{22}{24}\selectfont❯}}{%
+  \begin{list}{{\color{Navy}\mono\fontsize{22}{24}\selectfont❯}}{%
     \setlength{\leftmargin}{1.6em}%
     \setlength{\labelsep}{0.3em}%
     \setlength{\itemsep}{0.35em}%
@@ -355,7 +355,7 @@
 
     \begin{adjustbox}{width=\linewidth}
     \fontsize{18}{23}\selectfont
-    \renewcommand{\arraystretch}{1.55}
+    \renewcommand{\arraystretch}{1.3}
     \begin{tabular}{TDDDD}
       \toprule
       \rowcolor{NavyTint}
@@ -364,7 +364,7 @@
       {\mono\color{Navy}\bfseries HR@10} &
       {\mono\color{Navy}\bfseries NDCG@10} &
       {\mono\color{Navy}\bfseries MRR@10} \\
-      \specialrule{0.5pt}{0.3em}{0.3em}
+      \specialrule{0.5pt}{0.15em}{0.15em}
       Random Baseline              & 0.050 & 0.100 & 0.045 & {---} \\
       \rowcolor{TableStripe}
       Content Baseline             & 0.360 & 0.435 & 0.302 & 0.261 \\
@@ -372,7 +372,7 @@
       \rowcolor{TableStripe}
       DIF-SASRec (Pipeline B)      & 0.588 & 0.775 & 0.502 & 0.419 \\
       Pipeline A (Cleora+BGE-M3)   & 0.575 & 0.905 & 0.539 & 0.430 \\
-      \specialrule{0.5pt}{0.3em}{0.3em}
+      \specialrule{0.5pt}{0.15em}{0.15em}
       \rowcolor{OrangeTint}
       {\bfseries System ($A \cup B$)} &
       {---} &
@@ -383,7 +383,7 @@
     \end{tabular}
     \end{adjustbox}
 
-    \vspace{0.8em}
+    \vspace{0.4em}
     \begin{tcolorbox}[
       enhanced, colback=BoxBg, colframe=TextMid,
       boxrule=0.5pt, arc=3pt, outer arc=3pt,
@@ -393,31 +393,22 @@
     \end{tcolorbox}
   \end{brutebox}
 
-  \vspace{0.3cm}
+  \vspace{0.2cm}
 
   \begin{simplebrutebox}{WHY THE UNION WINS: PIPELINE COMPLEMENTARITY}
-    \begin{minipage}[t]{0.53\linewidth}%
-      \vspace{0pt}%
-      \centering
-      \includegraphics[width=\linewidth]{fig_complementarity.png}\par
-      \vspace{0.15em}
-      {\mono\fontsize{15}{18}\selectfont\color{TextMid}\textit{Figure 3: Exclusive hits per pipeline (100k users).}}\par
-    \end{minipage}%
-    \hfill
-    \begin{minipage}[t]{0.44\linewidth}%
-      \vspace{0pt}%
-      \vspace{0.3em}%
-      {\fontsize{17}{21}\selectfont
-        \textbf{Pipeline A} (Cleora + BGE-M3) retrieves from a \hlorg{behavioral co-purchase graph} — strong for popular and co-bought titles.\par
-        \vspace{0.4em}
-        \textbf{Pipeline B} (DIF-SASRec) captures \hlnavy{sequential reading intent} — strong for niche items A misses.\par
-        \vspace{0.4em}
-        Their hit sets are \textbf{largely disjoint}: the union lifts HR@10 from \textbf{0.905} (A only) to \hlgreen{0.974} ($A \cup B$).
-      }%
-    \end{minipage}%
+    {\centering
+    \includegraphics[width=0.65\linewidth]{fig_complementarity.png}\par
+    \vspace{0.1em}
+    {\mono\fontsize{15}{18}\selectfont\color{TextMid}\textit{Figure 3: Exclusive hits per pipeline (100k users).}}\par}
+    \vspace{0.3em}
+    \textbf{Pipeline A} (Cleora + BGE-M3) retrieves from a \hlorg{behavioral co-purchase graph} — strong for popular and co-bought titles.\par
+    \vspace{0.25em}
+    \textbf{Pipeline B} (DIF-SASRec) captures \hlnavy{sequential reading intent} — strong for niche items A misses.\par
+    \vspace{0.25em}
+    Their hit sets are \textbf{largely disjoint}: the union lifts HR@10 from \textbf{0.905} (A only) to \hlgreen{0.974} ($A \cup B$).
   \end{simplebrutebox}
 
-  \vspace{0.3cm}
+  \vspace{0.2cm}
 
   \begin{brutebox}{CONCLUSION}
     \noindent
