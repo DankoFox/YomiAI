@@ -5,14 +5,21 @@
 Table~\ref{tab:api_endpoints} documents the seven route groups exposed by the FastAPI backend, together with their HTTP method, path, and primary function.
 All endpoints return JSON and are served at \texttt{http://localhost:8000} in the development configuration.
 
-\begin{table}[htbp]
-\centering
+\begin{longtable}{p{1.6cm} p{4.8cm} p{6.6cm}}
 \caption{FastAPI backend endpoint reference.}
-\label{tab:api_endpoints}
-\begin{tabular}{p{1.6cm} p{4.8cm} p{6.6cm}}
+\label{tab:api_endpoints} \\
 \hline
 \textbf{Method} & \textbf{Path} & \textbf{Function} \\
 \hline
+\endfirsthead
+\hline
+\textbf{Method} & \textbf{Path} & \textbf{Function} \\
+\hline
+\endhead
+\hline
+\endfoot
+\hline
+\endlastfoot
 \multicolumn{3}{l}{\textit{Authentication}} \\
 POST & \texttt{/auth/check}       & Check whether a user ID exists in MongoDB \\
 POST & \texttt{/auth/create}      & Create a new user record and initialise an empty profile \\
@@ -34,9 +41,7 @@ POST & \texttt{/ask\_llm\_stream} & Stream Qwen2.5 book description as SSE token
 \hline
 \multicolumn{3}{l}{\textit{Health check}} \\
 GET  & \texttt{/health}           & Return service status and index loading state \\
-\hline
-\end{tabular}
-\end{table}
+\end{longtable}
 
 \chapter{Extended Hyperparameter Tables}
 \label{app:hyperparams}

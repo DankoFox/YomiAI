@@ -149,7 +149,7 @@ This decoupling preserves the ability to attend to content-relevant history and 
 
 Although SASRec and BERT4Rec significantly advanced sequential recommendation performance compared with recurrent architectures such as GRU4Rec, both models retain limitations that reduce their suitability for large-scale real-time recommendation systems with rich side information.
 
-SASRec replaces recurrent sequence modelling with a causal self attention Transformer architecture, enabling parallel training.However, the original SASRec design represents each item primarily through an item ID embedding. Consequently, semantic information such as textual descriptions, categories, or visual features is not explicitly modelled within the attention mechanism.
+SASRec replaces recurrent sequence modelling with a causal self attention Transformer architecture, enabling parallel training. However, the original SASRec design represents each item primarily through an item ID embedding. Consequently, semantic information such as textual descriptions, categories, or visual features is not explicitly modelled within the attention mechanism.
 
 BERT4Rec addresses some sequence modelling limitations by introducing bidirectional self attention with a Cloze style prediction. Unlike SASRec, which predicts the next item autoregressively, BERT4Rec learns contextual representations using both left and right sequence context. Despite these advantages, BERT4Rec has several practical limitations for recommendation systems. First, the training objective is inconsistent with real time  recommendation. Second, BERT4Rec does not explicitly separate collaborative and content based signals within the attention architecture
 
@@ -160,24 +160,21 @@ The below figure compares the item representation learning process used in SASRe
 \begin{figure}[H]
 \centering
 \includegraphics[width=1.1\textwidth]{Captsone/images/chapter2/compareItemPresLearning.png}
-\caption{Overview of the proposed network}
-\label{fig:DIF-SASRec }
+\caption{Comparison of item representation learning in SASRecF, NOVA-SR, and DIF-SR. Early-fusion approaches (left) merge all side information into a single embedding before attention; DIF-SR (right) decouples the attention computation for each feature modality and fuses the resulting attention matrices afterwards.}
+\label{fig:compare_item_pres_learning}
 \end{figure}
-
-\label{sec:difsasrec_arch}
 
 
 \subsection{DIF-SASRec Architecture}
-DIF-SASRec extends the SASRec sequential recommendation architecture by explicitly decoupling different side information modalities within the self attention mechanism. Instead of combining all item attributes into a single embedding representation before attention computation, DIF-SASRec maintains independent attention streams for content and category information. This design enables the model to capture heterogeneous behavioural patterns more effectively while preserving the parallel training advantages of Transformer based recommendation models.The below figure illustrates the overall architecture of the proposed DIF-SASRec network.
+\label{sec:difsasrec_arch}
+DIF-SASRec extends the SASRec sequential recommendation architecture by explicitly decoupling different side information modalities within the self attention mechanism. Instead of combining all item attributes into a single embedding representation before attention computation, DIF-SASRec maintains independent attention streams for content and category information. This design enables the model to capture heterogeneous behavioural patterns more effectively while preserving the parallel training advantages of Transformer based recommendation models. The below figure illustrates the overall architecture of the proposed DIF-SASRec network.
 
 \begin{figure}[H]
 \centering
 \includegraphics[width=1.0\textwidth]{Captsone/images/chapter2/architectDecoupled.png}
-\caption{Overview of the proposed network}
-\label{fig:DIF-SASRec }
+\caption{Overall architecture of the DIF-SASRec network. Content and category side information are processed through independent multi-head attention streams; the resulting attention maps are fused via a learnable scalar $\alpha$ before being applied to the shared value matrix.}
+\label{fig:dif_sasrec_architecture}
 \end{figure}
-
-\label{sec:difsasrec_arch}
 
 
 \noindent\textbf{Embedding Module.}
@@ -367,6 +364,6 @@ In the system, a CLIP HNSW index over 3 million item cover images enables cover-
 
 \paragraph{Multilingual Query Handling (NLLB) —}
 When a query arrives in Vietnamese, the NLLB-200 model~\cite{nllb2022} translates it to English before the BGE-M3 encoding step.
-NLLB-200 is a 54-billion-parameter mixture-of-experts model supporting 202 languages, trained specifically to improve translation quality for low-resource languages.
+NLLB-200 is a model family supporting 202 languages, trained specifically to improve translation quality for low-resource languages; this system uses the distilled 600M-parameter variant (\texttt{facebook/nllb-200-distilled-600M}) for its latency characteristics.
 Query-time translation enables the system to leverage the full semantic richness of the BGE-M3 English-dominant training distribution while still accepting Vietnamese input natively.
 

@@ -39,6 +39,6 @@ Tantivy            & —          & Rust-native BM25 full-text index \\
 \end{table}
 
 FastAPI is chosen for its native support for Python type hints and asynchronous request handling, enabling concurrent retrieval calls to the FAISS and Tantivy indices without blocking the event loop.
-MongoDB stores per-user interaction logs in a schema-flexible document format, while Redis caches encoded item embeddings and recent query responses to eliminate redundant GPU inference on repeated inputs.
+MongoDB stores per-user interaction logs in a schema-flexible document format, while Redis serves as an asynchronous interaction write-queue: user events are pushed via \texttt{RPUSH} and drained to MongoDB by a background worker via \texttt{BLPOP}, decoupling the high-frequency interaction write path from disk I/O.
 Docker Compose orchestrates MongoDB and Redis as isolated services, ensuring reproducible deployment across environments.
 

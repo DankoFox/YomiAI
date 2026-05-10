@@ -119,14 +119,21 @@ Figure~\ref{fig:new_system_overview} shows the revised architecture.
 Each major architectural component was selected after evaluating alternatives against the specific constraints of this system: 3-million-item scale, real-time latency budget (sub-100\,ms warm cache), Vietnamese-language support, and a single-machine deployment target.
 Table~\ref{tab:tech_rationale} summarises the key decisions.
 
-\begin{table}[htbp]
-\centering
+\begin{longtable}{p{3.2cm} p{2.8cm} p{2.8cm} p{4.2cm}}
 \caption{Architecture decision rationale: chosen option, primary alternative, and deciding factor.}
-\label{tab:tech_rationale}
-\begin{tabular}{p{3.2cm} p{2.8cm} p{2.8cm} p{4.2cm}}
+\label{tab:tech_rationale} \\
 \hline
 \textbf{Component} & \textbf{Chosen} & \textbf{Alternative} & \textbf{Deciding factor} \\
 \hline
+\endfirsthead
+\hline
+\textbf{Component} & \textbf{Chosen} & \textbf{Alternative} & \textbf{Deciding factor} \\
+\hline
+\endhead
+\hline
+\endfoot
+\hline
+\endlastfoot
 Web framework    & FastAPI       & Flask / Django     & Native \texttt{async}/\texttt{await} eliminates thread-per-request overhead for concurrent FAISS + Redis I/O \\
 \hline
 Database         & MongoDB       & PostgreSQL         & Schema-free documents accommodate variable-length interaction logs without migrations; nested arrays store click sequences natively \\
@@ -142,9 +149,7 @@ Graph embedding  & Cleora        & LightGCN / GraphSAGE & Cleora converges in mi
 Seq. model       & DIF-SASRec    & BERT4Rec / SASRec  & Decoupled content and category streams directly exploit BGE-M3 embeddings; bidirectional BERT4Rec is incompatible with online fine-tuning \\
 \hline
 Frontend         & React 19 + Vite & Vue 3 / Svelte   & Largest ecosystem for streaming UI patterns (\texttt{TextIteratorStreamer} popover, sparkline SVG); Vite HMR supports the rapid iteration required \\
-\hline
-\end{tabular}
-\end{table}
+\end{longtable}
 
 \subsection{Text Encoder Upgrade: BLaIR to BGE-M3}
 \label{sec:encoder_upgrade}

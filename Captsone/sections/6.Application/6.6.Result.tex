@@ -55,25 +55,22 @@ The grey \textit{Discovery mode} status pill transitions to a green \textit{DIF-
 
 Figure~\ref{fig:rec_demo} shows the recommendation panel for a warm user.
 
-\begin{figure}[H]
+\begin{figure}[htbp]
 \centering
-\begin{subfigure}{\textwidth}
+\begin{subfigure}[t]{0.48\textwidth}
     \centering
-    \includegraphics[width=0.80\textwidth]{images/chapter6/fig_rec_pab}
+    \includegraphics[width=\linewidth]{images/chapter6/fig_rec_pab}
     \caption{People Also Buy (Pipeline~A): BGE-M3 and CLIP cosine-similarity badges with a \textit{Cleora~+~BGE-M3} or \textit{Cleora~+~CLIP} layer tag.}
     \label{fig:rec_pab}
 \end{subfigure}
-
-\vspace{8pt}
-
-\begin{subfigure}{\textwidth}
+\hfill
+\begin{subfigure}[t]{0.48\textwidth}
     \centering
-    \includegraphics[width=0.80\textwidth]{images/chapter6/fig_rec_yml}
+    \includegraphics[width=\linewidth]{images/chapter6/fig_rec_yml}
     \caption{You Might Like (Pipeline~B): normalised SASRec intent score with a \textit{DIF-SASRec} layer tag and the input-sequence strip above the cards.}
     \label{fig:rec_yml}
 \end{subfigure}
-
-\caption{Personalised Recommendations (Mode 2) for a warm user. The \textit{DIF-SASRec active} status pill confirms personalised mode is engaged. (a)~Pipeline~A surfaces co-purchase neighbours re-ranked by profile similarity, with per-modality scores shown directly on each card. (b)~Pipeline~B applies the DIF-SASRec sequential model; the input-sequence strip makes the model's click-history input visible to the user.}
+\caption{Personalised Recommendations (Mode 2) for a warm user. The \textit{DIF-SASRec active} status pill confirms personalised mode is engaged. (a)~Pipeline~A surfaces co-purchase neighbours re-ranked by profile similarity. (b)~Pipeline~B applies the DIF-SASRec sequential model; the input-sequence strip makes the model's click-history input visible to the user.}
 \label{fig:rec_demo}
 \end{figure}
 

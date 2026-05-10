@@ -23,7 +23,6 @@ End-to-end warm-cache search latency was reduced from 1{,}102\,ms to 59\,ms, an 
 
 Chapter~6 presented the deployed book discovery application, demonstrating the end-to-end integration of all components: the login gate, the multimodal search interface (text, image, and fused), the dual-panel recommendation view with the DIF-SASRec input-sequence strip, the real-time profile panel with the Bellman-error loss sparkline, and the streaming Qwen2.5 book assistant.
 
----
 
 \section{Evaluation of Objectives}
 \label{sec:conclusion_objectives}
@@ -64,7 +63,6 @@ Chapter~6 presents the deployed book discovery application combining multimodal 
 All five objectives are met.
 The most significant result is the HR@10 improvement from 0.1031 to 0.9736, which closes the gap between the prior near-random recommender and a system capable of correctly identifying the relevant item in 97.4\% of test cases.
 
----
 
 \section{Research Contributions}
 \label{sec:contributions}
@@ -98,7 +96,6 @@ This project makes the following specific technical contributions:
     This suppresses author biography sentences and marketing language without requiring a separate re-ranking model.
 \end{enumerate}
 
----
 
 \section{Generalisation to Other Domains}
 \label{sec:generalisation}
@@ -134,7 +131,6 @@ The retrieval infrastructure (HNSW, RRF, NLLB, Tantivy, Redis, MongoDB) requires
 The encoder and model layers (BGE-M3, CLIP, DIF-SASRec) require re-embedding and retraining on domain-specific data, but the training code and serving infrastructure are reusable.
 Only the Cleora graph is tightly coupled to the co-purchase interaction pattern; an analogous collaborative signal (e.g., co-view, co-play, co-purchase in another product domain) would enable direct reuse.
 
----
 
 \section{Limitations}
 \label{sec:conclusion_limitations}
@@ -163,7 +159,6 @@ Several limitations of the proposed system are identified.
     Cart contents are lost on page reload, preventing recovery of abandoned carts and limiting the cart signal from influencing Cleora graph updates across sessions.
 \end{itemize}
 
----
 
 \section{Future Work}
 \label{sec:conclusion_future}

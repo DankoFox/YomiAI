@@ -41,7 +41,7 @@ Data Storage      & 612 ms P50 FAISS search latency; no programmatic indexes def
 \hline
 Data Visualisation & Synchronous rendering causes UI freezes on slow queries; no filtering or sorting controls; no multilingual input support & Section~\ref{sec:viz_improvements} \\
 \hline
-Recommendation    & GRU-SeqDQN HR@10 = 0.0823 (near random); no content feature integration; no behavioural graph signal; large action-space convergence failure & Sections~\ref{sec:infra_improvements}--\ref{sec:storage_improvements} \\
+Recommendation    & GRU-SeqDQN HR@10 = 0.1031 (near random); no content feature integration; no behavioural graph signal; large action-space convergence failure & Sections~\ref{sec:infra_improvements}--\ref{sec:storage_improvements} \\
 \hline
 Search latency    & End-to-end warm-cache latency of 1{,}102 ms driven by slow FAISS search and unoptimised encoder & Section~\ref{sec:infra_improvements} \\
 \hline
@@ -53,7 +53,7 @@ Multilingual      & BLaIR encoder achieves Precision@10 $\leq 0.05$ on Vietnames
 Three challenges deserve particular emphasis because they have the largest impact on user-facing quality.
 
 \paragraph{Recommendation quality —}
-The GRU-SeqDQN model's near-random performance (HR@10 = 0.0823) renders the recommendation feature effectively unusable.
+The GRU-SeqDQN model's near-random performance (HR@10 = 0.1031) renders the recommendation feature effectively unusable.
 A user who sees random recommendations quickly loses trust in the system and stops engaging with the personalisation features entirely.
 This is the highest-priority challenge and motivates the complete replacement of the recommendation backend with the dual-mode Pipeline A + Pipeline B architecture.
 
