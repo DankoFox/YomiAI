@@ -1,1 +1,76 @@
+\chapter*{Member Contributions}
+\addcontentsline{toc}{chapter}{Member Contributions}
 
+\noindent
+\begin{tabular}{@{}p{5cm} p{8.5cm}@{}}
+\textbf{Student name} & \textbf{Student ID} \\
+\hline
+Dang Minh Khang  & 2252287 \\
+Pham Tran Dang Khoa & 2252360 \\
+\hline
+\end{tabular}
+
+\vspace{1.5em}
+
+\noindent\textbf{General / Shared Contributions}
+
+\begin{itemize}
+    \item Co-designed the high-level architecture of the dual-mode multimodal book recommendation system, integrating the behavioral graph pipeline (Pipeline~A), sequential intent pipeline (Pipeline~B), text-based HNSW search, and visual CLIP search into a unified serving stack.
+    \item Jointly defined the experimental evaluation protocol, including benchmark dataset selection (Amazon Book Reviews, 3M items), metric specifications (HR@10, NDCG@10), and multilingual retrieval quality criteria across 19 languages.
+    \item Conducted joint end-to-end system performance benchmarking, measuring throughput, latency, and retrieval quality across all system components under realistic load conditions.
+    \item Collaborated on the authorship of the technical report, collectively covering system analysis, proposed solutions, experimental evaluation, and the application chapter.
+\end{itemize}
+
+\vspace{1em}
+
+\noindent\textbf{Dang Minh Khang (2252287)}
+
+\begin{itemize}
+    \item Architected and implemented DIF-SASRec with decoupled content and category attention streams and a sigmoid-gated scalar fusion mechanism; conducted large-scale pretraining on 100{,}000 users to produce the shared model checkpoint used at inference time.
+
+    \item Engineered Pipeline~A (behavioral recommendation): Cleora co-purchase graph training and behavioral embedding generation across a 375{,}000-item candidate pool, producing the graph embeddings used for candidate pre-filtering.
+
+    \item Engineered Pipeline~B (sequential intent recommendation): DIF-SASRec online inference with per-user fine-tuning at serving time and content-veto filtering (cosine similarity threshold $\tau = 0.3$) to suppress semantically unrelated candidates.
+
+    \item Implemented the AgentPool concurrency layer comprising 8 process-isolated inference agents, \texttt{asyncio.Queue}-based task dispatch, and pretrained CPU snapshot preloading, enabling parallel per-user fine-tuning without model reload overhead.
+
+    \item Implemented the NLLB-200 translation quality gate with multi-hypothesis beam retry, ensuring robust query normalization and graceful fallback for noisy multilingual inputs before embedding.
+
+    \item Formulated and implemented the active search routing logic: query-length-based short/long path differentiation, Reciprocal Rank Fusion (RRF) bypass for single-modality queries, and multi-attribute metadata filtering for author, genre, and title constraints.
+
+    \item Designed and executed quantitative evaluations covering recommendation quality metrics (HR@10 $= 0.7886$, NDCG@10), multilingual retrieval benchmarks across 19 languages, and HNSW recall analysis against the flat exact-search baseline.
+
+    \item Designed and conducted ablation studies systematically isolating Pipeline~A, Pipeline~B, and their combined configuration to quantify the marginal contribution of each recommendation component.
+\end{itemize}
+
+\vspace{0.5em}
+
+\noindent\textbf{Pham Tran Dang Khoa (2252360)}
+
+\begin{itemize}
+    \item Architected the FastAPI backend service structure with \texttt{app/config.py} as the single source of configuration truth; orchestrated a full encoder-abstraction refactor across 10+ service modules to decouple model-specific logic from business logic.
+
+    \item Designed and deployed the full infrastructure layer: Docker Compose stack (MongoDB + Redis), Redis async interaction write-queue (\texttt{RPUSH}/\texttt{BLPOP}) for non-blocking interaction ingestion, and a MongoDB dual-collection schema (\textit{interactions} + \textit{profiles}) for durable logging and user state persistence.
+
+    \item Engineered the stateless user profile system with an async \texttt{UserProfileManager} backed by \texttt{motor}, per-user async locking to prevent concurrent write conflicts, and a lazy JSON-to-MongoDB migration engine for zero-downtime backward-compatible data migration.
+
+    \item Proposed and implemented FAISS HNSW indexing and Tantivy BM25 as a high-performance replacement for Python \texttt{rank-bm25}, achieving a 340$\times$ retrieval speedup while preserving ranking quality through Reciprocal Rank Fusion with the dense HNSW results.
+
+    \item Implemented the Cleora incremental refit infrastructure: \texttt{asyncio.Event}-gated refit scheduling to prevent concurrent rebuilds, \texttt{reload\_cleora()} atomic hot-swap for zero-downtime graph index updates, and \texttt{CLEORA\_REFIT\_THRESHOLD} environment-variable configuration for operator control over refit frequency.
+
+    \item Designed and implemented the full multilingual translation pipeline: Lingua language identification, NLLB-200 neural translation across 19 languages, \texttt{@lru\_cache(maxsize=2048)} translation memoization to eliminate redundant inference, and deterministic startup warmup to eliminate cold-start latency on the first request.
+
+    \item Applied a comprehensive suite of backend performance optimizations: FP16 model weight casting, BGE-M3 sequence-length capping (\texttt{max\_seq\_length=64}), LRU text-embedding cache (\texttt{maxsize=4096}), \texttt{anyio} task-group parallel encoding for concurrent multi-field queries, Pydantic bypass via \texttt{JSONResponse} for reduced serialization overhead, and response payload pruning to minimize network transfer.
+
+    \item Designed and implemented the React frontend application, providing the primary user-facing interface for search, recommendation browsing, and interaction logging.
+\end{itemize}
+
+\vspace{1.5cm}
+\begin{flushright}
+\begin{tabular}{r}
+    Ho Chi Minh City, 2026 \\
+    \textit{\textbf{Authors}} \\
+    Dang Minh Khang \\
+    Pham Tran Dang Khoa \\
+\end{tabular}
+\end{flushright}

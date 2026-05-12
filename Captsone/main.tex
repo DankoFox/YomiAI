@@ -1,4 +1,4 @@
- tw\documentclass[12pt]{report}
+\documentclass[12pt]{report}
 \usepackage[fontsize=13pt]{scrextend}
 \usepackage[a4paper,top=2cm,bottom=2cm,left=3cm,right=2cm]{geometry}
 % \usepackage{svg}
@@ -38,6 +38,7 @@
     urlcolor=blue
 }
 \usepackage{subcaption}
+\usepackage{enumitem}
 \usepackage{xcolor}
 \emergencystretch=3em
 \hyphenpenalty=500
@@ -91,9 +92,10 @@
 
 \pagenumbering{roman} 
 \input{sections/ins-signature}
-\
 
 \input{sections/decl-of-authen}
+
+\input{sections/workload}
 
 \input{sections/ack}
 
