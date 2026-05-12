@@ -1,0 +1,1267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Multimedia Data Mining for Next Best Action — Capstone Defense</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+/* ===================== RESET & BASE ===================== */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --navy:   #0d1b2a;
+  --blue:   #1e3a5f;
+  --mid:    #2b5c9e;
+  --accent: #3b82f6;
+  --teal:   #0ea5e9;
+  --white:  #ffffff;
+  --off:    #f0f4f8;
+  --muted:  #94a3b8;
+  --text:   #1e293b;
+  --border: #e2e8f0;
+  --green:  #10b981;
+  --amber:  #f59e0b;
+  --red:    #ef4444;
+}
+
+html, body {
+  width: 100%; height: 100%;
+  font-family: 'Inter', sans-serif;
+  background: #111827;
+  overflow: hidden;
+}
+
+/* ===================== DECK CHROME ===================== */
+#deck {
+  position: relative;
+  width: 100vw; height: 100vh;
+  display: flex; align-items: center; justify-content: center;
+}
+
+.slide {
+  display: none;
+  position: absolute;
+  inset: 0;
+  background: var(--white);
+  overflow: hidden;
+}
+.slide.active { display: flex; flex-direction: column; }
+
+/* ===================== NAVIGATION ===================== */
+#nav {
+  position: fixed; bottom: 24px; right: 28px;
+  display: flex; gap: 10px; z-index: 100;
+}
+#nav button {
+  width: 40px; height: 40px; border-radius: 50%; border: none; cursor: pointer;
+  background: var(--mid); color: var(--white); font-size: 18px;
+  display: flex; align-items: center; justify-content: center;
+  transition: background 0.2s;
+}
+#nav button:hover { background: var(--accent); }
+#counter {
+  position: fixed; bottom: 32px; left: 50%; transform: translateX(-50%);
+  font-size: 12px; color: var(--muted); z-index: 100;
+  font-variant-numeric: tabular-nums; letter-spacing: 0.05em;
+}
+#progress {
+  position: fixed; top: 0; left: 0; height: 3px;
+  background: linear-gradient(90deg, var(--accent), var(--teal));
+  transition: width 0.35s ease; z-index: 200;
+}
+
+/* ===================== SHARED SLIDE COMPONENTS ===================== */
+.slide-header {
+  background: var(--navy);
+  padding: 22px 56px 18px;
+  border-bottom: 3px solid var(--accent);
+  flex-shrink: 0;
+}
+.slide-header .eyebrow {
+  font-size: 11px; font-weight: 600; letter-spacing: 0.12em;
+  text-transform: uppercase; color: var(--teal); margin-bottom: 6px;
+}
+.slide-header h2 {
+  font-size: 28px; font-weight: 700; color: var(--white);
+  line-height: 1.2;
+}
+
+.slide-body {
+  flex: 1; padding: 36px 56px; overflow: hidden;
+  display: flex; flex-direction: column; justify-content: center;
+}
+
+/* bullet lists */
+.bullets { list-style: none; display: flex; flex-direction: column; gap: 18px; }
+.bullets li {
+  display: flex; align-items: flex-start; gap: 14px;
+  font-size: 17px; color: var(--text); line-height: 1.5;
+}
+.bullets li::before {
+  content: '';
+  flex-shrink: 0;
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--accent); margin-top: 8px;
+}
+.bullets li strong { color: var(--navy); font-weight: 600; }
+
+/* two-column layout */
+.split { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; height: 100%; }
+.split-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 28px; height: 100%; }
+
+/* cards */
+.card {
+  background: var(--off); border-radius: 12px; padding: 24px;
+  border: 1px solid var(--border);
+}
+.card h3 { font-size: 14px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.08em; color: var(--mid); margin-bottom: 14px; }
+
+/* metric blocks */
+.metric-row { display: flex; gap: 16px; margin-top: auto; }
+.metric {
+  flex: 1; background: var(--navy); border-radius: 10px; padding: 18px 14px;
+  text-align: center;
+}
+.metric .val {
+  font-size: 32px; font-weight: 700; color: var(--accent);
+  line-height: 1; font-variant-numeric: tabular-nums;
+}
+.metric .lbl { font-size: 11px; color: var(--muted); margin-top: 6px;
+  text-transform: uppercase; letter-spacing: 0.08em; }
+
+/* comparison table */
+.cmp-table { width: 100%; border-collapse: collapse; font-size: 15px; }
+.cmp-table th {
+  background: var(--navy); color: var(--white); padding: 10px 14px;
+  font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-align: left;
+}
+.cmp-table td { padding: 10px 14px; border-bottom: 1px solid var(--border); color: var(--text); }
+.cmp-table tr:last-child td { border-bottom: none; }
+.cmp-table tr:hover td { background: var(--off); }
+.cmp-table .best { color: var(--green); font-weight: 700; }
+.cmp-table .worse { color: var(--red); }
+
+/* tag pills */
+.tag {
+  display: inline-block; padding: 3px 10px; border-radius: 999px;
+  font-size: 12px; font-weight: 600;
+}
+.tag-blue  { background: #dbeafe; color: var(--mid); }
+.tag-green { background: #d1fae5; color: #065f46; }
+.tag-amber { background: #fef3c7; color: #92400e; }
+.tag-red   { background: #fee2e2; color: #991b1b; }
+
+/* diagram placeholder */
+.diagram-box {
+  background: #f8fafc; border: 2px dashed #cbd5e1; border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  flex-direction: column; gap: 10px; color: var(--muted);
+  font-size: 13px; font-style: italic;
+}
+.diagram-box svg { opacity: 0.4; }
+
+/* code mono */
+.mono { font-family: 'Fira Code', monospace; font-size: 13px; }
+
+/* ===================== BAR CHART COMPONENT ===================== */
+.bar-chart { display: flex; flex-direction: column; gap: 10px; }
+.bar-row { display: flex; align-items: center; gap: 10px; font-size: 13px; }
+.bar-label { width: 170px; flex-shrink: 0; color: var(--text); font-size: 13px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.bar-track { flex: 1; background: #e2e8f0; border-radius: 4px; height: 26px; position: relative; }
+.bar-fill { height: 100%; border-radius: 4px;
+  transition: width 0.8s cubic-bezier(.4,0,.2,1);
+  display: flex; align-items: center; justify-content: flex-end; padding-right: 8px; }
+.bar-fill span { font-size: 12px; font-weight: 700; color: var(--white); }
+
+/* ===================== TITLE SLIDE ===================== */
+.title-slide {
+  background: var(--navy) !important;
+  align-items: center; justify-content: center;
+  flex-direction: column; gap: 0;
+  position: relative;
+}
+.title-slide::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse 80% 50% at 50% 110%, rgba(59,130,246,0.18), transparent);
+}
+.title-slide::after {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 4px;
+  background: linear-gradient(90deg, var(--accent), var(--teal));
+}
+.title-inner {
+  position: relative; z-index: 1;
+  text-align: center; max-width: 820px; padding: 48px 40px;
+}
+.title-eyebrow {
+  font-size: 12px; font-weight: 600; letter-spacing: 0.15em;
+  text-transform: uppercase; color: var(--teal); margin-bottom: 18px;
+}
+.title-inner h1 {
+  font-size: 42px; font-weight: 700; color: var(--white);
+  line-height: 1.18; margin-bottom: 24px;
+}
+.title-inner h1 span { color: var(--accent); }
+.title-sub {
+  font-size: 16px; color: #94a3b8; line-height: 1.6; margin-bottom: 40px;
+}
+.title-meta {
+  display: flex; gap: 40px; justify-content: center;
+  border-top: 1px solid rgba(255,255,255,0.08); padding-top: 28px;
+}
+.title-meta-item { text-align: center; }
+.title-meta-item .tm-label { font-size: 10px; text-transform: uppercase;
+  letter-spacing: 0.1em; color: var(--muted); }
+.title-meta-item .tm-val { font-size: 14px; font-weight: 600; color: var(--white); margin-top: 4px; }
+
+/* ===================== SECTION DIVIDER SLIDE ===================== */
+.section-slide {
+  background: linear-gradient(135deg, var(--blue) 0%, var(--navy) 100%) !important;
+  align-items: center; justify-content: center; flex-direction: column; gap: 16px;
+}
+.section-slide .sec-number {
+  font-size: 11px; font-weight: 700; letter-spacing: 0.2em;
+  text-transform: uppercase; color: var(--teal);
+}
+.section-slide h2 {
+  font-size: 48px; font-weight: 700; color: var(--white); text-align: center;
+}
+.section-slide p {
+  font-size: 16px; color: #94a3b8; max-width: 540px; text-align: center; line-height: 1.6;
+}
+
+/* ===================== AGENDA SLIDE ===================== */
+.agenda-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 14px;
+}
+.agenda-item {
+  display: flex; align-items: center; gap: 16px;
+  padding: 16px 20px; background: var(--off); border-radius: 10px;
+  border-left: 4px solid var(--accent);
+}
+.agenda-item .num {
+  font-size: 22px; font-weight: 700; color: var(--accent); flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
+}
+.agenda-item .text strong { display: block; font-size: 15px; color: var(--navy); }
+.agenda-item .text small { font-size: 12px; color: var(--muted); }
+
+/* ===================== PIPELINE FLOW ===================== */
+.flow {
+  display: flex; align-items: center; gap: 0; width: 100%; overflow: hidden;
+}
+.flow-node {
+  flex: 1; text-align: center; padding: 16px 10px;
+  background: var(--off); border-radius: 10px; border: 1px solid var(--border);
+  font-size: 13px;
+}
+.flow-node strong { display: block; font-size: 14px; color: var(--navy); margin-bottom: 4px; }
+.flow-node small { color: var(--muted); font-size: 11px; }
+.flow-arrow {
+  flex-shrink: 0; width: 32px; text-align: center; color: var(--accent); font-size: 20px;
+}
+.flow-node.highlight {
+  background: var(--navy); border-color: var(--accent);
+}
+.flow-node.highlight strong { color: var(--accent); }
+.flow-node.highlight small { color: var(--muted); }
+
+/* ===================== SCORE BAR MACROS ===================== */
+.score-accent  { background: linear-gradient(90deg, var(--mid), var(--accent)); }
+.score-green   { background: linear-gradient(90deg, #059669, var(--green)); }
+.score-amber   { background: linear-gradient(90deg, #d97706, var(--amber)); }
+.score-red     { background: linear-gradient(90deg, #b91c1c, var(--red)); }
+.score-teal    { background: linear-gradient(90deg, #0284c7, var(--teal)); }
+.score-violet  { background: linear-gradient(90deg, #7c3aed, #a78bfa); }
+
+/* ===================== COMPLEMENTARITY DONUT ===================== */
+.donut-area {
+  display: flex; align-items: center; gap: 32px;
+}
+.donut-svg { flex-shrink: 0; }
+.donut-legend { display: flex; flex-direction: column; gap: 12px; }
+.donut-row { display: flex; align-items: center; gap: 10px; font-size: 14px; }
+.donut-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
+</style>
+</head>
+<body>
+
+<div id="progress"></div>
+<div id="deck">
+
+<!-- ============================================================ SLIDE 1: TITLE -->
+<div class="slide title-slide active" id="s1">
+  <div class="title-inner">
+    <div class="title-eyebrow">Capstone Project Defense &mdash; Phase 2 Final Presentation</div>
+    <h1>Multimedia Data Mining for<br/><span>Next Best Action</span></h1>
+    <p class="title-sub">
+      A dual-mode multimodal recommendation system combining behavioral graph embeddings,
+      sequential transformer modelling, and multilingual semantic search over a 3-million-item book catalogue.
+    </p>
+    <div class="title-meta">
+      <div class="title-meta-item">
+        <div class="tm-label">Domain</div>
+        <div class="tm-val">Book Recommendation &amp; Search</div>
+      </div>
+      <div class="title-meta-item">
+        <div class="tm-label">Dataset</div>
+        <div class="tm-val">Amazon Reviews 2023 Books</div>
+      </div>
+      <div class="title-meta-item">
+        <div class="tm-label">Catalogue Scale</div>
+        <div class="tm-val">3,080,829 items</div>
+      </div>
+      <div class="title-meta-item">
+        <div class="tm-label">Final HR@10</div>
+        <div class="tm-val" style="color:var(--teal)">0.9736</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ SLIDE 2: AGENDA -->
+<div class="slide" id="s2">
+  <div class="slide-header">
+    <div class="eyebrow">Presentation Overview</div>
+    <h2>Agenda</h2>
+  </div>
+  <div class="slide-body">
+    <div class="agenda-grid">
+      <div class="agenda-item">
+        <div class="num">01</div>
+        <div class="text">
+          <strong>Motivation &amp; Problem</strong>
+          <small>Scale, multilingual, latency challenges</small>
+        </div>
+      </div>
+      <div class="agenda-item">
+        <div class="num">02</div>
+        <div class="text">
+          <strong>Phase 1 → Phase 2 Evolution</strong>
+          <small>Why we upgraded every component</small>
+        </div>
+      </div>
+      <div class="agenda-item">
+        <div class="num">03</div>
+        <div class="text">
+          <strong>System Architecture</strong>
+          <small>Three-tier stack &amp; dual-mode pipeline</small>
+        </div>
+      </div>
+      <div class="agenda-item">
+        <div class="num">04</div>
+        <div class="text">
+          <strong>Pipeline A — Cleora + BGE-M3</strong>
+          <small>Behavioral graph retrieval</small>
+        </div>
+      </div>
+      <div class="agenda-item">
+        <div class="num">05</div>
+        <div class="text">
+          <strong>Pipeline B — DIF-SASRec</strong>
+          <small>Sequential intent transformer</small>
+        </div>
+      </div>
+      <div class="agenda-item">
+        <div class="num">06</div>
+        <div class="text">
+          <strong>Search: BGE-M3 + NLLB + Tantivy</strong>
+          <small>Multilingual semantic + BM25 RRF</small>
+        </div>
+      </div>
+      <div class="agenda-item">
+        <div class="num">07</div>
+        <div class="text">
+          <strong>Experiments &amp; Evaluation</strong>
+          <small>Ablation, latency, encoder, main results</small>
+        </div>
+      </div>
+      <div class="agenda-item">
+        <div class="num">08</div>
+        <div class="text">
+          <strong>Conclusion &amp; Future Work</strong>
+          <small>Limitations and next steps</small>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ SLIDE 3: MOTIVATION -->
+<div class="slide" id="s3">
+  <div class="slide-header">
+    <div class="eyebrow">01 — Motivation</div>
+    <h2>The Problem at Scale</h2>
+  </div>
+  <div class="slide-body" style="gap:28px">
+    <div class="split">
+      <div style="display:flex;flex-direction:column;gap:18px;justify-content:center">
+        <ul class="bullets">
+          <li><strong>Scale:</strong> 3M+ books make manual discovery impossible — intelligent intermediation is required before the user types a query.</li>
+          <li><strong>Unimodal blindness:</strong> Collaborative filtering ignores content; content-based methods ignore community co-purchase patterns; neither captures <em>sequential intent</em>.</li>
+          <li><strong>Language exclusion:</strong> Most open-source encoders are English-only. Vietnamese users receive systematically lower quality results — a question of equitable access.</li>
+          <li><strong>Latency budget:</strong> A recommendation API &gt;1 second is not adopted in interactive apps. Accuracy and speed must co-optimize.</li>
+        </ul>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:14px;justify-content:center">
+        <div class="card" style="border-left:4px solid var(--accent)">
+          <h3>Prior System (Phase 1) Gaps</h3>
+          <ul class="bullets" style="gap:10px">
+            <li style="font-size:14px"><strong>GRU-SeqDQN</strong> — HR@10 = 0.1031, barely above random (0.10)</li>
+            <li style="font-size:14px"><strong>Flat FAISS index</strong> — 612 ms P50 latency on 3M vectors</li>
+            <li style="font-size:14px"><strong>BLaIR encoder</strong> — Precision@10 = 0.025 on short Vietnamese queries</li>
+            <li style="font-size:14px"><strong>No multilingual support</strong> — English-only semantic search</li>
+          </ul>
+        </div>
+        <div class="metric-row">
+          <div class="metric"><div class="val">3.08M</div><div class="lbl">Books in catalogue</div></div>
+          <div class="metric"><div class="val">100K</div><div class="lbl">Eval users</div></div>
+          <div class="metric"><div class="val">19+</div><div class="lbl">Languages supported</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ SLIDE 4: SECTION — EVOLUTION -->
+<div class="slide section-slide" id="s4">
+  <div class="sec-number">Section 02</div>
+  <h2>Phase 1 → Phase 2<br/>Evolution</h2>
+  <p>Why every major component was replaced or significantly upgraded in Phase 2.</p>
+</div>
+
+<!-- ============================================================ SLIDE 5: EVOLUTION TABLE -->
+<div class="slide" id="s5">
+  <div class="slide-header">
+    <div class="eyebrow">02 — Evolution</div>
+    <h2>Component-by-Component Upgrade</h2>
+  </div>
+  <div class="slide-body" style="justify-content:flex-start;padding-top:28px">
+    <table class="cmp-table">
+      <thead>
+        <tr>
+          <th>Component</th>
+          <th>Phase 1 (Legacy)</th>
+          <th>Phase 2 (Current)</th>
+          <th>Deciding Factor</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Text Encoder</strong></td>
+          <td class="worse">BLaIR (RoBERTa-Large)</td>
+          <td class="best">BGE-M3 (BAAI, 1024-dim)</td>
+          <td>Multilingual support; VI Precision@10: 0.025 → 0.55</td>
+        </tr>
+        <tr>
+          <td><strong>ANN Index</strong></td>
+          <td class="worse">Flat exact (3M, 612 ms P50)</td>
+          <td class="best">FAISS HNSW (1.7M, 120 ms P50)</td>
+          <td>5.12× latency speedup; production sub-100 ms budget</td>
+        </tr>
+        <tr>
+          <td><strong>BM25 Search</strong></td>
+          <td class="worse">None / Elasticsearch</td>
+          <td class="best">Tantivy (Rust, zero-JVM)</td>
+          <td>Sub-ms BM25 on 3M titles; no cluster management</td>
+        </tr>
+        <tr>
+          <td><strong>Seq. Recommender</strong></td>
+          <td class="worse">GRU-SeqDQN (HR@10 = 0.10)</td>
+          <td class="best">DIF-SASRec (HR@10 = 0.77)</td>
+          <td>Decoupled attention; offline pretrain → ships warm day 1</td>
+        </tr>
+        <tr>
+          <td><strong>Graph Model</strong></td>
+          <td class="worse">None</td>
+          <td class="best">Cleora (375K items, minutes to train)</td>
+          <td>GNN alternatives require GPU days; Cleora: minutes</td>
+        </tr>
+        <tr>
+          <td><strong>Multilingual</strong></td>
+          <td class="worse">English only</td>
+          <td class="best">NLLB-200 (19 languages, &lt;2 ms warm)</td>
+          <td>LRU-cached translation; 18.6× end-to-end latency reduction</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ============================================================ SLIDE 6: SECTION — ARCHITECTURE -->
+<div class="slide section-slide" id="s6">
+  <div class="sec-number">Section 03</div>
+  <h2>System Architecture</h2>
+  <p>Three-tier web application with dual-mode recommendation and multilingual semantic search.</p>
+</div>
+
+<!-- ============================================================ SLIDE 7: THREE-TIER ARCH -->
+<div class="slide" id="s7">
+  <div class="slide-header">
+    <div class="eyebrow">03 — Architecture</div>
+    <h2>Three-Tier Stack</h2>
+  </div>
+  <div class="slide-body">
+    <div class="split">
+      <div style="display:flex;flex-direction:column;gap:14px;justify-content:center">
+        <div class="card" style="border-top:3px solid var(--teal)">
+          <h3>Presentation Tier</h3>
+          <ul class="bullets" style="gap:8px">
+            <li style="font-size:13px"><strong>React 19 + Vite</strong> — SPA with search, recommendation, and profile views</li>
+            <li style="font-size:13px">No business logic on frontend — pure HTTP REST consumer</li>
+            <li style="font-size:13px">TextIteratorStreamer popover, sparkline SVG for loss history</li>
+          </ul>
+        </div>
+        <div class="card" style="border-top:3px solid var(--accent)">
+          <h3>Application Tier</h3>
+          <ul class="bullets" style="gap:8px">
+            <li style="font-size:13px"><strong>FastAPI + uvicorn</strong> (Python 3.11) — async/await for concurrent FAISS + Redis I/O</li>
+            <li style="font-size:13px">Routes: <span class="mono">/search /recommend /interact /profile /auth /llm</span></li>
+            <li style="font-size:13px">Indices loaded once at startup via lifespan context manager</li>
+          </ul>
+        </div>
+        <div class="card" style="border-top:3px solid var(--green)">
+          <h3>Data Tier</h3>
+          <ul class="bullets" style="gap:8px">
+            <li style="font-size:13px"><strong>MongoDB</strong> — interaction logs &amp; user profiles (schema-free)</li>
+            <li style="font-size:13px"><strong>Redis RPUSH</strong> — async write queue; decouples <span class="mono">/interact</span> hot path (&lt;5 ms P50)</li>
+            <li style="font-size:13px"><strong>Parquet</strong> — metadata for 3M items, row-cache on demand</li>
+          </ul>
+        </div>
+      </div>
+      <div class="diagram-box" style="min-height:340px">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+        <span>Insert system architecture<br/>diagram here (Fig 3.1)</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ SLIDE 8: OVERALL ML ARCH -->
+<div class="slide" id="s8">
+  <div class="slide-header">
+    <div class="eyebrow">03 — Architecture</div>
+    <h2>Multimodal ML Pipeline Overview</h2>
+  </div>
+  <div class="slide-body" style="gap:22px">
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <div style="font-size:12px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted)">Representation Learning (Phase 1)</div>
+      <div class="flow">
+        <div class="flow-node"><strong>Item Metadata</strong><small>Title · Genre · Desc.</small></div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node highlight"><strong>BGE-M3</strong><small>1024-dim · fp16</small></div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node"><strong>Text Latent Space</strong><small>3M item embeddings</small></div>
+
+        <div class="flow-arrow" style="width:40px">&nbsp;&nbsp;</div>
+
+        <div class="flow-node"><strong>Cover Images</strong><small>Visual corpus</small></div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node highlight"><strong>CLIP</strong><small>Contrastive vision</small></div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node"><strong>Visual Latent Space</strong><small>CLIP HNSW index</small></div>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:28px;flex:1">
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div style="font-size:12px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted)">Phase 2A — Active Search</div>
+        <div class="flow" style="flex-direction:column;align-items:stretch;gap:8px">
+          <div class="flow-node" style="text-align:left;padding:12px 16px"><strong>Text / Image Query</strong> — user input</div>
+          <div style="text-align:center;color:var(--accent);font-size:18px">↓</div>
+          <div class="flow-node highlight" style="text-align:left;padding:12px 16px"><strong>NLLB-200</strong> — detect &amp; translate (&lt;2 ms warm)<br/><small>BGE-M3 encode → FAISS HNSW search</small></div>
+          <div style="text-align:center;color:var(--accent);font-size:18px">↓</div>
+          <div class="flow-node highlight" style="text-align:left;padding:12px 16px"><strong>RRF Fusion</strong> — Tantivy BM25 + FAISS<br/><small>k=60, sub-60 ms warm E2E</small></div>
+          <div style="text-align:center;color:var(--accent);font-size:18px">↓</div>
+          <div class="flow-node" style="text-align:left;padding:12px 16px"><strong>Ranked Search Results</strong></div>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div style="font-size:12px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted)">Phase 2B — Personalized Recommendation</div>
+        <div class="flow" style="flex-direction:column;align-items:stretch;gap:8px">
+          <div class="flow-node" style="text-align:left;padding:12px 16px"><strong>Click History</strong> — sequential user events</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:4px 0">
+            <div class="flow-node highlight" style="padding:10px 12px"><strong>Pipeline A</strong><br/><small>Cleora KNN → BGE-M3 re-rank</small></div>
+            <div class="flow-node highlight" style="padding:10px 12px"><strong>Pipeline B</strong><br/><small>DIF-SASRec + content veto τ=0.3</small></div>
+          </div>
+          <div style="text-align:center;color:var(--accent);font-size:18px">↓</div>
+          <div class="flow-node" style="text-align:left;padding:12px 16px"><strong>People Also Buy</strong> &amp; <strong>You Might Like</strong></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ SLIDE 9: SECTION — PIPELINE A -->
+<div class="slide section-slide" id="s9">
+  <div class="sec-number">Section 04</div>
+  <h2>Pipeline A<br/>Cleora + BGE-M3</h2>
+  <p>Behavioral co-purchase graph embeddings re-ranked by semantic profile similarity.</p>
+</div>
+
+<!-- ============================================================ SLIDE 10: PIPELINE A DETAIL -->
+<div class="slide" id="s10">
+  <div class="slide-header">
+    <div class="eyebrow">04 — Pipeline A</div>
+    <h2>Behavioral Graph Retrieval — "People Also Buy"</h2>
+  </div>
+  <div class="slide-body">
+    <div class="split">
+      <div style="display:flex;flex-direction:column;gap:18px;justify-content:center">
+        <ul class="bullets">
+          <li><strong>Cleora embeddings</strong> trained on the co-purchase graph (375,280 items via Markov Random Walks). Converges in minutes vs. GPU-days for GNN alternatives.</li>
+          <li><strong>User profile vector</strong> = mean-pool of BGE-M3 embeddings over click history. One consistent embedding space for profile and item.</li>
+          <li><strong>Retrieval:</strong> FAISS inner-product search over Cleora index for top-50 neighbours → re-ranked by cosine similarity to profile vector.</li>
+          <li><strong>Cold-start:</strong> Users with &lt;5 interactions bypass both pipelines and receive items sampled uniformly from the Cleora catalogue.</li>
+        </ul>
+        <div class="metric-row">
+          <div class="metric"><div class="val">375K</div><div class="lbl">Cleora index items</div></div>
+          <div class="metric"><div class="val">0.9047</div><div class="lbl">HR@10 (standalone)</div></div>
+          <div class="metric"><div class="val">&lt;5</div><div class="lbl">Cold-start threshold</div></div>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:14px;justify-content:center">
+        <div class="card">
+          <h3>Why Cleora over LightGCN / GraphSAGE?</h3>
+          <ul class="bullets" style="gap:10px">
+            <li style="font-size:13px">LightGCN requires GPU memory proportional to neighbourhood depth at 375K-node scale</li>
+            <li style="font-size:13px">Cleora converges in <strong>minutes</strong> via iterative Markov smoothing</li>
+            <li style="font-size:13px">Production graph refit triggered by background Redis worker at configurable interaction threshold</li>
+          </ul>
+        </div>
+        <div class="diagram-box" style="flex:1;min-height:160px">
+          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="3"/><path d="M6 12a6 6 0 1 0 12 0"/><path d="M2 12a10 10 0 1 0 20 0"/></svg>
+          <span>Insert recommendation funnel<br/>diagram here (Fig 4.2)</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ SLIDE 11: SECTION — PIPELINE B -->
+<div class="slide section-slide" id="s11">
+  <div class="sec-number">Section 05</div>
+  <h2>Pipeline B<br/>DIF-SASRec</h2>
+  <p>Decoupled Intent-Feature Sequential Recommendation Transformer with per-user online fine-tuning.</p>
+</div>
+
+<!-- ============================================================ SLIDE 12: DIF-SASREC DETAIL -->
+<div class="slide" id="s12">
+  <div class="slide-header">
+    <div class="eyebrow">05 — Pipeline B</div>
+    <h2>DIF-SASRec — Sequential Intent Modelling</h2>
+  </div>
+  <div class="slide-body">
+    <div class="split">
+      <div style="display:flex;flex-direction:column;gap:18px;justify-content:center">
+        <ul class="bullets">
+          <li><strong>Decoupled attention:</strong> Separate content and category attention streams exploit BGE-M3 embeddings directly. BERT4Rec's bidirectional masking is incompatible with online fine-tuning.</li>
+          <li><strong>Architecture:</strong> 12.4M params, 4 transformer blocks, 8 heads, 512-dim hidden, max sequence 50 items (optimal from sensitivity study).</li>
+          <li><strong>Content veto (τ=0.3):</strong> DIF-SASRec candidates with cosine similarity &lt;0.3 to user BGE-M3 profile are filtered. Peak HR@10 at τ=0.3 (61% of candidates pass).</li>
+          <li><strong>AgentPool:</strong> 8 isolated model instances share GPU, each holds own AdamW state (~148 MB VRAM). Per-user checkpoint loaded/saved per request.</li>
+        </ul>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <div class="card">
+          <h3>Model Configuration</h3>
+          <table class="cmp-table" style="font-size:13px">
+            <tbody>
+              <tr><td>Parameters</td><td class="best">12,420,345</td></tr>
+              <tr><td>Training users</td><td>100,000 (avg 33.5 clicks)</td></tr>
+              <tr><td>Batch size</td><td>2,048 + AMP (fp16)</td></tr>
+              <tr><td>Optimizer</td><td>AdamW + cosine LR decay</td></tr>
+              <tr><td>Epochs</td><td>30 (~9.3 hrs on single GPU)</td></tr>
+              <tr><td>Negatives</td><td>512 (resampled each epoch)</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="card">
+          <h3>Content Veto Sensitivity (τ)</h3>
+          <div class="bar-chart" style="margin-top:4px">
+            <div class="bar-row">
+              <div class="bar-label">τ = 0.10 (94.3% pass)</div>
+              <div class="bar-track"><div class="bar-fill score-amber" style="width:95.7%"><span>0.741</span></div></div>
+            </div>
+            <div class="bar-row">
+              <div class="bar-label">τ = 0.20 (78.6% pass)</div>
+              <div class="bar-track"><div class="bar-fill score-amber" style="width:98.5%"><span>0.762</span></div></div>
+            </div>
+            <div class="bar-row">
+              <div class="bar-label" style="font-weight:700;color:var(--green)">τ = 0.30 ★ best</div>
+              <div class="bar-track"><div class="bar-fill score-green" style="width:100%"><span>0.774</span></div></div>
+            </div>
+            <div class="bar-row">
+              <div class="bar-label">τ = 0.40 (38.9% pass)</div>
+              <div class="bar-track"><div class="bar-fill score-amber" style="width:96.6%"><span>0.748</span></div></div>
+            </div>
+            <div class="bar-row">
+              <div class="bar-label">τ = 0.50 (18.1% pass)</div>
+              <div class="bar-track"><div class="bar-fill score-red" style="width:89.3%"><span>0.691</span></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ SLIDE 13: TRAINING JOURNEY -->
+<div class="slide" id="s13">
+  <div class="slide-header">
+    <div class="eyebrow">05 — Pipeline B</div>
+    <h2>DIF-SASRec Training: 3-Run Iterative Development</h2>
+  </div>
+  <div class="slide-body" style="gap:22px">
+    <div class="split-3">
+      <div class="card" style="border-top:3px solid var(--amber)">
+        <h3>Run 1 — Apr 11 Baseline</h3>
+        <ul class="bullets" style="gap:8px">
+          <li style="font-size:13px"><strong>2.3M params</strong>, 2 blocks, 256-dim</li>
+          <li style="font-size:13px">20K users · avg 40–50 clicks</li>
+          <li style="font-size:13px">HR@10 = <span style="color:var(--amber);font-weight:700">0.2973</span> (3× random baseline)</li>
+          <li style="font-size:13px">Under-capacity for the task</li>
+        </ul>
+      </div>
+      <div class="card" style="border-top:3px solid var(--red)">
+        <h3>Run 2 — Regression</h3>
+        <ul class="bullets" style="gap:8px">
+          <li style="font-size:13px"><strong>12.4M params</strong>, 4 blocks, 512-dim</li>
+          <li style="font-size:13px">200K users · avg only <strong>21 clicks</strong></li>
+          <li style="font-size:13px">HR@10 = <span style="color:var(--red);font-weight:700">0.1950</span> — regression!</li>
+          <li style="font-size:13px">Root cause: AMP scheduler bug + sparse interactions below signal floor</li>
+        </ul>
+      </div>
+      <div class="card" style="border-top:3px solid var(--green)">
+        <h3>Run 3 — Calibrated ✓</h3>
+        <ul class="bullets" style="gap:8px">
+          <li style="font-size:13px"><strong>100K users</strong> · avg 33.5 clicks</li>
+          <li style="font-size:13px">Per-epoch negative resampling (50K pool)</li>
+          <li style="font-size:13px">Batch 2048 + AMP + LR fix</li>
+          <li style="font-size:13px">HR@10 = <span style="color:var(--green);font-weight:700">0.7745</span> — 161% improvement over Run 1</li>
+        </ul>
+      </div>
+    </div>
+    <div class="card" style="background:var(--navy);border:none;padding:16px 24px">
+      <div style="color:var(--teal);font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px">Key Lesson</div>
+      <div style="color:var(--white);font-size:14px;line-height:1.6">
+        <strong style="color:var(--accent)">Interaction density matters more than user count.</strong>
+        A model with 5× more parameters trained on sparse data (Run 2) performs worse than a smaller model on dense data (Run 1).
+        Training loss is misleading across runs with different negative sample sizes — always normalize by ln(K+1).
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ SLIDE 14: SECTION — SEARCH -->
+<div class="slide section-slide" id="s14">
+  <div class="sec-number">Section 06</div>
+  <h2>Search Pipeline<br/>BGE-M3 + NLLB + Tantivy</h2>
+  <p>Multilingual semantic search with BM25 fusion, optimized from 1,102 ms to 59 ms E2E.</p>
+</div>
+
+<!-- ============================================================ SLIDE 15: SEARCH PIPELINE -->
+<div class="slide" id="s15">
+  <div class="slide-header">
+    <div class="eyebrow">06 — Search</div>
+    <h2>Multilingual Search: NLLB + BGE-M3 + Tantivy RRF</h2>
+  </div>
+  <div class="slide-body">
+    <div class="split">
+      <div style="display:flex;flex-direction:column;gap:14px;justify-content:center">
+        <ul class="bullets">
+          <li><strong>Stage 1 — Language detection:</strong> <span class="mono">lingua</span> library in &lt;1 ms. English queries skip translation entirely.</li>
+          <li><strong>Stage 2 — NLLB-200 translation:</strong> <span class="mono">facebook/nllb-200-distilled-600M</span> translates 19 non-English languages. Greedy pass first; quality gate retries with beam=4 if source tokens survive.</li>
+          <li><strong>Stage 3 — Parallel encode &amp; retrieve:</strong> BGE-M3 text encode + CLIP image encode run concurrently via <span class="mono">anyio</span> task group. FAISS HNSW + Tantivy BM25 → RRF fusion (k=60).</li>
+          <li><strong>LRU cache:</strong> Translated queries cached up to 2,048 entries → repeated terms cost 0 ms.</li>
+        </ul>
+        <div class="metric-row">
+          <div class="metric"><div class="val">59 ms</div><div class="lbl">Warm E2E latency</div></div>
+          <div class="metric"><div class="val">18.6×</div><div class="lbl">Latency improvement</div></div>
+          <div class="metric"><div class="val">&lt;2 ms</div><div class="lbl">Translation (warm)</div></div>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <div class="card">
+          <h3>Latency by Optimization Stage</h3>
+          <table class="cmp-table" style="font-size:12px">
+            <thead><tr><th>Stage</th><th>Translate</th><th>Encode</th><th>E2E Total</th></tr></thead>
+            <tbody>
+              <tr><td>Baseline</td><td class="worse">204 ms</td><td>97 ms</td><td class="worse">1,102 ms</td></tr>
+              <tr><td>Translator opt.</td><td class="best">1.2 ms</td><td>30 ms</td><td class="best">59 ms</td></tr>
+              <tr><td>Post quality gate</td><td class="best">1.2 ms</td><td>29 ms</td><td class="best">59 ms</td></tr>
+              <tr><td>Cold cache</td><td class="worse">185 ms</td><td>37 ms</td><td class="worse">1,204 ms</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="card">
+          <h3>Vietnamese Query Retrieval — Precision@10</h3>
+          <div class="bar-chart" style="margin-top:4px">
+            <div class="bar-row">
+              <div class="bar-label">Short VI — BGE-M3</div>
+              <div class="bar-track"><div class="bar-fill score-accent" style="width:50%"><span>0.275</span></div></div>
+            </div>
+            <div class="bar-row">
+              <div class="bar-label">Short VI — BLaIR</div>
+              <div class="bar-track"><div class="bar-fill score-red" style="width:4.5%"><span>0.025</span></div></div>
+            </div>
+            <div class="bar-row">
+              <div class="bar-label">Long VI — BGE-M3</div>
+              <div class="bar-track"><div class="bar-fill score-green" style="width:100%"><span>0.550</span></div></div>
+            </div>
+            <div class="bar-row">
+              <div class="bar-label">Long VI — BLaIR</div>
+              <div class="bar-track"><div class="bar-fill score-red" style="width:9.1%"><span>0.050</span></div></div>
+            </div>
+          </div>
+          <div style="font-size:11px;color:var(--muted);margin-top:8px">BLaIR effectively fails on Vietnamese (P@10 ≤ 0.05). BGE-M3: 11× improvement on long VI.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ SLIDE 16: SECTION — EVAL -->
+<div class="slide section-slide" id="s16">
+  <div class="sec-number">Section 07</div>
+  <h2>Experiments &amp;<br/>Evaluation</h2>
+  <p>Dataset: Amazon Books 2023 · 100K test users · N=99 negatives · leave-one-out protocol.</p>
+</div>
+
+<!-- ============================================================ SLIDE 17: ENCODER COMPARISON -->
+<div class="slide" id="s17">
+  <div class="slide-header">
+    <div class="eyebrow">07 — Evaluation</div>
+    <h2>Encoder Comparison: BGE-M3 vs. BLaIR</h2>
+  </div>
+  <div class="slide-body">
+    <div class="split">
+      <div style="display:flex;flex-direction:column;gap:18px;justify-content:center">
+        <div class="card">
+          <h3>Recommendation Accuracy (20K users, N=99)</h3>
+          <table class="cmp-table">
+            <thead><tr><th>Encoder</th><th>HR@5</th><th>HR@10</th><th>NDCG@10</th><th>MRR@10</th></tr></thead>
+            <tbody>
+              <tr>
+                <td>BLaIR (3M flat)</td>
+                <td class="best">0.4195</td><td class="best">0.5484</td><td class="best">0.3513</td><td class="best">0.2906</td>
+              </tr>
+              <tr>
+                <td>BGE-M3 (1.7M HNSW)</td>
+                <td>0.3767</td><td>0.4510</td><td>0.3128</td><td>0.2694</td>
+              </tr>
+            </tbody>
+          </table>
+          <div style="font-size:12px;color:var(--muted);margin-top:10px;line-height:1.5">
+            ⚠️ <strong>Unfair comparison:</strong> BLaIR used 3M flat (exact) index; BGE-M3 used 1.7M HNSW (approximate). BGE-M3's lower rec. score is an index config artefact, not encoder quality.
+          </div>
+        </div>
+        <ul class="bullets" style="gap:10px">
+          <li><strong>The decisive advantage</strong> is multilingual query retrieval (right), not recommendation accuracy.</li>
+          <li><strong>BGE-M3 chosen</strong> as single source of truth: profile vectors, item embeddings, and query encoding all use the same model.</li>
+        </ul>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <div class="card" style="flex:1">
+          <h3>Search Query Retrieval — Precision@10 by Type</h3>
+          <div class="bar-chart" style="gap:8px;margin-top:4px">
+            <div class="bar-row">
+              <div class="bar-label">Short EN — BGE-M3</div>
+              <div class="bar-track"><div class="bar-fill score-accent" style="width:27.3%"><span>0.150</span></div></div>
+            </div>
+            <div class="bar-row">
+              <div class="bar-label">Short EN — BLaIR</div>
+              <div class="bar-track"><div class="bar-fill score-teal" style="width:42.5%"><span>0.233</span></div></div>
+            </div>
+            <div class="bar-row">
+              <div class="bar-label">Medium EN — BGE-M3</div>
+              <div class="bar-track"><div class="bar-fill score-accent" style="width:60.6%"><span>0.333</span></div></div>
+            </div>
+            <div class="bar-row">
+              <div class="bar-label">Medium EN — BLaIR</div>
+              <div class="bar-track"><div class="bar-fill score-red" style="width:15.2%"><span>0.083</span></div></div>
+            </div>
+            <div class="bar-row">
+              <div class="bar-label">Long EN — BGE-M3</div>
+              <div class="bar-track"><div class="bar-fill score-green" style="width:72.7%"><span>0.400</span></div></div>
+            </div>
+            <div class="bar-row">
+              <div class="bar-label">Long VI — BGE-M3 ★</div>
+              <div class="bar-track"><div class="bar-fill score-green" style="width:100%"><span>0.550</span></div></div>
+            </div>
+            <div class="bar-row">
+              <div class="bar-label">Long VI — BLaIR ✗</div>
+              <div class="bar-track"><div class="bar-fill score-red" style="width:9.1%"><span>0.050</span></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ SLIDE 18: HNSW vs FLAT -->
+<div class="slide" id="s18">
+  <div class="slide-header">
+    <div class="eyebrow">07 — Evaluation</div>
+    <h2>Index Performance: HNSW vs. Flat</h2>
+  </div>
+  <div class="slide-body" style="gap:28px">
+    <div class="split-3">
+      <div class="metric" style="background:var(--navy);border-radius:12px;padding:28px 20px;text-align:center">
+        <div style="font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:12px">Flat (exact, 3M)</div>
+        <div style="font-size:38px;font-weight:700;color:var(--red)">612 ms</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:6px">P50 latency</div>
+        <div style="font-size:28px;font-weight:700;color:var(--white);margin-top:12px">655 ms</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:4px">P95 latency</div>
+        <div style="font-size:20px;font-weight:700;color:var(--green);margin-top:14px">Recall = 1.000</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:4px">Exact search</div>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px">
+        <div style="font-size:48px;font-weight:700;color:var(--accent)">5.12×</div>
+        <div style="font-size:14px;color:var(--muted);text-align:center">faster P50 latency<br/>with HNSW</div>
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </div>
+      <div class="metric" style="background:var(--navy);border-radius:12px;padding:28px 20px;text-align:center">
+        <div style="font-size:13px;color:var(--teal);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:12px">HNSW (ANN, 1.7M)</div>
+        <div style="font-size:38px;font-weight:700;color:var(--green)">120 ms</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:6px">P50 latency</div>
+        <div style="font-size:28px;font-weight:700;color:var(--white);margin-top:12px">360 ms</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:4px">P95 latency</div>
+        <div style="font-size:20px;font-weight:700;color:var(--amber);margin-top:14px">Recall = 0.521</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:4px">Partially compensated by BM25 RRF</div>
+      </div>
+    </div>
+    <div class="card" style="background:var(--navy);border:none">
+      <div style="color:var(--teal);font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px">Trade-off Rationale</div>
+      <div style="color:var(--white);font-size:14px;line-height:1.6">
+        HNSW recall of 52.1% is acceptable because the BM25 re-ranking stage (Tantivy via RRF) <strong style="color:var(--accent)">partially compensates for missed FAISS candidates</strong>.
+        BGE-M3 encoding on CUDA: P50 = 19.68 ms, P95 = 30.65 ms, P99 = 34.87 ms (60-query benchmark).
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ SLIDE 19: ABLATION -->
+<div class="slide" id="s19">
+  <div class="slide-header">
+    <div class="eyebrow">07 — Evaluation</div>
+    <h2>Ablation Study — Contribution of Each Component</h2>
+  </div>
+  <div class="slide-body" style="gap:22px">
+    <div style="font-size:13px;color:var(--muted)">100,000 users · N=99 negatives · identical evaluation protocol</div>
+    <div class="bar-chart" style="gap:12px;flex:1;justify-content:center">
+      <div class="bar-row">
+        <div class="bar-label" style="color:var(--muted)">Random Baseline</div>
+        <div class="bar-track"><div class="bar-fill" style="background:#94a3b8;width:10.3%"><span>0.100</span></div></div>
+      </div>
+      <div class="bar-row">
+        <div class="bar-label">GRU-SeqDQN (legacy)</div>
+        <div class="bar-track"><div class="bar-fill score-red" style="width:8.5%"><span>0.082</span></div></div>
+      </div>
+      <div class="bar-row">
+        <div class="bar-label">Content Baseline</div>
+        <div class="bar-track"><div class="bar-fill score-amber" style="width:44.7%"><span>0.435</span></div></div>
+      </div>
+      <div class="bar-row">
+        <div class="bar-label">DIF-SASRec (early ckpt)</div>
+        <div class="bar-track"><div class="bar-fill score-teal" style="width:49.7%"><span>0.484</span></div></div>
+      </div>
+      <div class="bar-row">
+        <div class="bar-label">Pipeline A (Cleora+BGE)</div>
+        <div class="bar-track"><div class="bar-fill score-accent" style="width:78.3%"><span>0.763</span></div></div>
+      </div>
+      <div class="bar-row">
+        <div class="bar-label" style="font-weight:700;color:var(--green)">System A∪B (final) ★</div>
+        <div class="bar-track"><div class="bar-fill score-green" style="width:100%"><span>0.9736</span></div></div>
+      </div>
+    </div>
+    <div class="metric-row">
+      <div class="metric"><div class="val">+843%</div><div class="lbl">vs GRU-SeqDQN</div></div>
+      <div class="metric"><div class="val">+124%</div><div class="lbl">vs Content Baseline</div></div>
+      <div class="metric"><div class="val">+27.6%</div><div class="lbl">Pipeline A → A∪B</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ SLIDE 20: MAIN RESULTS -->
+<div class="slide" id="s20">
+  <div class="slide-header">
+    <div class="eyebrow">07 — Evaluation</div>
+    <h2>Main Results — 100K Users, N=99 Negatives</h2>
+  </div>
+  <div class="slide-body" style="gap:22px">
+    <table class="cmp-table">
+      <thead>
+        <tr>
+          <th>Method</th>
+          <th>HR@5</th>
+          <th>HR@10</th>
+          <th>95% CI (HR@10)</th>
+          <th>NDCG@10</th>
+          <th>MRR@10</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td style="color:var(--muted)">Random Baseline</td>
+          <td>0.0500</td><td>0.1000</td><td>[0.0994, 0.1006]</td><td>0.0454</td><td>—</td>
+        </tr>
+        <tr>
+          <td>Content Baseline (BGE-M3 profile)</td>
+          <td>0.3597</td><td>0.4346</td><td>[0.4315, 0.4377]</td><td>0.3022</td><td>0.2609</td>
+        </tr>
+        <tr>
+          <td class="worse">GRU-SeqDQN (legacy)</td>
+          <td class="worse">0.0519</td><td class="worse">0.1031</td><td>—</td><td class="worse">0.0472</td><td class="worse">0.0306</td>
+        </tr>
+        <tr>
+          <td>DIF-SASRec (Pipeline B)</td>
+          <td>0.5877</td><td>0.7745</td><td>[0.7719, 0.7771]</td><td>0.5024</td><td>0.4191</td>
+        </tr>
+        <tr>
+          <td>Pipeline A (Cleora + BGE-M3)</td>
+          <td>0.5750</td><td>0.9047</td><td>[0.9029, 0.9065]</td><td>0.5393</td><td>0.4302</td>
+        </tr>
+        <tr style="background:#f0fdf4">
+          <td><strong>System A∪B (final)</strong></td>
+          <td>—</td>
+          <td class="best" style="font-size:18px">0.9736</td>
+          <td class="best">[0.9726, 0.9746]</td>
+          <td class="best">0.5571</td>
+          <td>—</td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="metric-row">
+      <div class="metric"><div class="val">97.4%</div><div class="lbl">Test users — relevant item in top-10</div></div>
+      <div class="metric"><div class="val">±0.001</div><div class="lbl">Confidence interval width</div></div>
+      <div class="metric" style="background:var(--green)"><div class="val" style="color:var(--white)">0.9736</div><div class="lbl">Final HR@10</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ SLIDE 21: COMPLEMENTARITY -->
+<div class="slide" id="s21">
+  <div class="slide-header">
+    <div class="eyebrow">07 — Evaluation</div>
+    <h2>Pipeline Complementarity Analysis</h2>
+  </div>
+  <div class="slide-body">
+    <div class="split">
+      <div style="display:flex;flex-direction:column;gap:18px;justify-content:center">
+        <div class="donut-area" style="justify-content:center">
+          <svg class="donut-svg" width="180" height="180" viewBox="0 0 36 36">
+            <!-- Both A∩B: 70.6% → stroke-dasharray 70.6 29.4, offset 0 -->
+            <circle cx="18" cy="18" r="15.915" fill="none" stroke="#e2e8f0" stroke-width="5"/>
+            <circle cx="18" cy="18" r="15.915" fill="none" stroke="#10b981" stroke-width="5"
+              stroke-dasharray="70.6 29.4" stroke-dashoffset="25" transform="rotate(-90 18 18)"/>
+            <!-- Pipeline A only: 19.9% -->
+            <circle cx="18" cy="18" r="15.915" fill="none" stroke="#3b82f6" stroke-width="5"
+              stroke-dasharray="19.9 80.1" stroke-dashoffset="-45.6" transform="rotate(-90 18 18)"/>
+            <!-- Pipeline B only: 6.9% -->
+            <circle cx="18" cy="18" r="15.915" fill="none" stroke="#f59e0b" stroke-width="5"
+              stroke-dasharray="6.9 93.1" stroke-dashoffset="-65.5" transform="rotate(-90 18 18)"/>
+            <!-- Neither: 2.6% -->
+            <circle cx="18" cy="18" r="15.915" fill="none" stroke="#ef4444" stroke-width="5"
+              stroke-dasharray="2.6 97.4" stroke-dashoffset="-72.4" transform="rotate(-90 18 18)"/>
+            <text x="18" y="16" text-anchor="middle" fill="var(--navy)" font-size="5" font-weight="700">0.9736</text>
+            <text x="18" y="21" text-anchor="middle" fill="#94a3b8" font-size="3">HR@10</text>
+          </svg>
+          <div class="donut-legend">
+            <div class="donut-row"><div class="donut-dot" style="background:#10b981"></div><div><strong>Both A∩B</strong> — 70,557 users (70.6%)</div></div>
+            <div class="donut-row"><div class="donut-dot" style="background:#3b82f6"></div><div><strong>Pipeline A only</strong> — 19,909 users (19.9%)</div></div>
+            <div class="donut-row"><div class="donut-dot" style="background:#f59e0b"></div><div><strong>Pipeline B only</strong> — 6,893 users (6.9%)</div></div>
+            <div class="donut-row"><div class="donut-dot" style="background:#ef4444"></div><div><strong>Neither</strong> — 2,641 users (2.6%)</div></div>
+          </div>
+        </div>
+        <div class="card" style="background:var(--navy);border:none;padding:14px 20px">
+          <div style="color:var(--teal);font-size:11px;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px">Key Insight</div>
+          <div style="color:var(--white);font-size:13px;line-height:1.6">The two pipelines are <strong style="color:var(--accent)">specifically compensatory</strong>: Pipeline A is the reliable floor for sparse users; Pipeline B adds signal for users who recently shifted reading genre.</div>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:14px;justify-content:center">
+        <div class="card">
+          <h3>User Archetypes Explained</h3>
+          <ul class="bullets" style="gap:12px">
+            <li style="font-size:13px"><strong>Type A — Dense Readers (70.6%):</strong> High-activity users; both Cleora graph clusters and DIF-SASRec sequence agree on candidates.</li>
+            <li style="font-size:13px"><strong>Type B — Graph-Prominent (19.9%):</strong> Gift buyers, cross-genre readers — co-purchase community is informative but sequence is noisy.</li>
+            <li style="font-size:13px"><strong>Type C — Sequential Intent (6.9%):</strong> Recent genre shift detected by DIF-SASRec self-attention; not yet reflected in global graph.</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>HR@10 by History Quartile (A∪B)</h3>
+          <div class="bar-chart">
+            <div class="bar-row">
+              <div class="bar-label">Q1 &lt;120 interactions</div>
+              <div class="bar-track"><div class="bar-fill score-amber" style="width:93.2%"><span>0.921</span></div></div>
+            </div>
+            <div class="bar-row">
+              <div class="bar-label">Q2 120–260</div>
+              <div class="bar-track"><div class="bar-fill score-accent" style="width:98.2%"><span>0.968</span></div></div>
+            </div>
+            <div class="bar-row">
+              <div class="bar-label">Q3 261–480</div>
+              <div class="bar-track"><div class="bar-fill score-green" style="width:99.0%"><span>0.978</span></div></div>
+            </div>
+            <div class="bar-row">
+              <div class="bar-label">Q4 &gt;480 (dense)</div>
+              <div class="bar-track"><div class="bar-fill score-green" style="width:100%"><span>0.988</span></div></div>
+            </div>
+          </div>
+          <div style="font-size:11px;color:var(--muted);margin-top:8px">Q1–Q4 spread for A∪B: only 0.067 (vs 0.148 for Pipeline B alone). Pipeline A acts as reliable floor.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ SLIDE 22: DEMO -->
+<div class="slide" id="s22">
+  <div class="slide-header">
+    <div class="eyebrow">Live Demo</div>
+    <h2>System Demonstration</h2>
+  </div>
+  <div class="slide-body">
+    <div class="split">
+      <div style="display:flex;flex-direction:column;gap:18px;justify-content:center">
+        <ul class="bullets">
+          <li><strong>Multimodal search:</strong> Text query (English &amp; Vietnamese) → NLLB translation → BGE-M3 encode → FAISS HNSW + Tantivy RRF ranked results.</li>
+          <li><strong>Image search:</strong> Upload book cover → CLIP encode → visual HNSW index → ranked visually similar books.</li>
+          <li><strong>Dual recommendations:</strong> "People Also Buy" (Pipeline A — Cleora graph) and "You Might Like" (Pipeline B — DIF-SASRec sequential).</li>
+          <li><strong>Online fine-tuning:</strong> Click or cart interaction triggers per-user backward pass via AgentPool; loss sparkline updates in real-time popover.</li>
+        </ul>
+      </div>
+      <div class="diagram-box" style="min-height:320px;flex:1">
+        <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+        <span style="text-align:center">Insert demo screenshot<br/>or screen recording here</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ SLIDE 23: CONCLUSION -->
+<div class="slide" id="s23">
+  <div class="slide-header">
+    <div class="eyebrow">08 — Conclusion</div>
+    <h2>Summary &amp; Future Work</h2>
+  </div>
+  <div class="slide-body">
+    <div class="split">
+      <div style="display:flex;flex-direction:column;gap:18px;justify-content:center">
+        <div class="card" style="border-left:4px solid var(--green)">
+          <h3>What We Achieved</h3>
+          <ul class="bullets" style="gap:10px">
+            <li style="font-size:13px"><strong>HR@10 = 0.9736</strong> on 100K users — 124% above content baseline, 843% above legacy GRU-SeqDQN.</li>
+            <li style="font-size:13px"><strong>18.6× search latency reduction</strong>: 1,102 ms → 59 ms warm E2E via HNSW + NLLB caching + parallel encode.</li>
+            <li style="font-size:13px"><strong>Multilingual support</strong>: Vietnamese long-query Precision@10 improved from 0.05 (BLaIR) to 0.55 (BGE-M3).</li>
+            <li style="font-size:13px"><strong>Complementary dual-pipeline</strong>: Pipeline A as floor for sparse users; Pipeline B captures recent sequential intent.</li>
+          </ul>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:14px;justify-content:center">
+        <div class="card" style="border-left:4px solid var(--amber)">
+          <h3>Limitations &amp; Future Work</h3>
+          <ul class="bullets" style="gap:10px">
+            <li style="font-size:13px"><strong>Cleora catalogue gap (45% of failures):</strong> 375K-item co-purchase graph misses long-tail items. Expand to full 3M index or add fallback BM25 path.</li>
+            <li style="font-size:13px"><strong>Checkpoint I/O bottleneck:</strong> Per-user checkpoint load/save = 1–2 s for new users. Candidate: async offloading or checkpoint sharding.</li>
+            <li style="font-size:13px"><strong>Cold veto for sparse users:</strong> Relax τ from 0.3 → 0.2 for users with &lt;20 interactions (addresses 24% of failure cases).</li>
+            <li style="font-size:13px"><strong>Session segmentation:</strong> Cross-domain genre shifts (11% of failures) require explicit session boundary detection.</li>
+          </ul>
+        </div>
+        <div class="metric-row">
+          <div class="metric" style="background:var(--green)"><div class="val" style="color:#fff;font-size:28px">0.9736</div><div class="lbl">Final HR@10</div></div>
+          <div class="metric"><div class="val" style="font-size:28px">59 ms</div><div class="lbl">Warm search latency</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ SLIDE 24: THANK YOU -->
+<div class="slide title-slide" id="s24">
+  <div class="title-inner">
+    <div class="title-eyebrow">Capstone Project — Phase 2 Defense</div>
+    <h1>Thank You</h1>
+    <p class="title-sub">
+      Multimedia Data Mining for Next Best Action<br/>
+      Dual-mode multimodal recommendation · BGE-M3 · Cleora · DIF-SASRec · Tantivy
+    </p>
+    <div class="title-meta" style="flex-wrap:wrap;gap:24px">
+      <div class="title-meta-item">
+        <div class="tm-label">Final HR@10</div>
+        <div class="tm-val" style="color:var(--teal);font-size:20px">0.9736</div>
+      </div>
+      <div class="title-meta-item">
+        <div class="tm-label">NDCG@10</div>
+        <div class="tm-val">0.5571</div>
+      </div>
+      <div class="title-meta-item">
+        <div class="tm-label">Search Latency</div>
+        <div class="tm-val">59 ms (warm)</div>
+      </div>
+      <div class="title-meta-item">
+        <div class="tm-label">Vietnamese P@10</div>
+        <div class="tm-val" style="color:var(--teal)">0.55 (was 0.05)</div>
+      </div>
+      <div class="title-meta-item">
+        <div class="tm-label">Dataset</div>
+        <div class="tm-val">Amazon Books · 3.08M items</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div><!-- /#deck -->
+
+<!-- NAVIGATION -->
+<div id="nav">
+  <button id="btnPrev" title="Previous (← or Backspace)">&#8592;</button>
+  <button id="btnNext" title="Next (→ or Space/Enter)">&#8594;</button>
+</div>
+<div id="counter"></div>
+
+<script>
+(function(){
+  const slides = Array.from(document.querySelectorAll('.slide'));
+  const total = slides.length;
+  let cur = 0;
+
+  const progress = document.getElementById('progress');
+  const counter  = document.getElementById('counter');
+
+  function go(n){
+    slides[cur].classList.remove('active');
+    cur = Math.max(0, Math.min(total-1, n));
+    slides[cur].classList.add('active');
+    progress.style.width = ((cur+1)/total*100)+'%';
+    counter.textContent  = (cur+1)+' / '+total;
+  }
+
+  document.getElementById('btnNext').onclick = ()=>go(cur+1);
+  document.getElementById('btnPrev').onclick = ()=>go(cur-1);
+
+  document.addEventListener('keydown', e=>{
+    if(['ArrowRight','Space','Enter'].includes(e.code))  { e.preventDefault(); go(cur+1); }
+    if(['ArrowLeft','Backspace'].includes(e.code))        { e.preventDefault(); go(cur-1); }
+    if(e.code==='Home') go(0);
+    if(e.code==='End')  go(total-1);
+  });
+
+  // Touch/swipe
+  let tx=0;
+  document.addEventListener('touchstart', e=>{ tx=e.touches[0].clientX; }, {passive:true});
+  document.addEventListener('touchend',   e=>{
+    const dx = e.changedTouches[0].clientX - tx;
+    if(Math.abs(dx)>40){ dx<0? go(cur+1): go(cur-1); }
+  }, {passive:true});
+
+  go(0);
+})();
+</script>
+</body>
+</html>
