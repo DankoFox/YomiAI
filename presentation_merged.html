@@ -34,30 +34,45 @@ body { font-family:'Inter',sans-serif; letter-spacing:-0.02em; background:#FAFAF
 .img-ph-title { font-size:.78rem; font-weight:800; color:#1e293b; margin-top:.1rem; }
 .img-ph-note  { font-size:.65rem; color:#6b7280; font-style:italic; line-height:1.45; max-width:14rem; }
 
-/* Scientific comparison table */
+/* Scientific comparison table — sharp, high-density, defense-room readable */
 .sci-tbl { width:100%; border-collapse:collapse; }
-.sci-tbl th { font-size:.57rem; font-weight:900; text-transform:uppercase; letter-spacing:.3em; color:#64748b;
-  padding:.6rem 1.1rem; text-align:left; border-bottom:1px solid rgba(0,0,0,.07); }
-.sci-tbl td { padding:.65rem 1.1rem; border-bottom:1px solid rgba(0,0,0,.045); vertical-align:middle; }
+.sci-tbl th {
+  font-size:.62rem; font-weight:900; text-transform:uppercase; letter-spacing:.2em;
+  padding:.85rem 1.25rem; text-align:left;
+  background:#1e293b; color:#94a3b8;
+  border-right:1px solid rgba(255,255,255,.07); }
+.sci-tbl th:last-child { border-right:none; }
+.sci-tbl td {
+  padding:.85rem 1.25rem; border-bottom:1px solid rgba(0,0,0,.06); vertical-align:middle;
+  border-right:1px solid rgba(0,0,0,.05); }
+.sci-tbl td:last-child { border-right:none; }
 .sci-tbl tr:last-child td { border-bottom:none; }
-.sci-tbl tr:hover td { background:rgba(136,176,75,.035); }
-.td-comp  { font-size:.67rem; font-weight:900; text-transform:uppercase; letter-spacing:.1em; color:#475569; }
-.td-old   { font-size:.75rem; color:#9ca3af; font-style:italic; text-decoration:line-through; text-decoration-color:#fca5a5; }
-.td-new   { font-size:.8rem; color:#059669; font-weight:800; }
-.td-delta { font-size:.73rem; color:#0f172a; font-weight:700; font-style:italic; }
+.sci-tbl tr:hover td { background:rgba(136,176,75,.04); }
+/* Cell classes — also used by flex-div evolution rows */
+.td-comp  { font-size:.76rem; font-weight:900; text-transform:uppercase; letter-spacing:.09em; color:#334155; }
+.td-old   { font-size:.86rem; color:#94a3b8; font-style:italic; text-decoration:line-through; text-decoration-color:#fca5a5; }
+.td-new   { font-size:.92rem; color:#059669; font-weight:800; }
+.td-delta { font-size:.84rem; color:#0f172a; font-weight:700; font-style:italic; }
 
-/* Results table */
-.res-tbl { width:100%; border-collapse:collapse; font-size:.82rem; }
-.res-tbl th { font-size:.57rem; font-weight:900; text-transform:uppercase; letter-spacing:.28em; color:#64748b;
-  padding:.65rem .9rem; text-align:left; border-bottom:1px solid rgba(0,0,0,.07); background:#f8fafc; }
-.res-tbl td { padding:.6rem .9rem; border-bottom:1px solid rgba(0,0,0,.04); font-weight:700; font-style:italic; letter-spacing:-.02em; }
+/* Results table — sharp, academic */
+.res-tbl { width:100%; border-collapse:collapse; font-size:.92rem; }
+.res-tbl th {
+  font-size:.6rem; font-weight:900; text-transform:uppercase; letter-spacing:.2em;
+  padding:.85rem 1rem; text-align:left;
+  background:#1e293b; color:#94a3b8;
+  border-right:1px solid rgba(255,255,255,.07); }
+.res-tbl th:last-child { border-right:none; }
+.res-tbl td {
+  padding:.78rem 1rem; border-bottom:1px solid rgba(0,0,0,.05); font-weight:700; font-style:italic; letter-spacing:-.02em;
+  border-right:1px solid rgba(0,0,0,.04); }
+.res-tbl td:last-child { border-right:none; }
 .res-tbl tr:last-child td { border-bottom:none; }
 .res-best { background:#020617; }
-.res-best td { color:#fff; }
-.res-best .hr-val { font-size:1.5rem; color:#34d399 !important; }
+.res-best td { color:#fff; border-right-color:rgba(255,255,255,.06); }
+.res-best .hr-val { font-size:1.65rem; color:#34d399 !important; letter-spacing:-.04em; }
 .res-best .ndcg-val { color:#88B04B !important; }
 .res-best .ci-val { color:#6ee7b7 !important; }
-.res-muted td { opacity:.38; }
+.res-muted td { opacity:.32; }
 
 @media print {
   @page { size: 1280px 720px; margin: 0; }
@@ -218,50 +233,50 @@ body { font-family:'Inter',sans-serif; letter-spacing:-0.02em; background:#FAFAF
 <!-- ══════════════════════════════════════ s6: EVOLUTION TABLE -->
 <div class="slide" id="s6" style="padding:3.75rem 5rem;">
   <h2 class="text-xs font-black tracking-[.5em] uppercase text-emerald-600 mb-8 italic">Component-by-Component Upgrade</h2>
-  <div class="bg-white rounded-[2.5rem] card-shadow border border-subtle overflow-hidden flex-1 flex flex-col">
+  <div class="bg-white rounded-lg card-shadow border border-subtle overflow-hidden flex-1 flex flex-col">
     <!-- Header row -->
-    <div class="flex flex-shrink-0 bg-slate-50 border-b border-slate-100" style="grid-template-columns:18% 27% 27% 28%;">
-      <div style="width:18%;padding:.6rem 1.25rem;" class="text-[.57rem] font-black uppercase tracking-[.3em] text-slate-500">Component</div>
-      <div style="width:27%;padding:.6rem 1.25rem;" class="text-[.57rem] font-black uppercase tracking-[.3em] text-slate-500">Phase 1 — Legacy</div>
-      <div style="width:27%;padding:.6rem 1.25rem;" class="text-[.57rem] font-black uppercase tracking-[.3em] text-slate-500">Phase 2 — Current</div>
-      <div style="width:28%;padding:.6rem 1.25rem;" class="text-[.57rem] font-black uppercase tracking-[.3em] text-slate-500">Deciding Metric</div>
+    <div class="flex flex-shrink-0" style="background:#1e293b;">
+      <div style="width:18%;padding:.75rem 1.25rem;border-right:1px solid rgba(255,255,255,.07);" class="text-[.57rem] font-black uppercase tracking-[.3em] text-slate-400">Component</div>
+      <div style="width:27%;padding:.75rem 1.25rem;border-right:1px solid rgba(255,255,255,.07);" class="text-[.57rem] font-black uppercase tracking-[.3em] text-slate-400">Phase 1 — Legacy</div>
+      <div style="width:27%;padding:.75rem 1.25rem;border-right:1px solid rgba(255,255,255,.07);" class="text-[.57rem] font-black uppercase tracking-[.3em] text-emerald-400">Phase 2 — Current</div>
+      <div style="width:28%;padding:.75rem 1.25rem;" class="text-[.57rem] font-black uppercase tracking-[.3em] text-slate-400">Deciding Metric</div>
     </div>
     <!-- Data rows — each flex-1 so they fill the card evenly -->
-    <div class="flex flex-1 items-center border-b border-slate-50 hover:bg-emerald-500/[.04] transition-colors">
-      <div style="width:18%;padding:.5rem 1.25rem;" class="td-comp">Text Encoder</div>
-      <div style="width:27%;padding:.5rem 1.25rem;" class="td-old">BLaIR (RoBERTa-Large)</div>
-      <div style="width:27%;padding:.5rem 1.25rem;" class="td-new">BGE-M3 (BAAI, 1024-dim)</div>
-      <div style="width:28%;padding:.5rem 1.25rem;" class="td-delta">VI Precision@10: 0.025 → 0.550 (+22×)</div>
+    <div class="flex flex-1 items-center border-b border-slate-100 hover:bg-emerald-500/[.04] transition-colors">
+      <div style="width:18%;padding:.9rem 1.25rem;border-right:1px solid rgba(0,0,0,.05);" class="td-comp">Text Encoder</div>
+      <div style="width:27%;padding:.9rem 1.25rem;border-right:1px solid rgba(0,0,0,.05);" class="td-old">BLaIR (RoBERTa-Large)</div>
+      <div style="width:27%;padding:.9rem 1.25rem;border-right:1px solid rgba(0,0,0,.05);background:rgba(5,150,105,.04);" class="td-new">BGE-M3 (BAAI, 1024-dim)</div>
+      <div style="width:28%;padding:.9rem 1.25rem;" class="td-delta">VI Precision@10: 0.025 → 0.550 (+22×)</div>
     </div>
-    <div class="flex flex-1 items-center border-b border-slate-50 hover:bg-emerald-500/[.04] transition-colors">
-      <div style="width:18%;padding:.5rem 1.25rem;" class="td-comp">ANN Index</div>
-      <div style="width:27%;padding:.5rem 1.25rem;" class="td-old">Flat exact (3M, 612 ms P50)</div>
-      <div style="width:27%;padding:.5rem 1.25rem;" class="td-new">FAISS HNSW (1.7M, 120 ms P50)</div>
-      <div style="width:28%;padding:.5rem 1.25rem;" class="td-delta">5.12× latency speedup</div>
+    <div class="flex flex-1 items-center border-b border-slate-100 hover:bg-emerald-500/[.04] transition-colors">
+      <div style="width:18%;padding:.9rem 1.25rem;border-right:1px solid rgba(0,0,0,.05);" class="td-comp">ANN Index</div>
+      <div style="width:27%;padding:.9rem 1.25rem;border-right:1px solid rgba(0,0,0,.05);" class="td-old">Flat exact (3M, 612 ms P50)</div>
+      <div style="width:27%;padding:.9rem 1.25rem;border-right:1px solid rgba(0,0,0,.05);background:rgba(5,150,105,.04);" class="td-new">FAISS HNSW (1.7M, 120 ms P50)</div>
+      <div style="width:28%;padding:.9rem 1.25rem;" class="td-delta">5.12× latency speedup</div>
     </div>
-    <div class="flex flex-1 items-center border-b border-slate-50 hover:bg-emerald-500/[.04] transition-colors">
-      <div style="width:18%;padding:.5rem 1.25rem;" class="td-comp">BM25 Search</div>
-      <div style="width:27%;padding:.5rem 1.25rem;" class="td-old">None / Elasticsearch</div>
-      <div style="width:27%;padding:.5rem 1.25rem;" class="td-new">Tantivy (Rust, zero JVM)</div>
-      <div style="width:28%;padding:.5rem 1.25rem;" class="td-delta">Sub-ms BM25 on 3M titles</div>
+    <div class="flex flex-1 items-center border-b border-slate-100 hover:bg-emerald-500/[.04] transition-colors">
+      <div style="width:18%;padding:.9rem 1.25rem;border-right:1px solid rgba(0,0,0,.05);" class="td-comp">BM25 Search</div>
+      <div style="width:27%;padding:.9rem 1.25rem;border-right:1px solid rgba(0,0,0,.05);" class="td-old">None / Elasticsearch</div>
+      <div style="width:27%;padding:.9rem 1.25rem;border-right:1px solid rgba(0,0,0,.05);background:rgba(5,150,105,.04);" class="td-new">Tantivy (Rust, zero JVM)</div>
+      <div style="width:28%;padding:.9rem 1.25rem;" class="td-delta">Sub-ms BM25 on 3M titles</div>
     </div>
-    <div class="flex flex-1 items-center border-b border-slate-50 hover:bg-emerald-500/[.04] transition-colors">
-      <div style="width:18%;padding:.5rem 1.25rem;" class="td-comp">Seq. Recommender</div>
-      <div style="width:27%;padding:.5rem 1.25rem;" class="td-old">GRU-SeqDQN (HR@10 = 0.103)</div>
-      <div style="width:27%;padding:.5rem 1.25rem;" class="td-new">DIF-SASRec (HR@10 = 0.775)</div>
-      <div style="width:28%;padding:.5rem 1.25rem;" class="td-delta">+649% HR@10 · offline pretrain</div>
+    <div class="flex flex-1 items-center border-b border-slate-100 hover:bg-emerald-500/[.04] transition-colors">
+      <div style="width:18%;padding:.9rem 1.25rem;border-right:1px solid rgba(0,0,0,.05);" class="td-comp">Seq. Recommender</div>
+      <div style="width:27%;padding:.9rem 1.25rem;border-right:1px solid rgba(0,0,0,.05);" class="td-old">GRU-SeqDQN (HR@10 = 0.103)</div>
+      <div style="width:27%;padding:.9rem 1.25rem;border-right:1px solid rgba(0,0,0,.05);background:rgba(5,150,105,.04);" class="td-new">DIF-SASRec (HR@10 = 0.775)</div>
+      <div style="width:28%;padding:.9rem 1.25rem;" class="td-delta">+649% HR@10 · offline pretrain</div>
     </div>
-    <div class="flex flex-1 items-center border-b border-slate-50 hover:bg-emerald-500/[.04] transition-colors">
-      <div style="width:18%;padding:.5rem 1.25rem;" class="td-comp">Graph Model</div>
-      <div style="width:27%;padding:.5rem 1.25rem;" class="td-old">None</div>
-      <div style="width:27%;padding:.5rem 1.25rem;" class="td-new">Cleora (375K items, Markov walks)</div>
-      <div style="width:28%;padding:.5rem 1.25rem;" class="td-delta">Minutes to train vs. GPU-days GNN</div>
+    <div class="flex flex-1 items-center border-b border-slate-100 hover:bg-emerald-500/[.04] transition-colors">
+      <div style="width:18%;padding:.9rem 1.25rem;border-right:1px solid rgba(0,0,0,.05);" class="td-comp">Graph Model</div>
+      <div style="width:27%;padding:.9rem 1.25rem;border-right:1px solid rgba(0,0,0,.05);" class="td-old">None</div>
+      <div style="width:27%;padding:.9rem 1.25rem;border-right:1px solid rgba(0,0,0,.05);background:rgba(5,150,105,.04);" class="td-new">Cleora (375K items, Markov walks)</div>
+      <div style="width:28%;padding:.9rem 1.25rem;" class="td-delta">Minutes to train vs. GPU-days GNN</div>
     </div>
     <div class="flex flex-1 items-center hover:bg-emerald-500/[.04] transition-colors">
-      <div style="width:18%;padding:.5rem 1.25rem;" class="td-comp">Multilingual</div>
-      <div style="width:27%;padding:.5rem 1.25rem;" class="td-old">English only</div>
-      <div style="width:27%;padding:.5rem 1.25rem;" class="td-new">NLLB-200 (19 lang, &lt;2 ms warm)</div>
-      <div style="width:28%;padding:.5rem 1.25rem;" class="td-delta">LRU-cached · 18.6× E2E speedup</div>
+      <div style="width:18%;padding:.9rem 1.25rem;border-right:1px solid rgba(0,0,0,.05);" class="td-comp">Multilingual</div>
+      <div style="width:27%;padding:.9rem 1.25rem;border-right:1px solid rgba(0,0,0,.05);" class="td-old">English only</div>
+      <div style="width:27%;padding:.9rem 1.25rem;border-right:1px solid rgba(0,0,0,.05);background:rgba(5,150,105,.04);" class="td-new">NLLB-200 (19 lang, &lt;2 ms warm)</div>
+      <div style="width:28%;padding:.9rem 1.25rem;" class="td-delta">LRU-cached · 18.6× E2E speedup</div>
     </div>
   </div>
 </div>
@@ -422,14 +437,14 @@ body { font-family:'Inter',sans-serif; letter-spacing:-0.02em; background:#FAFAF
           <div class="h-1.5 bg-slate-50 rounded-full overflow-hidden"><div class="h-full bg-slate-950 rounded-full" style="width:45%"></div></div>
         </div>
       </div>
-      <div class="bg-slate-950 rounded-[2rem] overflow-hidden">
+      <div class="bg-slate-950 rounded-lg overflow-hidden">
         <div class="px-6 pt-4 pb-2 text-[10px] font-black uppercase tracking-[.4em] text-emerald-500 italic">Training Configuration</div>
         <table class="w-full" style="font-size:.7rem;">
           <tbody>
             <tr class="border-b border-slate-900"><td class="px-6 py-2 text-slate-500 font-bold uppercase tracking-widest" style="font-size:.58rem;">Architecture</td><td class="px-6 py-2 text-slate-200 font-bold italic">4 blocks · 512-dim · max seq 50</td></tr>
             <tr class="border-b border-slate-900"><td class="px-6 py-2 text-slate-500 font-bold uppercase tracking-widest" style="font-size:.58rem;">Training Users</td><td class="px-6 py-2 text-slate-200 font-bold italic">100K · avg 33.5 clicks/user</td></tr>
             <tr class="border-b border-slate-900"><td class="px-6 py-2 text-slate-500 font-bold uppercase tracking-widest" style="font-size:.58rem;">Batch / Precision</td><td class="px-6 py-2 text-slate-200 font-bold italic">2,048 · AMP fp16 · 30 epochs</td></tr>
-            <tr><td class="px-6 py-2 text-slate-500 font-bold uppercase tracking-widest" style="font-size:.58rem;">Negatives</td><td class="px-6 py-2 text-slate-200 font-bold italic">512 resampled per epoch</td></tr>
+            <tr><td class="px-6 py-4 text-slate-500 font-bold uppercase tracking-widest" style="font-size:.58rem;">Negatives</td><td class="px-6 py-4 text-slate-200 font-bold italic">512 resampled per epoch</td></tr>
           </tbody>
         </table>
       </div>
@@ -542,7 +557,7 @@ body { font-family:'Inter',sans-serif; letter-spacing:-0.02em; background:#FAFAF
   <div class="grid grid-cols-2 gap-14 h-full pb-5 items-center">
     <!-- Left: recommendation accuracy table -->
     <div class="flex flex-col gap-5">
-      <div class="bg-white rounded-[2rem] card-shadow border border-subtle overflow-hidden">
+      <div class="bg-white rounded-lg card-shadow border border-subtle overflow-hidden">
         <div class="px-7 py-4 bg-slate-950 text-[10px] font-black uppercase tracking-[.4em] text-emerald-400 italic">Recommendation Accuracy (20K users, N=99)</div>
         <table class="res-tbl">
           <thead><tr><th>Encoder</th><th>HR@5</th><th>HR@10</th><th>NDCG@10</th></tr></thead>
@@ -716,7 +731,7 @@ body { font-family:'Inter',sans-serif; letter-spacing:-0.02em; background:#FAFAF
 <!-- ══════════════════════════════════════ s22: MAIN RESULTS TABLE -->
 <div class="slide" id="s22" style="padding:3.75rem 5rem;">
   <h2 class="text-xs font-black tracking-[.5em] uppercase text-emerald-600 mb-8 italic">Main Benchmark — 100K Users · N=99 · Leave-One-Out</h2>
-  <div class="bg-white rounded-[2.5rem] card-shadow border border-subtle overflow-hidden">
+  <div class="bg-white rounded-lg card-shadow border border-subtle overflow-hidden">
     <table class="res-tbl">
       <thead>
         <tr>
@@ -777,9 +792,9 @@ body { font-family:'Inter',sans-serif; letter-spacing:-0.02em; background:#FAFAF
   <div class="grid grid-cols-2 gap-14 h-full pb-5 items-center">
     <!-- Left: donut + legend -->
     <div class="flex flex-col gap-5">
-      <div class="flex items-center gap-10 bg-white p-8 rounded-[2.5rem] card-shadow border border-subtle">
+      <div class="flex items-center gap-10 bg-white p-8 rounded-xl card-shadow border border-subtle">
         <!-- SVG donut -->
-        <svg width="160" height="160" viewBox="0 0 36 36" class="flex-shrink-0">
+        <svg width="160" height="160" viewBox="-2 -2 40 40" class="flex-shrink-0">
           <circle cx="18" cy="18" r="15.915" fill="none" stroke="#e2e8f0" stroke-width="5"/>
           <circle cx="18" cy="18" r="15.915" fill="none" stroke="#10b981" stroke-width="5" stroke-dasharray="70.6 29.4" stroke-dashoffset="25" transform="rotate(-90 18 18)"/>
           <circle cx="18" cy="18" r="15.915" fill="none" stroke="#3b82f6" stroke-width="5" stroke-dasharray="19.9 80.1" stroke-dashoffset="-45.6" transform="rotate(-90 18 18)"/>
