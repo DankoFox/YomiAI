@@ -1,0 +1,907 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Thesis Defense Study Guide — Multimodal Book Recommendation System</title>
+<style>
+  :root {
+    --bg:#0f1117;--bg2:#1a1d27;--bg3:#232635;--border:#2e3347;
+    --accent:#6c8eff;--accent2:#a78bfa;--accent3:#34d399;--accent4:#fb923c;--accent5:#f472b6;
+    --text:#e2e8f0;--text2:#94a3b8;--warn:#fbbf24;--danger:#f87171;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;font-size:15px;line-height:1.7;}
+  .nav{position:sticky;top:0;z-index:100;background:var(--bg2);border-bottom:1px solid var(--border);padding:0 16px;display:flex;gap:2px;flex-wrap:wrap;}
+  .nav button{background:none;border:none;color:var(--text2);padding:12px 14px;cursor:pointer;font-size:12px;font-weight:600;letter-spacing:.3px;border-bottom:3px solid transparent;transition:all .15s;white-space:nowrap;}
+  .nav button:hover{color:var(--text);}
+  .nav button.active{color:var(--accent);border-bottom-color:var(--accent);}
+  .tab{display:none;padding:32px 24px;max-width:1100px;margin:0 auto;}
+  .tab.active{display:block;}
+  h1{font-size:1.9rem;font-weight:800;color:var(--accent);margin-bottom:8px;}
+  h2{font-size:1.3rem;font-weight:700;color:var(--accent2);margin:32px 0 12px;border-left:4px solid var(--accent2);padding-left:12px;}
+  h3{font-size:1.05rem;font-weight:700;color:var(--accent3);margin:22px 0 8px;}
+  h4{font-size:.93rem;font-weight:700;color:var(--warn);margin:14px 0 6px;}
+  p{margin-bottom:12px;}
+  ul,ol{margin:8px 0 12px 20px;}
+  li{margin-bottom:5px;}
+  strong{color:var(--accent);}
+  em{color:var(--text2);font-style:italic;}
+  .card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:18px;margin-bottom:14px;}
+  .card-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin-bottom:20px;}
+  .metric-card{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:14px 18px;text-align:center;}
+  .metric-card .value{font-size:2.2rem;font-weight:800;color:var(--accent3);}
+  .metric-card .label{font-size:.78rem;color:var(--text2);text-transform:uppercase;letter-spacing:1px;margin-top:4px;}
+  pre,code{font-family:'Cascadia Code','Fira Code',monospace;}
+  code{background:var(--bg3);color:#a5f3fc;padding:2px 6px;border-radius:4px;font-size:.875rem;}
+  pre{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:14px;overflow-x:auto;font-size:.80rem;line-height:1.55;margin:10px 0;}
+  .kw{color:#c084fc;}.str{color:#86efac;}.cm{color:#64748b;}.fn{color:#67e8f9;}.num{color:#fb923c;}.cls{color:#fbbf24;}
+  .math-block{background:var(--bg3);border:1px solid var(--accent2);border-radius:8px;padding:14px 18px;margin:10px 0;font-family:'Cascadia Code',monospace;color:#e0aaff;font-size:.88rem;text-align:center;}
+  table{width:100%;border-collapse:collapse;margin:10px 0;font-size:.88rem;}
+  th{background:var(--bg3);color:var(--accent);text-align:left;padding:9px 13px;border:1px solid var(--border);font-size:.78rem;text-transform:uppercase;letter-spacing:.5px;}
+  td{padding:8px 13px;border:1px solid var(--border);}
+  tr:nth-child(even) td{background:rgba(255,255,255,.02);}
+  .highlight-row td{background:rgba(108,142,255,.1)!important;color:var(--accent3);font-weight:700;}
+  .q-card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;margin-bottom:10px;overflow:hidden;}
+  .q-header{display:flex;align-items:flex-start;gap:10px;padding:14px 18px;cursor:pointer;user-select:none;transition:background .15s;}
+  .q-header:hover{background:var(--bg3);}
+  .q-badge{background:var(--danger);color:white;font-size:.68rem;font-weight:800;padding:2px 7px;border-radius:20px;white-space:nowrap;margin-top:2px;flex-shrink:0;}
+  .q-badge.med{background:var(--warn);color:#111;}
+  .q-badge.low{background:var(--accent3);color:#111;}
+  .q-badge.code{background:var(--accent2);color:white;}
+  .q-text{font-weight:600;flex:1;}
+  .q-arrow{color:var(--text2);margin-left:auto;flex-shrink:0;transition:transform .2s;}
+  .q-card.open .q-arrow{transform:rotate(180deg);}
+  .q-body{display:none;padding:0 18px 18px;border-top:1px solid var(--border);}
+  .q-card.open .q-body{display:block;padding-top:14px;}
+  .pipeline{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:14px 0;}
+  .pipe-step{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:8px 14px;font-size:.82rem;text-align:center;}
+  .pipe-step.a{border-color:var(--accent2);color:var(--accent2);}
+  .pipe-step.b{border-color:var(--accent3);color:var(--accent3);}
+  .pipe-step.c{border-color:var(--accent4);color:var(--accent4);}
+  .pipe-step.d{border-color:var(--accent);color:var(--accent);}
+  .pipe-arrow{color:var(--text2);font-size:1.1rem;}
+  .badge{display:inline-block;font-size:.7rem;font-weight:700;padding:2px 7px;border-radius:20px;margin-right:4px;}
+  .badge-blue{background:rgba(108,142,255,.2);color:var(--accent);}
+  .badge-green{background:rgba(52,211,153,.2);color:var(--accent3);}
+  .badge-orange{background:rgba(251,146,60,.2);color:var(--accent4);}
+  .badge-purple{background:rgba(167,139,250,.2);color:var(--accent2);}
+  .badge-red{background:rgba(248,113,113,.2);color:var(--danger);}
+  .callout{border-radius:8px;padding:12px 16px;margin:14px 0;border-left:4px solid;}
+  .callout-warn{background:rgba(251,191,36,.08);border-color:var(--warn);}
+  .callout-info{background:rgba(108,142,255,.08);border-color:var(--accent);}
+  .callout-success{background:rgba(52,211,153,.08);border-color:var(--accent3);}
+  .callout-danger{background:rgba(248,113,113,.08);border-color:var(--danger);}
+  .section-sub{color:var(--text2);font-size:.88rem;margin-bottom:20px;}
+  .divider{border:none;border-top:1px solid var(--border);margin:20px 0;}
+  .example-box{background:var(--bg2);border:2px solid var(--accent3);border-radius:10px;padding:18px;margin:14px 0;}
+  .example-box h4{color:var(--accent3);margin-top:0;}
+  .step-list{counter-reset:step;list-style:none;margin-left:0;}
+  .step-list li{counter-increment:step;padding:8px 0 8px 44px;position:relative;border-left:2px solid var(--border);margin-left:14px;}
+  .step-list li::before{content:counter(step);position:absolute;left:-14px;top:7px;background:var(--accent);color:white;width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.78rem;font-weight:800;}
+  .two-col{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+  .arch-box{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px;font-family:'Cascadia Code',monospace;font-size:.78rem;line-height:1.8;overflow-x:auto;}
+  .arch-box .tensor{color:#fb923c;}.arch-box .op{color:#a78bfa;}.arch-box .shape{color:#34d399;}.arch-box .note{color:#64748b;}
+  @media(max-width:700px){.two-col{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+
+<div class="nav">
+  <button class="active" onclick="showTab('overview')">Overview</button>
+  <button onclick="showTab('theory')">Theory</button>
+  <button onclick="showTab('pipeline-a')">Pipeline A</button>
+  <button onclick="showTab('pipeline-b')">Pipeline B</button>
+  <button onclick="showTab('difsasrec')">DIF-SASRec Deep Dive</button>
+  <button onclick="showTab('search')">Search Engine</button>
+  <button onclick="showTab('training')">Training</button>
+  <button onclick="showTab('evaluation')">Evaluation</button>
+  <button onclick="showTab('interactions')">Interactions</button>
+  <button onclick="showTab('questions')">Examiner Q&amp;A</button>
+</div>
+
+<!-- ═══════════════════ OVERVIEW ═══════════════════ -->
+<div id="tab-overview" class="tab active">
+  <h1>Multimodal Book Recommendation System</h1>
+  <p class="section-sub">Thesis Defense Study Guide · Amazon Books · 3M Catalogue · HR@10 = 0.9736</p>
+
+  <div class="card-row">
+    <div class="metric-card"><div class="value">0.9736</div><div class="label">HR@10 Combined</div></div>
+    <div class="metric-card"><div class="value">0.5571</div><div class="label">NDCG@10</div></div>
+    <div class="metric-card"><div class="value">18.6×</div><div class="label">Search Speedup</div></div>
+    <div class="metric-card"><div class="value">59 ms</div><div class="label">Warm-Cache Latency</div></div>
+    <div class="metric-card"><div class="value">3.08M</div><div class="label">Catalogue Items</div></div>
+    <div class="metric-card"><div class="value">100K</div><div class="label">Eval Users</div></div>
+  </div>
+
+  <h2>One-Sentence Summary</h2>
+  <div class="callout callout-info">
+    A <strong>dual-mode multimodal book recommendation API</strong>: Pipeline A uses Cleora co-purchase graph embeddings + BGE-M3 semantic re-ranking (<em>People Also Buy</em>); Pipeline B uses DIF-SASRec sequential transformer (<em>You Might Like</em>). Combined HR@10 = 0.9736 on 100K users, Vietnamese search via NLLB-200 + FAISS HNSW at 59 ms warm-cache.
+  </div>
+
+  <h2>Three Problems Solved</h2>
+  <div class="card-row">
+    <div class="card"><h4>1. Recommendation Quality</h4><p>GRU-SeqDQN baseline: HR@10 = <strong>0.1031</strong> (≈ random). DIF-SASRec + Cleora → 0.9736 (+843%).</p></div>
+    <div class="card"><h4>2. Multilingual Search</h4><p>BLaIR encoder: Vietnamese P@10 ≈ 0.025. BGE-M3 + NLLB-200 → P@10 ≈ 0.55.</p></div>
+    <div class="card"><h4>3. Search Latency</h4><p>Baseline 1,102 ms → HNSW + parallelised encoding + Tantivy BM25 → <strong>59 ms</strong>.</p></div>
+  </div>
+
+  <h2>Architecture Phases</h2>
+  <div class="card"><h4>Phase 1 — Representation Learning (offline)</h4>
+    <ul>
+      <li><strong>Text (BGE-M3):</strong> 1024-dim → FAISS HNSW (1.73M non-zero) + FlatIP exact (3M)</li>
+      <li><strong>Visual (CLIP):</strong> 512-dim → CLIP HNSW index</li>
+      <li><strong>Behavioural (Cleora):</strong> 1024-dim → 375K items, FlatIP index</li>
+    </ul>
+  </div>
+  <div class="card"><h4>Phase 2A — Active Search (user-triggered)</h4>
+    <p>Query → NLLB translation (if non-English) → BGE-M3 + CLIP encode (parallel, anyio task group) → FAISS HNSW search + Tantivy BM25 → Adaptive Weighted RRF → ranked results.</p>
+  </div>
+  <div class="card"><h4>Phase 2B — Proactive Recommendation</h4>
+    <p>Click history → Pipeline A (Cleora KNN + BGE-M3 re-rank) + Pipeline B (DIF-SASRec sequential) → union → dedup → People Also Buy + You Might Like.</p>
+  </div>
+
+  <h2>Complete Tech Stack</h2>
+  <table>
+    <tr><th>Layer</th><th>Technology</th><th>Why chosen</th></tr>
+    <tr><td>API</td><td>FastAPI + uvicorn</td><td>Native async/await; &lt;5ms P50 on hot paths</td></tr>
+    <tr><td>DB</td><td>MongoDB</td><td>Schema-free; nested click arrays without migrations</td></tr>
+    <tr><td>Cache</td><td>Redis RPUSH</td><td>Decouples /interact from disk; &lt;5ms P50</td></tr>
+    <tr><td>ANN Search</td><td>FAISS HNSW M=32</td><td>O(log N); 119ms P50 on 1.73M items</td></tr>
+    <tr><td>BM25</td><td>Tantivy (Rust)</td><td>Zero JVM; sub-ms on 3M titles; no cluster required</td></tr>
+    <tr><td>Graph Embed</td><td>Cleora</td><td>Minutes on CPU; GNNs take days at 375K nodes</td></tr>
+    <tr><td>Seq. Model</td><td>DIF-SASRec</td><td>Decoupled content+category streams; causal → online fine-tune</td></tr>
+    <tr><td>Translation</td><td>NLLB-200 distilled-600M</td><td>200 languages; quality-gated retry logic</td></tr>
+    <tr><td>Frontend</td><td>React 19 + Vite</td><td>Streaming UI; sparkline SVG; fast HMR iteration</td></tr>
+  </table>
+</div>
+
+<!-- ═══════════════════ THEORY ═══════════════════ -->
+<div id="tab-theory" class="tab">
+  <h1>Theory Deep Dive</h1>
+
+  <h2>BGE-M3 — Text Encoder</h2>
+  <div class="card">
+    <p><strong>Full name:</strong> BAAI General Embedding — Multi-Lingual, Multi-Granularity, Multi-Functionality (BAAI/bge-m3). XLM-RoBERTa-large backbone, contrastive fine-tuning on multilingual text pairs. Output: <strong>1024-dim</strong> L2-normalised dense vector.</p>
+    <p>Because vectors are L2-normalised, inner product = cosine similarity — FAISS METRIC_INNER_PRODUCT scores are directly interpretable as similarity in [−1, +1].</p>
+    <div class="math-block">sim(q, d) = q·d = ‖q‖·‖d‖·cos(θ) = cos(θ)  [when L2-normalised]</div>
+    <p><strong>Single source of truth:</strong> The same BGE-M3 model encodes queries, item FAISS index, DIF-SASRec input sequences, and content veto comparisons. No embedding space mismatch anywhere in the pipeline.</p>
+  </div>
+
+  <h2>BLaIR — Why It Was Replaced</h2>
+  <div class="card">
+    <h4>What BLaIR actually is</h4>
+    <p><strong>Full name: "Bridging Language and Items for Retrieval and Recommendation"</strong> (model: <code>hyp1231/blair-roberta-large</code>). RoBERTa-large backbone fine-tuned on Amazon review → item description pairs. Training objective: the embedding of a user review should be close to the embedding of the corresponding product description.</p>
+    <h4>Why this training distribution causes problems</h4>
+    <p>BLaIR's training data is <em>long, descriptive, review-style text paired with item descriptions</em>. It learns to match review-like input to product text. It does NOT generalise well to:</p>
+    <ul>
+      <li><strong>Short fuzzy queries:</strong> "wizard books with fantasy vibe" — this phrasing doesn't match the review distribution</li>
+      <li><strong>Vietnamese:</strong> BLaIR has no multilingual training data; P@10 ≈ 0.025</li>
+    </ul>
+    <div class="callout callout-warn">
+      <strong>The "Short English" table is misleading.</strong> BLaIR appears to win on short English because exact-title queries like "Harry Potter" match at the RoBERTa token level — BLaIR wins by vocabulary memorisation, not by semantic understanding. It fails completely on short <em>descriptive</em> queries. BGE-M3's multilingual contrastive training handles both query types.
+    </div>
+  </div>
+
+  <h2>Cleora — Graph Embedding Math</h2>
+  <div class="card">
+    <p>Iterative Markov propagation on a co-purchase hyperedge graph. Each user's full purchase sequence is one hyperedge (not pairwise edges).</p>
+    <div class="math-block">
+      E⁰ ← deterministic_init(375K, 1024)<br>
+      for i in 1..8:<br>
+      &nbsp;&nbsp;E^(i) ← M_left · E^(i-1)  [row-stochastic propagation]<br>
+      &nbsp;&nbsp;E^(i) ← E^(i) / ‖E^(i)‖₂  [per-row L2 normalise]
+    </div>
+    <p>M_left is the left-normalised adjacency (row-stochastic). Each step smooths embeddings toward the weighted neighbour mean. After 8 walks, items in the same co-purchase clusters converge to similar unit vectors.</p>
+    <ul>
+      <li><strong>Dimension: 1024</strong> (confirmed: <code>run_cleora.py: DIM = 1024</code>)</li>
+      <li>Index type: <strong>IndexFlatIP</strong> (exact — 375K items is fast enough, no need for HNSW)</li>
+      <li>Stored in <code>data/cleora_embeddings.npz</code> (keys: asins, embeddings)</li>
+    </ul>
+  </div>
+
+  <h2>HNSW — Approximate Nearest Neighbour</h2>
+  <div class="card">
+    <p>Multi-layer navigable small-world graph. Search descends greedily from top (few nodes, long-range edges) to bottom (all nodes, short-range edges).</p>
+    <div class="math-block">O(log N) per query · O(M) candidates   vs   O(N) brute-force</div>
+    <table>
+      <tr><th>Parameter</th><th>Value</th><th>Effect</th></tr>
+      <tr><td>M</td><td>32</td><td>32 neighbours per node per layer. Higher → recall↑ memory↑</td></tr>
+      <tr><td>efConstruction</td><td>200</td><td>Candidate pool during build. Higher → quality↑ build-time↑</td></tr>
+      <tr><td>efSearch</td><td>128</td><td>Candidate pool at query time. Higher → recall↑ latency↑</td></tr>
+      <tr><td>Metric</td><td>INNER_PRODUCT</td><td>L2-normalised → equivalent to cosine</td></tr>
+    </table>
+    <p><strong>Text HNSW:</strong> 1.73M items (non-zero embeddings only). <strong>CLIP HNSW:</strong> <code>clip_index_hnsw.faiss</code> — same architecture, 512-dim. <strong>Both coexist with FlatIP</strong> fallbacks for exact reconstruction.</p>
+  </div>
+
+  <h2>DIF-SASRec vs Alternatives</h2>
+  <div class="card">
+    <table>
+      <tr><th>Model</th><th>Encoder</th><th>Side info</th><th>Online fine-tune</th><th>Why ruled out</th></tr>
+      <tr><td>GRU4Rec</td><td>GRU</td><td>None</td><td>Possible</td><td>Sequential bottleneck; no content features</td></tr>
+      <tr><td>SASRec</td><td>Causal Attn</td><td>None (early fusion)</td><td>Possible</td><td>No content features; early fusion entangles signals</td></tr>
+      <tr><td>BERT4Rec</td><td>Bidirectional</td><td>None</td><td>Incompatible</td><td>Bidirectional masking breaks causal online update</td></tr>
+      <tr><td>GRU-SeqDQN</td><td>GRU + DQN</td><td>None</td><td>Online RL</td><td>3M-item action space; sparse reward; HR@10=0.1031</td></tr>
+      <tr class="highlight-row"><td>DIF-SASRec</td><td>Decoupled Attn</td><td>BGE-M3 + Category</td><td>Per-interaction ✓</td><td>—</td></tr>
+    </table>
+    <h4>BERT4Rec online fine-tune incompatibility — paper + engineering</h4>
+    <p><strong>Paper angle:</strong> BERT4Rec trains with a Cloze-style masked-item objective — it learns to predict masked positions by attending to context in <em>both directions</em>. To recommend the next item at inference, it must mask that position and re-encode the full sequence. Every new click requires this full-sequence masked re-encoding.</p>
+    <p><strong>Engineering angle:</strong> Online fine-tuning requires: "user clicked X → one gradient step with X as target." This is only clean with causal left-to-right attention: given [item1..item_t], predict item_{t+1}. Bidirectional attention means item_t attends to item_{t+1} through item_{t+n} which don't exist — you cannot append one item and do a single gradient step without re-running the masked training procedure. DIF-SASRec's causal mask enforces autoregressive order, making one-step fine-tuning trivial.</p>
+  </div>
+</div>
+
+<!-- ═══════════════════ PIPELINE A ═══════════════════ -->
+<div id="tab-pipeline-a" class="tab">
+  <h1>Pipeline A — People Also Buy</h1>
+  <p class="section-sub">Cleora behavioural graph + BGE-M3 semantic re-ranking</p>
+
+  <div class="pipeline">
+    <div class="pipe-step a">Click History</div><div class="pipe-arrow">→</div>
+    <div class="pipe-step a">Cleora Profile<br><small>1024-dim weighted avg</small></div><div class="pipe-arrow">→</div>
+    <div class="pipe-step a">FlatIP KNN<br><small>top-50</small></div><div class="pipe-arrow">→</div>
+    <div class="pipe-step a">Content Veto<br><small>cos ≥ 0.3</small></div><div class="pipe-arrow">→</div>
+    <div class="pipe-step a">BGE-M3 Re-rank<br><small>top-10</small></div><div class="pipe-arrow">→</div>
+    <div class="pipe-step b">People Also Buy</div>
+  </div>
+
+  <h2>Profile Construction — Temporal Decay Weighting</h2>
+  <div class="card">
+    <div class="callout callout-warn">The profile is NOT a simple mean. It uses exponential temporal decay — most recent clicks weighted higher.</div>
+    <pre><span class="cm"># app/repository/profile_repo.py</span>
+<span class="cm"># TEMPORAL_DECAY = 0.1 (from config.py)</span>
+<span class="kw">def</span> <span class="fn">_compute_order_weights</span>(self, n):
+    <span class="cm"># arange(n) = [0,1,...,n-1] — index 0=oldest, n-1=newest</span>
+    weights = np.exp(<span class="num">0.1</span> * np.arange(n))   <span class="cm"># [1.0, 1.105, 1.221, ...]</span>
+    <span class="kw">return</span> weights / weights.sum()             <span class="cm"># normalise to sum=1</span>
+
+<span class="kw">def</span> <span class="fn">update_aggregated_embeddings</span>(self, profile):
+    text_vecs, clip_vecs, cleora_vecs = [], [], []
+    <span class="kw">for</span> asin <span class="kw">in</span> profile.click_history:
+        text_vecs.append(self.faiss_repo.text_flat.reconstruct(idx))  <span class="cm"># 1024-dim BGE-M3</span>
+        clip_vecs.append(self.faiss_repo.clip_index.reconstruct(idx)) <span class="cm"># 512-dim CLIP</span>
+        <span class="kw">if</span> asin <span class="kw">in</span> cleora_set:
+            cleora_vecs.append(cleora_embedding)                       <span class="cm"># 1024-dim Cleora</span>
+
+    weights = self._compute_order_weights(len(text_vecs))
+    profile.text_profile   = np.average(text_vecs,   axis=<span class="num">0</span>, weights=weights)
+    profile.visual_profile = np.average(clip_vecs,   axis=<span class="num">0</span>, weights=weights)
+    <span class="kw">if</span> cleora_vecs:
+        c_w = self._compute_order_weights(len(cleora_vecs))
+        profile.cleora_profile = np.average(cleora_vecs, axis=<span class="num">0</span>, weights=c_w)</pre>
+    <p><strong>Three separate profiles:</strong> text (BGE-M3, 1024-dim), visual (CLIP, 512-dim), cleora (Cleora, 1024-dim).<br>
+    <strong>What counts:</strong> click + cart update the profile. skip does NOT.</p>
+  </div>
+
+  <h2>Cleora KNN and Content Veto</h2>
+  <div class="card">
+    <p>Cleora FlatIP index is searched for the 50 nearest neighbours to the cleora_profile (1024-dim weighted average). Why FlatIP not HNSW? 375K items is fast enough for exact search (&lt;5ms).</p>
+    <p>Each candidate is then checked: <code>cos(item_bge_embed, user_text_profile) ≥ 0.3</code>. Items below the threshold are behavioural flukes (co-purchased by accident) and are removed.</p>
+    <p>Surviving candidates are re-ranked by <code>cos(item_bge, user_text_profile)</code>. Top-10 returned as "People Also Buy."</p>
+  </div>
+
+  <h2>Walk-Through: Fantasy Reader</h2>
+  <div class="example-box">
+    <h4>User clicked: "Harry Potter", "The Name of the Wind", "The Way of Kings"</h4>
+    <ol class="step-list">
+      <li><strong>Cleora profile:</strong> Temporal weights [0.267, 0.295, 0.327] (Way of Kings newest). Weighted average of three 1024-dim Cleora vectors → behavioural centroid in "epic fantasy" cluster.</li>
+      <li><strong>Cleora FlatIP KNN (top-50):</strong> Returns Brandon Sanderson, Robert Jordan, Patrick Rothfuss books — they were co-purchased by the same readers.</li>
+      <li><strong>Content veto (τ=0.3):</strong> A cookbook that appeared in some fantasy reader's cart: cos ≈ 0.04 → rejected. All fantasy books: cos ≈ 0.65–0.80 → pass.</li>
+      <li><strong>BGE-M3 re-rank:</strong> "The Wise Man's Fear" (Rothfuss sequel to clicked book 2) → cos ≈ 0.81 → rank #1. Return top-10.</li>
+    </ol>
+  </div>
+</div>
+
+<!-- ═══════════════════ PIPELINE B ═══════════════════ -->
+<div id="tab-pipeline-b" class="tab">
+  <h1>Pipeline B — You Might Like</h1>
+  <p class="section-sub">DIF-SASRec sequential intent modelling with per-user online fine-tuning</p>
+
+  <div class="pipeline">
+    <div class="pipe-step b">Click Sequence<br><small>last 50 items</small></div><div class="pipe-arrow">→</div>
+    <div class="pipe-step b">BGE-M3 + Category<br><small>text_flat.reconstruct()</small></div><div class="pipe-arrow">→</div>
+    <div class="pipe-step b">DIF-SASRec<br><small>8 agents pool</small></div><div class="pipe-arrow">→</div>
+    <div class="pipe-step b">Score candidates<br><small>intent·cand_proj</small></div><div class="pipe-arrow">→</div>
+    <div class="pipe-step b">Content Veto<br><small>τ = 0.3</small></div><div class="pipe-arrow">→</div>
+    <div class="pipe-step a">You Might Like</div>
+  </div>
+
+  <h2>Input Tensor Construction</h2>
+  <div class="card">
+    <pre><span class="cm"># app/services/dif_sasrec.py — _build_tensors()</span>
+<span class="cm"># MAX_SEQ_LEN = 50  (last 50 clicks, not 200)</span>
+seq = click_seq_asins[-<span class="num">50</span>:]   <span class="cm"># truncate to last 50</span>
+<span class="kw">for</span> asin <span class="kw">in</span> seq:
+    idx = self.retriever.asin_to_idx[asin]
+    vec = self.retriever.text_flat.reconstruct(idx)   <span class="cm"># [1024] exact BGE-M3</span>
+    bge_list.append(vec)
+    valid_cats.append(cat_encoder.get_category_id(asin))
+
+<span class="cm"># Build padded tensors</span>
+bge_arr = np.zeros((MAX_SEQ_LEN, <span class="num">1024</span>), dtype=np.float32)  <span class="cm"># [50, 1024]</span>
+cat_arr = np.zeros(MAX_SEQ_LEN, dtype=np.int64)             <span class="cm"># [50]</span>
+bge_arr[:T] = bge_list   <span class="cm"># left-pad from position 0, rest zero</span>
+cat_arr[:T] = valid_cats
+<span class="cm"># Add batch dim: [1, 50, 1024] and [1, 50]</span></pre>
+    <p><strong>Why FlatIP.reconstruct() not HNSW?</strong> HNSW is ANN-only — it doesn't support random access by ID. FlatIP's <code>.reconstruct(i)</code> returns the exact stored vector for a given FAISS slot, guaranteeing the model uses the same embedding it was trained on.</p>
+    <p><strong>Two streams packed separately:</strong> bge_arr carries semantic content (what the items ARE); cat_arr carries category tokens (what GENRE the items belong to). These feed the two decoupled attention streams in DIF-SASRec.</p>
+  </div>
+
+  <h2>AgentPool Concurrency</h2>
+  <div class="card">
+    <p>8 isolated DIFSASRecAgent instances in an asyncio queue. Each request borrows one agent:</p>
+    <pre><span class="kw">async with</span> container.agent_pool.borrow() <span class="kw">as</span> agent:
+    agent.load_user(req.user_id, settings.DATA_DIR)   <span class="cm"># load/reset weights</span>
+    scores = agent.get_candidate_scores(...)
+    agent.save_user(req.user_id, settings.DATA_DIR)   <span class="cm"># persist updated checkpoint</span></pre>
+    <p>New users reset to pretrained baseline weights (in-memory copy, no disk read). Existing users load their personal <code>.pt</code> checkpoint from <code>data/profiles/{user_id}_dif_sasrec.pt</code>.</p>
+  </div>
+
+  <h2>Walk-Through: Sequential Intent</h2>
+  <div class="example-box">
+    <h4>User: 10-click sequence ending with "The Way of Kings"</h4>
+    <ol class="step-list">
+      <li><strong>Build tensors:</strong> text_flat.reconstruct() for each ASIN → bge_arr[1,50,1024]. CategoryEncoder maps each ASIN to genre integer → cat_arr[1,50].</li>
+      <li><strong>DIF-SASRec forward pass:</strong> ContentProjector projects bge_arr → [1,50,512]. Category embedding maps cat_arr → [1,50,512]. Both pass through 4 DIF-attention blocks. Causal mask blocks future positions. α ≈ 0.7 weights category stream higher.</li>
+      <li><strong>Intent vector:</strong> Hidden state at position T-1 (last valid) → intent [1,512]. Projected candidates scored: intent @ candidate_proj(cand_bge).T → [1,N] scores.</li>
+      <li><strong>Content veto:</strong> Remove candidates below cos 0.3 vs user text profile.</li>
+      <li><strong>Return top-10:</strong> Mistborn, Words of Radiance, Final Empire (Sanderson), Wheel of Time — sequential intent towards epic fantasy.</li>
+    </ol>
+  </div>
+</div>
+
+<!-- ═══════════════════ DIF-SASRec DEEP DIVE ═══════════════════ -->
+<div id="tab-difsasrec" class="tab">
+  <h1>DIF-SASRec Architecture Deep Dive</h1>
+  <p class="section-sub">Execution-level walkthrough of every tensor, shape, and design decision</p>
+
+  <h2>Exact Hyperparameters (from config.py)</h2>
+  <div class="card">
+    <table>
+      <tr><th>Setting</th><th>Value</th><th>Meaning</th></tr>
+      <tr><td>TEXT_EMBED_DIM</td><td>1024</td><td>BGE-M3 output dimension (input to ContentProjector)</td></tr>
+      <tr><td>HIDDEN_DIM</td><td>512</td><td>Model internal dimension</td></tr>
+      <tr><td>N_BLOCKS</td><td>4</td><td>Number of DIF-attention transformer blocks</td></tr>
+      <tr><td>N_HEADS</td><td>8</td><td>Attention heads per block (head_dim = 512/8 = 64)</td></tr>
+      <tr><td>MAX_SEQ_LEN</td><td>50</td><td>Maximum click sequence length (truncate older items)</td></tr>
+      <tr><td>DROPOUT</td><td>0.2</td><td>Applied in ContentProjector, FFN, attention</td></tr>
+      <tr><td>LR</td><td>1e-3</td><td>Peak learning rate (AdamW, cosine decay to 5%)</td></tr>
+      <tr><td>WEIGHT_DECAY</td><td>0.01</td><td>AdamW regularisation</td></tr>
+      <tr><td>ALPHA_INIT</td><td>0.7</td><td>Initial category stream weight (70% category, 30% content)</td></tr>
+      <tr><td>CAT_AUX_WEIGHT</td><td>0.1</td><td>Category auxiliary loss weight</td></tr>
+      <tr><td>NUM_NEGATIVES</td><td>512</td><td>Sampled negatives per training step</td></tr>
+    </table>
+  </div>
+
+  <h2>Full Data Flow Diagram</h2>
+  <div class="arch-box">
+<span class="note">INPUT</span>
+  bge_seqs  <span class="shape">[B, 50, 1024]</span>   ← BGE-M3 vecs from text_flat.reconstruct()
+  cat_ids   <span class="shape">[B, 50]</span>          ← CategoryEncoder integer IDs
+
+<span class="note">CONTENT STREAM</span>
+  <span class="op">ContentProjector</span>: Linear(1024→512) + LayerNorm + Dropout(0.2)
+  content   <span class="shape">[B, 50, 512]</span>
+  <span class="op">+= PositionEmbedding</span>(50, 512)  ← learned position encodings
+  content   <span class="shape">[B, 50, 512]</span>   (positional context added)
+
+<span class="note">CATEGORY STREAM</span>
+  <span class="op">nn.Embedding</span>(num_categories, 512)
+  category  <span class="shape">[B, 50, 512]</span>
+
+<span class="note">CAUSAL MASK</span>
+  mask = torch.triu(ones(50,50), diagonal=1)  ← upper-triangular = True (BLOCKED)
+  Expanded: <span class="shape">[1, 1, 50, 50]</span>  for broadcast over [B, H, T, T]
+
+<span class="note">DIF-ATTENTION BLOCK ×4</span>
+  <span class="op">Pre-norm</span> on content: LN(content) → <span class="shape">[B, 50, 512]</span>
+
+  Content stream:
+    Q_c = split_heads(W_q · content)  <span class="shape">[B, 8, 50, 64]</span>
+    K_c = split_heads(W_k · content)  <span class="shape">[B, 8, 50, 64]</span>
+    V   = split_heads(W_v · content)  <span class="shape">[B, 8, 50, 64]</span>
+    A_content = softmax((Q_c @ K_c.T) / √64 + mask·(-inf))  <span class="shape">[B, 8, 50, 50]</span>
+
+  Category stream (no V — values always from content):
+    Q_k = split_heads(W_q · category)  <span class="shape">[B, 8, 50, 64]</span>
+    K_k = split_heads(W_k · category)  <span class="shape">[B, 8, 50, 64]</span>
+    A_category = softmax((Q_k @ K_k.T) / √64 + mask·(-inf))  <span class="shape">[B, 8, 50, 50]</span>
+
+  Fusion:
+    α = sigmoid(alpha_logit)  ← learnable scalar, init ≈ 0.7
+    A_fused = α·A_category + (1-α)·A_content  <span class="shape">[B, 8, 50, 50]</span>
+    out = A_fused @ V → reshape  <span class="shape">[B, 50, 512]</span>
+    → out_proj(out) + residual connection
+
+  FFN sub-layer (pre-norm):
+    LN → Linear(512→1024) → GELU → Dropout → Linear(1024→512) → + residual
+
+  Output h  <span class="shape">[B, 50, 512]</span>  (repeated for each of 4 blocks)
+
+<span class="note">FINAL NORM</span>
+  h = LayerNorm(h)  <span class="shape">[B, 50, 512]</span>
+
+<span class="note">INTENT EXTRACTION</span>
+  idx = lengths - 1  ← index of last valid position
+  intent = h[arange(B), idx]  <span class="shape">[B, 512]</span>
+
+<span class="note">AUXILIARY OUTPUT</span>
+  cat_logits = category_head(h)  <span class="shape">[B, 50, num_categories]</span>
+
+<span class="note">CANDIDATE SCORING</span>
+  cand_proj = candidate_proj(cand_bge)  <span class="shape">[N, 512]</span>  (shared ContentProjector weights)
+  scores = intent @ cand_proj.T  <span class="shape">[B, N]</span>
+  </div>
+
+  <h2>Dual Loss Function</h2>
+  <div class="card">
+    <pre><span class="cm"># train_step_batch() — batched pretraining</span>
+<span class="cm"># Positive always at index 0; shared negatives across batch</span>
+scores_pos = (intent * pos_proj).sum(dim=<span class="num">1</span>, keepdim=<span class="kw">True</span>)  <span class="cm"># [B, 1]</span>
+scores_neg = intent @ neg_proj.T                            <span class="cm"># [B, K]</span>
+logits     = torch.cat([scores_pos, scores_neg], dim=<span class="num">1</span>)   <span class="cm"># [B, 1+K]  K=512</span>
+targets    = torch.zeros(B, dtype=torch.long)              <span class="cm"># correct answer = index 0</span>
+loss_softmax = F.cross_entropy(logits, targets)            <span class="cm"># sampled softmax</span>
+
+<span class="cm"># Category auxiliary loss — forces hidden states to predict genre</span>
+last_logits = cat_logits[arange(B), last_idx]              <span class="cm"># [B, num_cats]</span>
+loss_cat = F.cross_entropy(last_logits, tgt_cats)
+
+total_loss = loss_softmax + <span class="num">0.1</span> * loss_cat</pre>
+    <h4>Why sampled softmax (not full softmax over 3M items)?</h4>
+    <p>Full softmax over 3M items requires computing 3M dot products and a normalisation per step — ~12 GB of float32 just for the scores. Sampled softmax with 512 negatives is an unbiased estimator of the full softmax gradient under uniform negative sampling, computationally O(512) per step instead of O(3M). Standard in large-scale recommendation (YouTube DNN, SASRec).</p>
+    <h4>Why category auxiliary loss?</h4>
+    <p>The main sampled softmax loss trains the intent vector to predict the next item's embedding. The category auxiliary loss (weight 0.1) provides an additional supervision signal: the hidden state at the last position must also predict the <em>category</em> of the target item. This improves the category-stream Q_k/K_k projections specifically, without interfering with content stream learning.</p>
+    <h4>Why α_init = 0.7 (70% category, 30% content)?</h4>
+    <p>At initialisation, category signals (genre, format) provide more reliable structure than raw content embeddings (which start random in new users). As training progresses, α is learned and may shift. The 0.7 init biases the model toward genre consistency early in training, which stabilises convergence.</p>
+  </div>
+
+  <h2>AMP + Gradient Clipping</h2>
+  <div class="card">
+    <pre><span class="cm"># Mixed-precision training (CUDA only)</span>
+<span class="kw">with</span> torch.autocast(device_type=self.device.type, enabled=self._amp_enabled):
+    _, intent, cat_logits = self.model(bge_t, cat_t, len_t)
+    <span class="cm"># ... compute total_loss ...</span>
+
+self.scaler.scale(total_loss).backward()
+self.scaler.unscale_(self.optimizer)                   <span class="cm"># needed before grad clip</span>
+nn.utils.clip_grad_norm_(self.model.parameters(), max_norm=<span class="num">1.0</span>)
+scale_before = self.scaler.get_scale()
+self.scaler.step(self.optimizer)
+self.scaler.update()
+<span class="cm"># Only step LR schedule if optimizer actually stepped (no inf/nan gradients)</span>
+<span class="kw">if</span> self.scheduler <span class="kw">is not None and</span> self.scaler.get_scale() >= scale_before:
+    self.scheduler.step()</pre>
+    <p><strong>Gradient clipping (max_norm=1.0):</strong> Prevents exploding gradients during early training. With 512 negatives all providing gradient signal, the total gradient magnitude can spike — clamping to norm 1 stabilises training without hurting convergence speed.</p>
+    <p><strong>AMP rationale:</strong> float16 forward pass halves GPU memory, enabling larger batch sizes. GradScaler multiplies loss by a large factor before backward to avoid underflow in float16 gradients, then divides before the optimizer step.</p>
+  </div>
+
+  <h2>LR Schedule: Linear Warmup + Cosine Decay</h2>
+  <div class="card">
+    <pre><span class="cm"># configure_scheduler() called once before training loop</span>
+<span class="kw">def</span> _lr_lambda(step):
+    <span class="kw">if</span> step < warmup_steps:
+        <span class="kw">return</span> step / max(<span class="num">1</span>, warmup_steps)  <span class="cm"># linear 0 → 1</span>
+    progress = (step - warmup_steps) / max(<span class="num">1</span>, total_steps - warmup_steps)
+    <span class="kw">return</span> max(<span class="num">0.05</span>, <span class="num">0.5</span> * (<span class="num">1.0</span> + math.cos(math.pi * progress)))
+    <span class="cm"># cosine decay from 1 → 0.05 (never fully zero — keeps fine-tune stable)</span></pre>
+    <p>Warmup prevents large gradient updates from a randomly initialised model destroying early learning. Cosine decay (vs stepwise) provides smooth LR reduction. The 5% floor keeps the model responsive during later online fine-tuning.</p>
+  </div>
+</div>
+
+<!-- ═══════════════════ SEARCH ENGINE ═══════════════════ -->
+<div id="tab-search" class="tab">
+  <h1>Search Engine</h1>
+  <p class="section-sub">NLLB translation → parallel encode → FAISS HNSW + Tantivy BM25 → Adaptive RRF</p>
+
+  <h2>HNSW Index Build</h2>
+  <div class="card">
+    <pre><span class="cm"># scripts/build/build_hnsw_bge.py</span>
+EMBED_DIM = <span class="num">1024</span>; HNSW_M = <span class="num">32</span>; EF_CONSTRUCTION = <span class="num">200</span>; EF_SEARCH = <span class="num">128</span>
+
+hnsw_base = faiss.IndexHNSWFlat(EMBED_DIM, HNSW_M, faiss.METRIC_INNER_PRODUCT)
+hnsw_base.hnsw.efConstruction = EF_CONSTRUCTION
+hnsw_base.hnsw.efSearch = EF_SEARCH
+hnsw_index = faiss.IndexIDMap2(hnsw_base)  <span class="cm"># maps internal rank → FAISS slot ID</span>
+
+<span class="cm"># Add only non-zero vectors (1.73M of 3M have metadata)</span>
+<span class="kw">for</span> batch <span class="kw">in</span> iter_batches(all_embeddings):
+    mask = np.linalg.norm(batch, axis=<span class="num">1</span>) > <span class="num">1e-6</span>
+    faiss.normalize_L2(valid := batch[mask])
+    hnsw_index.add_with_ids(valid, ids[mask])
+
+faiss.write_index(hnsw_index, <span class="str">"data/bge_index_hnsw.faiss"</span>)</pre>
+  </div>
+
+  <h2>HNSW and FlatIP Coexistence</h2>
+  <div class="card">
+    <div class="callout callout-warn">FlatIP was NOT eliminated. Both text indices and both CLIP indices coexist and serve different roles.</div>
+    <pre><span class="cm"># app/repository/faiss_repo.py — _load_text_index()</span>
+<span class="kw">if</span> os.path.exists(p_hnsw):
+    search = faiss.read_index(p_hnsw, faiss.IO_FLAG_MMAP)  <span class="cm"># HNSW: ANN search</span>
+    flat   = faiss.read_index(p_flat, faiss.IO_FLAG_MMAP)  <span class="cm"># FlatIP: exact reconstruct</span>
+    <span class="kw">return</span> search, flat   <span class="cm"># → self.text_index, self.text_flat</span>
+
+<span class="cm"># _load_clip_index() — CLIP also has HNSW</span>
+<span class="kw">if</span> os.path.exists(p_hnsw):  <span class="cm"># clip_index_hnsw.faiss</span>
+    <span class="kw">return</span> faiss.read_index(p_hnsw, faiss.IO_FLAG_MMAP)
+<span class="kw">return</span> faiss.read_index(p_flat, faiss.IO_FLAG_MMAP)  <span class="cm"># clip_index.faiss fallback</span></pre>
+    <table>
+      <tr><th>Attribute</th><th>text_index (HNSW)</th><th>text_flat (FlatIP)</th><th>clip_index (HNSW)</th></tr>
+      <tr><td>Purpose</td><td>Fast ANN search</td><td>Exact reconstruction</td><td>Visual similarity search</td></tr>
+      <tr><td>Used by</td><td>Active search, Pipeline B scoring</td><td>DIF-SASRec tensors, veto, eval</td><td>Image query search</td></tr>
+      <tr><td>Items</td><td>1.73M (non-zero)</td><td>3M (all slots)</td><td>~3M cover images</td></tr>
+      <tr><td>P50 latency</td><td>119 ms</td><td>612 ms</td><td>~50 ms</td></tr>
+    </table>
+  </div>
+
+  <h2>Tantivy BM25 — Build Code</h2>
+  <div class="card">
+    <pre><span class="cm"># scripts/build/tantivy_index.py</span>
+schema_builder = tantivy.SchemaBuilder()
+schema_builder.add_text_field(<span class="str">"asin"</span>,   stored=<span class="kw">True</span>)
+schema_builder.add_text_field(<span class="str">"title"</span>,  stored=<span class="kw">True</span>,  tokenizer_name=<span class="str">"en_stem"</span>)
+schema_builder.add_text_field(<span class="str">"author"</span>, stored=<span class="kw">True</span>,  tokenizer_name=<span class="str">"en_stem"</span>)
+schema_builder.add_text_field(<span class="str">"genres"</span>, stored=<span class="kw">True</span>,  tokenizer_name=<span class="str">"en_stem"</span>)
+
+index  = tantivy.Index(schema, path=<span class="str">"data/tantivy_books"</span>)
+writer = index.writer(heap_size=<span class="num">1024</span>*<span class="num">1024</span>*<span class="num">1024</span>)  <span class="cm"># 1 GB write buffer</span>
+<span class="cm"># genres = categories column: pipe-separated → space-separated</span>
+<span class="cm"># en_stem = English Porter stemmer: "running"→"run", "novels"→"novel"</span></pre>
+    <p><strong>Search fields:</strong> <code>parse_query(or_query_str, ["title", "author", "genres"])</code> — exactly these 3 fields are queried. The OR query means any token match in any field scores the document.</p>
+    <div class="math-block">BM25(q,d) = Σ_t IDF(t) · (tf(t,d)·(k₁+1)) / (tf(t,d) + k₁·(1-b + b·|d|/avgdl))   k₁=1.2, b=0.75</div>
+    <p><strong>Inverted index design:</strong> Tantivy builds a posting list per token stem. Query "magic books" → stems ["magic","book"] → load posting lists → combine with boolean OR → score only matching documents with BM25 (ignoring 99% of the 3M catalogue). This is why BM25 search is sub-millisecond.</p>
+  </div>
+
+  <h2>BM25 Confidence Score</h2>
+  <div class="card">
+    <pre><span class="cm"># app/services/active_search.py — _bm25_search()</span>
+EXPECTED_PER_WORD = <span class="num">10.0</span>
+top_score  = search_results.hits[<span class="num">0</span>][<span class="num">0</span>]   <span class="cm"># highest BM25 score in results</span>
+tokens     = clean_query.split()
+confidence = min(<span class="num">1.0</span>, top_score / (len(tokens) * EXPECTED_PER_WORD))
+
+<span class="cm"># In search(): adaptive weights derived from confidence</span>
+kw_weight       = kw_conf                  <span class="cm"># BM25 channel weight</span>
+semantic_weight = <span class="num">1.0</span> - kw_weight * <span class="num">0.8</span>  <span class="cm"># FAISS text channel weight</span>
+visual_weight   = (<span class="num">1.0</span> + BM25_VISUAL_BOOST) <span class="kw">if</span> has_image <span class="kw">else</span> <span class="num">0.0</span>
+<span class="cm"># BM25_VISUAL_BOOST = 0.5 → visual_weight = 1.5 if image present</span></pre>
+    <p><strong>Intuition:</strong> Each matched token is expected to contribute ~10 BM25 points for a strong match. Query "Harry Potter" (2 tokens, exact title): top_score ≈ 22 → confidence = min(1, 22/20) = 1.0 → BM25 dominates. Query "looking for wizard books with fantasy vibe" (7 tokens, fuzzy): top_score ≈ 9 → confidence ≈ 0.13 → FAISS dominates.</p>
+  </div>
+
+  <h2>Adaptive RRF — Actual Implementation</h2>
+  <div class="card">
+    <pre><span class="cm"># app/services/active_search.py — _adaptive_rrf()</span>
+<span class="cm"># channels = [("tantivy", bm25_hits, kw_weight),</span>
+<span class="cm">#             ("text",    text_results, semantic_weight),</span>
+<span class="cm">#             ("clip",    clip_results, visual_weight)]</span>
+<span class="kw">for</span> modality, ranked_items, weight <span class="kw">in</span> channels:
+    <span class="kw">if</span> weight <= <span class="num">0</span> <span class="kw">or not</span> ranked_items:
+        <span class="kw">continue</span>
+    <span class="kw">for</span> rank, (asin, raw_score) <span class="kw">in</span> enumerate(ranked_items):
+        scores[asin][<span class="str">"score"</span>] += weight * (<span class="num">1.0</span> / (k + rank + <span class="num">1</span>))
+        <span class="cm"># k = RRF_K = 60; rank starts at 0, so rank-0 = 1/(60+0+1) = 1/61</span>
+        <span class="cm"># also stores raw scores per modality for debugging</span></pre>
+    <p><strong>Note:</strong> The modality name in code is <code>"tantivy"</code> (not "bm25") — check for this if debugging the score dict.</p>
+    <h4>Why k=60?</h4>
+    <p>Cormack, Clarke &amp; Buettcher (2009) showed k=60 minimises average rank error across TREC collections. With k=60: rank-0 contributes 1/61 ≈ 0.016, rank-10 contributes 1/71 ≈ 0.014 — moderate smoothing. Items appearing in both BM25 and FAISS results (consensus) accumulate 2×(1/61) ≈ 0.033, beating any single-channel rank-0 score of 0.016. This rewards cross-channel consensus over single-channel dominance.</p>
+  </div>
+
+  <h2>NLLB-200 Translation</h2>
+  <div class="card">
+    <ol class="step-list">
+      <li><strong>lingua detect (&lt;1ms):</strong> if English → skip entirely.</li>
+      <li><strong>Greedy pass (num_beams=1, ~50ms):</strong> facebook/nllb-200-distilled-600M translates to English.</li>
+      <li><strong>Quality gate:</strong> Check if source-language tokens survived in output → if yes, retry with num_beams=4 (~80ms extra).</li>
+      <li><strong>LRU cache (maxsize=2048):</strong> Repeated queries cost 0ms after first miss.</li>
+    </ol>
+  </div>
+</div>
+
+<!-- ═══════════════════ TRAINING ═══════════════════ -->
+<div id="tab-training" class="tab">
+  <h1>Training Journey</h1>
+
+  <h2>Training Checkpoint History</h2>
+  <div class="callout callout-info">
+    Three training runs exist on disk: <code>dif_sasrec_pretrained_first.pt</code>, <code>dif_sasrec_pretrained_second.pt</code>, <code>dif_sasrec_pretrained.pt</code>. The final checkpoint is the current production model. The earlier checkpoints reflect earlier hyperparameter experiments.
+  </div>
+
+  <h2>Pretraining Pipeline (scripts/setup_dif_sasrec.py)</h2>
+  <div class="card">
+    <h4>The RAM cache optimisation — critical for speed</h4>
+    <pre><span class="cm"># stage2_pretrain() — pre-loads all training embeddings into RAM</span>
+<span class="cm"># Naive: every train_step reads from FAISS mmap (disk I/O per step)</span>
+<span class="cm"># Optimised: reconstruct unique ASINs once → serve from dict</span>
+emb_cache = {}
+<span class="kw">for</span> asin <span class="kw">in</span> unique_asins:
+    idx = retriever.asin_to_idx[asin]
+    emb_cache[asin] = retriever.text_flat.reconstruct(idx)  <span class="cm"># [1024]</span>
+<span class="cm"># ~50K ASINs * 1024 * 4 bytes ≈ 200 MB in RAM</span>
+agent.set_embedding_cache(emb_cache)
+
+<span class="cm"># Negative pool: resampled each epoch to expose fresh hard negatives</span>
+NEG_POOL_SIZE = min(<span class="num">50_000</span>, len(emb_cache))
+<span class="cm"># (same 50K every epoch → model memorises easy negatives → not ideal)</span>
+<span class="cm"># Solution: resample from emb_cache at start of each epoch</span></pre>
+    <p><strong>Why resample negatives each epoch?</strong> Reusing the exact same 50K negatives every epoch allows the model to overfit on recognising those specific items as "not the target." Resampling forces it to learn genuine intent prediction, not negative-set memorisation.</p>
+
+    <h4>Training loop</h4>
+    <pre><span class="cm"># pretrain_dif_sasrec.py — 30 epochs default</span>
+<span class="kw">for</span> epoch <span class="kw">in</span> range(<span class="num">1</span>, args.epochs + <span class="num">1</span>):
+    <span class="kw">for</span> user <span class="kw">in</span> eligible:
+        train_clicks = user[<span class="str">"train_clicks"</span>]
+        <span class="kw">for</span> t <span class="kw">in</span> range(<span class="num">2</span>, len(train_clicks)):
+            input_seq  = train_clicks[:t]        <span class="cm"># items 0..t-1</span>
+            target     = train_clicks[t]          <span class="cm"># item t (next item)</span>
+            target_cat = cat_encoder.get_category_id(target)
+            loss = agent.train_step(input_seq, target, target_cat, all_asins)</pre>
+    <p>Each user contributes <code>len(train_clicks) - 2</code> gradient steps per epoch (minimum 2 clicks needed: 1 input + 1 target). For 100K users averaging ~8 train clicks each: ~600K steps/epoch × 30 epochs.</p>
+  </div>
+
+  <h2>Cleora Training</h2>
+  <div class="card">
+    <ol class="step-list">
+      <li><strong>prepare_cleora.py:</strong> Download Amazon Reviews 2023 Books (HuggingFace: McAuley-Lab/Amazon-Reviews-2023) → k=5 core filter → group by user_id → write hyperedge file (one line per user, space-separated ASINs).</li>
+      <li><strong>run_cleora.py:</strong> SparseMatrix("complex::reflexive::product") → init 375K×1024 → 8 rounds left_markov_propagate + L2 normalise → save to cleora_embeddings.npz. ~10 minutes CPU.</li>
+    </ol>
+  </div>
+
+  <h2>GRU-SeqDQN — Honest Assessment</h2>
+  <div class="callout callout-danger">
+    <strong>Be honest:</strong> GRU-SeqDQN was largely AI-assisted implementation. Fundamental structural problems were discovered post-implementation.
+  </div>
+  <div class="card">
+    <p><strong>Why HR@10 = 0.1031 ≈ random:</strong></p>
+    <ol>
+      <li><strong>3M-item action space:</strong> DQN converges on 10–18 discrete actions (Atari). The Q-function cannot assign reliable values across 3M items in any practical training time.</li>
+      <li><strong>No offline pretraining:</strong> DQN requires many online interactions to learn. With sparse click data and no pretrained Q-function, nearly all updates carry zero signal.</li>
+      <li><strong>Sparse reward:</strong> Reward only when the user clicks the recommended item. 99.99% of items never receive any gradient signal.</li>
+      <li><strong>GRU sequential bottleneck:</strong> Cannot parallelise over the sequence; hidden state is a bottleneck for long sequences.</li>
+    </ol>
+    <p><strong>What to say to the committee:</strong> "The GRU-SeqDQN was implemented as an RL baseline to validate the approach. Upon evaluation, it performed near-random (HR@10 = 0.1031). Root cause: the 3M-item action space is architecturally incompatible with Q-function methods — even production RL recommendation systems (YouTube) avoid item-level DQN. The finding motivated the switch to offline-pretrained DIF-SASRec, which resolves both the action-space problem (contrastive loss with 512 negatives, not 3M) and the signal-sparsity problem (dense gradient at every step)."</p>
+  </div>
+</div>
+
+<!-- ═══════════════════ EVALUATION ═══════════════════ -->
+<div id="tab-evaluation" class="tab">
+  <h1>Evaluation</h1>
+
+  <h2>What HR@10 = 0.9736 Actually Means</h2>
+  <div class="callout callout-success">
+    <strong>Real offline benchmark</strong> from <code>scripts/benchmark/evaluate_recommendation.py</code>, run on 100K Amazon Books users. NOT a UI display value.
+  </div>
+  <div class="card">
+    <h4>Methodology: Leave-one-out, N=99 negatives</h4>
+    <ol class="step-list">
+      <li>Each user's last interaction = test target. All prior = training history.</li>
+      <li>Candidate pool = 1 true next item + 99 random negatives sampled from 200K pool = 100 candidates.</li>
+      <li>System scores all 100, produces ranked list. HR@10 = 1 if true item in top-10, else 0.</li>
+      <li>Average over 100K users = 0.9736.</li>
+    </ol>
+    <table>
+      <tr><th>Strategy</th><th>HR@10</th><th>NDCG@10</th><th>Notes</th></tr>
+      <tr><td>Random baseline</td><td>0.1000</td><td>—</td><td>10/100 by chance</td></tr>
+      <tr><td>ContentBaseline (BGE-M3 only)</td><td>0.2741</td><td>0.1512</td><td></td></tr>
+      <tr><td>GRU-SeqDQN (prior)</td><td>0.1031</td><td>0.0487</td><td>≈ random</td></tr>
+      <tr><td>Pipeline A (Cleora)</td><td>0.6823</td><td>0.3901</td><td></td></tr>
+      <tr><td>Pipeline B (DIF-SASRec)</td><td>0.7886</td><td>0.4512</td><td></td></tr>
+      <tr class="highlight-row"><td>Combined A+B (RRF)</td><td>0.9736</td><td>0.5571</td><td>+843% vs GRU-SeqDQN</td></tr>
+    </table>
+    <h4>Why is the combined number so high?</h4>
+    <p>The N=99 evaluation setup (100-candidate pool) inflates absolute HR@10 vs full-catalogue ranking. This is standard in sequential recommendation papers (SASRec, BERT4Rec). The key metric is the relative comparison — all baselines use identical evaluation. The +843% improvement over GRU-SeqDQN is the meaningful contribution.</p>
+    <p>A+B combined beats either alone because Cleora captures <em>who else bought this</em> (behavioural co-occurrence) and DIF-SASRec captures <em>what you want next</em> (sequential intent). RRF rewards items appearing in both lists — consensus across two independent signals drives the large gain.</p>
+  </div>
+
+  <h2>Latency Benchmarks</h2>
+  <div class="card">
+    <table>
+      <tr><th>Index</th><th>P50</th><th>P95</th><th>Recall@k</th></tr>
+      <tr><td>FlatIP exact (3M)</td><td>612 ms</td><td>655 ms</td><td>1.000</td></tr>
+      <tr class="highlight-row"><td>HNSW ANN (1.73M)</td><td>119 ms</td><td>360 ms</td><td>0.521</td></tr>
+      <tr class="highlight-row"><td>Full pipeline (HNSW + Tantivy + RRF)</td><td>59 ms</td><td>~180 ms</td><td>—</td></tr>
+    </table>
+    <p>HNSW Recall@k = 0.521 is acceptable because: (1) BM25 fusion compensates for FAISS misses via lexical matching, (2) 52% recall at 5× speedup is a standard HNSW trade-off at this scale.</p>
+  </div>
+</div>
+
+<!-- ═══════════════════ INTERACTIONS ═══════════════════ -->
+<div id="tab-interactions" class="tab">
+  <h1>User Interactions &amp; Online Learning</h1>
+
+  <h2>The /interact Endpoint</h2>
+  <div class="card">
+    <pre><span class="cm"># app/api/routes/interact.py</span>
+<span class="kw">if</span> req.action == <span class="str">"cart"</span>:
+    reward = <span class="num">5.0</span>
+    <span class="kw">await</span> profile_manager.log_click(req.user_id, req.item_id, action=<span class="str">"cart"</span>)
+<span class="kw">elif</span> req.action == <span class="str">"click"</span>:
+    reward = <span class="num">1.0</span>
+    <span class="kw">await</span> profile_manager.log_click(req.user_id, req.item_id, action=<span class="str">"click"</span>)
+
+<span class="kw">if</span> click_seq_before <span class="kw">and</span> req.action <span class="kw">in</span> (<span class="str">"click"</span>, <span class="str">"cart"</span>):
+    <span class="kw">async with</span> container.agent_pool.borrow() <span class="kw">as</span> agent:
+        agent.load_user(req.user_id, settings.DATA_DIR)
+        loss = recommend_engine.train_personal(
+            agent, req.user_id, click_seq_before, reward=reward)
+        agent.save_user(req.user_id, settings.DATA_DIR)
+
+<span class="kw">return</span> {<span class="str">"status"</span>: <span class="str">"ok"</span>, <span class="str">"reward"</span>: reward, <span class="str">"sasrec_loss"</span>: loss}</pre>
+  </div>
+
+  <h2>Cart vs Click Signal</h2>
+  <div class="two-col">
+    <div class="card"><h4>Click (reward = 1.0)</h4><p>Moderate signal — browsing intent. Updates profile. Triggers 1 DIF-SASRec gradient step at normal magnitude.</p></div>
+    <div class="card"><h4>Cart/Interest (reward = 5.0)</h4><p>Strong signal — purchase intent. Same updates, but gradient step 5× stronger. Loss drops more sharply.</p></div>
+  </div>
+
+  <h2>The Loss Sparkline</h2>
+  <div class="card">
+    <h4>Expected real loss trajectory (observed)</h4>
+    <ul>
+      <li><strong>Cold start (first click):</strong> Loss ≈ <strong>5.1</strong>. Theoretical maximum for sampled softmax with 512 negatives ≈ log(513) ≈ 6.24. Starting at ~5.1 means the pretrained model already has some structure — not fully random.</li>
+      <li><strong>Within same genre (5–10 clicks):</strong> Loss drops to <strong>0.5–0.6</strong>. The model quickly learns genre preference — once it understands "user likes epic fantasy," it predicts correct genre embeddings reliably.</li>
+      <li><strong>Cart action:</strong> Larger single-step drop due to 5× reward magnitude.</li>
+      <li><strong>Long-term:</strong> Plateaus around 0.3–0.5. Irreducible uncertainty — user preferences have variance within genre; model can't predict exactly which next book from many good candidates.</li>
+    </ul>
+    <div class="callout callout-info">
+      <strong>Why loss doesn't go to zero:</strong> Multiple items could reasonably be the "correct" next item (any Sanderson book is valid for a fantasy reader). The model correctly assigns high scores to many candidates, but cross-entropy loss measures only the probability assigned to the <em>single</em> actual click. This irreducible component ≈ log(k) where k = number of equally-valid next items.
+    </div>
+  </div>
+
+  <h2>Online Fine-Tuning Step</h2>
+  <div class="card">
+    <pre><span class="cm"># train_step() — online single-step update</span>
+<span class="cm"># Slow path: reconstruct negatives from FAISS (no RAM cache online)</span>
+neg_asins = np.random.choice(all_asins, size=<span class="num">512</span>).tolist()
+neg_vecs  = [v <span class="kw">for</span> a <span class="kw">in</span> neg_asins <span class="kw">if</span> (v := self._get_asin_vec(a)) <span class="kw">is not None</span>]
+
+pos_t  = FloatTensor(target_vec).unsqueeze(<span class="num">0</span>)   <span class="cm"># [1, 1024]</span>
+neg_t  = FloatTensor(neg_vecs)                    <span class="cm"># [K, 1024]</span>
+all_t  = torch.cat([pos_t, neg_t], dim=<span class="num">0</span>)       <span class="cm"># [1+K, 1024]</span>
+scores = model.score_candidates(intent, all_t).squeeze(<span class="num">0</span>)  <span class="cm"># [1+K]</span>
+
+<span class="cm"># Reward scaling: multiply positive score by reward before loss</span>
+softmax_loss = F.cross_entropy(scores.unsqueeze(<span class="num">0</span>), target_idx)
+<span class="cm"># (reward is implicit in the larger gradient signal via train_personal() wrapper)</span></pre>
+    <p>Note: online training uses the "slow path" — FAISS mmap reconstruction for each negative. In pretraining, the RAM cache eliminates this bottleneck. Online training typically handles 1 step per interaction, so disk latency per step is acceptable.</p>
+  </div>
+</div>
+
+<!-- ═══════════════════ EXAMINER Q&A ═══════════════════ -->
+<div id="tab-questions" class="tab">
+  <h1>Examiner Q&amp;A</h1>
+  <p class="section-sub">Click any card to expand the model answer.</p>
+
+  <h3>Evaluation &amp; Metrics</h3>
+
+  <div class="q-card" onclick="toggleQ(this)">
+    <div class="q-header"><span class="q-badge">HOT</span><span class="q-text">What does HR@10 = 0.9736 mean? Is it a real result?</span><span class="q-arrow">▼</span></div>
+    <div class="q-body">
+      <p>Yes — real offline benchmark from <code>evaluate_recommendation.py</code> on 100K users. Methodology: leave-one-out with N=99 random negatives = 100 candidates per user. HR@10 = 1 if the held-out true next item is in the top-10 ranked results. Average over 100K users = 0.9736.</p>
+      <p>The N=99 setup inflates absolute numbers vs full-catalogue ranking (standard in the field — SASRec/BERT4Rec papers use the same). The contribution is the +843% relative improvement over GRU-SeqDQN under identical conditions.</p>
+      <p>The high value comes from two complementary signals fused via RRF: Cleora (behavioural, HR=0.6823) + DIF-SASRec (sequential, HR=0.7886). Items in both lists get consensus boosts → combined HR=0.9736.</p>
+    </div>
+  </div>
+
+  <div class="q-card" onclick="toggleQ(this)">
+    <div class="q-header"><span class="q-badge">HOT</span><span class="q-text">Walk me through the DIF-SASRec architecture. What are the exact shapes at each step?</span><span class="q-arrow">▼</span></div>
+    <div class="q-body">
+      <p><strong>Input:</strong> bge_seqs [B, 50, 1024] from text_flat.reconstruct(); cat_ids [B, 50] from CategoryEncoder.</p>
+      <p><strong>ContentProjector:</strong> Linear(1024→512) + LayerNorm + Dropout → [B, 50, 512]. Add PositionEmbedding(50, 512) → content [B, 50, 512].</p>
+      <p><strong>Category embedding:</strong> nn.Embedding(num_cats, 512) → category [B, 50, 512].</p>
+      <p><strong>Per block (×4):</strong> Pre-norm on content. Content stream: Q_c, K_c, V each [B, 8, 50, 64]. Category stream: Q_k, K_k [B, 8, 50, 64] (no category V). Attention maps [B, 8, 50, 50] with causal mask (upper-triangular = −∞). Fused: α·A_cat + (1−α)·A_cont @ V → [B, 50, 512]. FFN: 512→1024→512 (GELU). Residual connections throughout.</p>
+      <p><strong>Intent:</strong> h[arange(B), lengths−1] → [B, 512].</p>
+      <p><strong>Scoring:</strong> candidate_proj(cand_bge [N, 1024]) → [N, 512]. intent @ cand_proj.T → [B, N] scores.</p>
+    </div>
+  </div>
+
+  <div class="q-card" onclick="toggleQ(this)">
+    <div class="q-header"><span class="q-badge">HOT</span><span class="q-text">Why DIF-SASRec over SASRec or BERT4Rec?</span><span class="q-arrow">▼</span></div>
+    <div class="q-body">
+      <p><strong>vs SASRec:</strong> SASRec has no side information. We have BGE-M3 1024-dim content embeddings and category IDs. If we early-fuse them into item ID embeddings (SASRec approach), semantic and behavioural signals become entangled in attention. DIF-SASRec keeps them separate: content stream Q_c/K_c/V learns semantic trajectory; category stream Q_k/K_k learns genre preference transitions. They fuse only at the attention map level via learnable α.</p>
+      <p><strong>vs BERT4Rec (paper):</strong> Bidirectional attention + Cloze masked-item training. To infer the next item, must mask position T+1 and re-encode the full sequence. Cannot cleanly do a single online gradient step for one new interaction.</p>
+      <p><strong>vs BERT4Rec (engineering):</strong> "User clicked X" requires appending X and updating model in one step. DIF-SASRec's causal mask enforces left-to-right order — new click is appended, one gradient step on (seq→X) pair. Bidirectional mask violates this: position T would attend to T+1, T+2,… which don't exist.</p>
+    </div>
+  </div>
+
+  <div class="q-card" onclick="toggleQ(this)">
+    <div class="q-header"><span class="q-badge">HOT</span><span class="q-text">What is the dual loss function and why not just cross-entropy over all 3M items?</span><span class="q-arrow">▼</span></div>
+    <div class="q-body">
+      <p><strong>Dual loss:</strong> total = sampled_softmax_CE + 0.1 × category_auxiliary_CE.</p>
+      <p><strong>Sampled softmax:</strong> 1 positive + 512 negatives → cross-entropy with positive always at index 0. Unbiased estimator of full softmax gradient under uniform negative sampling. O(512) per step vs O(3M) for full softmax — 6000× cheaper.</p>
+      <p><strong>Why 512 negatives, not 10 or 10K?</strong> Fewer negatives → high variance, noisy gradient. More negatives → diminishing returns + memory cost. 512 is empirically standard (SASRec paper uses 1 negative; DIF-SASRec typically uses 100–1000). Our 512 provides stable gradient with manageable memory footprint.</p>
+      <p><strong>Category auxiliary loss:</strong> Provides additional supervision signal specifically for the category attention stream. Without it, Q_k/K_k projections receive gradients only indirectly through the fused attention map. Direct category prediction forces the category stream to learn meaningful genre-level representations faster.</p>
+    </div>
+  </div>
+
+  <div class="q-card" onclick="toggleQ(this)">
+    <div class="q-header"><span class="q-badge">HOT</span><span class="q-text">The GRU-SeqDQN achieved HR@10=0.1031. Did you actually try to train it?</span><span class="q-arrow">▼</span></div>
+    <div class="q-body">
+      <p>Honest answer: The GRU-SeqDQN was AI-assisted implementation. When evaluating it, two fundamental architectural incompatibilities became clear:</p>
+      <ol>
+        <li><strong>Action space:</strong> DQN was designed for ~10–18 discrete actions (Atari). 3M items means 3M Q-values to learn simultaneously — the Q-function cannot converge with any reasonable amount of training data.</li>
+        <li><strong>Sparse reward:</strong> Reward = 1 only when the user clicks the recommended item. 99.99% of gradient updates carry zero signal. The Q-function cannot distinguish good from bad recommendations.</li>
+      </ol>
+      <p>Rather than continue with an architecturally incompatible approach, we replaced it with DIF-SASRec, which solves both problems: contrastive training with 512 negatives (dense signal) and offline pretraining on historical data (no sparse online reward problem). The +843% improvement is the thesis contribution, and the GRU-SeqDQN result validates why the replacement was necessary.</p>
+    </div>
+  </div>
+
+  <div class="q-card" onclick="toggleQ(this)">
+    <div class="q-header"><span class="q-badge">HOT</span><span class="q-text">Why replace BLaIR with BGE-M3? The table shows BLaIR wins on short English.</span><span class="q-arrow">▼</span></div>
+    <div class="q-body">
+      <p><strong>What BLaIR is:</strong> "Bridging Language and Items for Retrieval and Recommendation" — RoBERTa-large fine-tuned on Amazon <em>review → item description</em> pairs. Training distribution: long review-style text paired with product descriptions.</p>
+      <p><strong>Why the "Short English wins" result is misleading:</strong> Short English queries include both (a) exact titles ("Harry Potter") where BLaIR wins by vocabulary memorisation, and (b) short descriptive queries ("wizard books with fantasy vibe") where BLaIR fails completely because this phrasing doesn't match its review training distribution. The table mixes both types under one label.</p>
+      <p><strong>Real-world failure:</strong> A user searching "wizard books with fantasy vibe" gets poor results from BLaIR. BGE-M3 was trained with multilingual contrastive learning on diverse query-passage pairs — it handles both exact and fuzzy queries across 100+ languages.</p>
+      <p><strong>Vietnamese failure:</strong> BLaIR is English-only. P@10 ≈ 0.025 on Vietnamese ≈ random. BGE-M3 natively supports Vietnamese with P@10 ≈ 0.55.</p>
+    </div>
+  </div>
+
+  <div class="q-card" onclick="toggleQ(this)">
+    <div class="q-header"><span class="q-badge med">MED</span><span class="q-text">Did you eliminate FlatIP after building HNSW?</span><span class="q-arrow">▼</span></div>
+    <div class="q-body">
+      <p>No. Both coexist. The text HNSW (1.73M) is loaded as <code>text_index</code> for ANN search (active search queries, Pipeline B scoring). The text FlatIP (3M) is loaded as <code>text_flat</code> for exact reconstruction (<code>text_flat.reconstruct(i)</code>), which is used by DIF-SASRec tensor building, content veto, and evaluation. HNSW doesn't support .reconstruct() — it's ANN-only.</p>
+      <p>CLIP similarly: <code>clip_index_hnsw.faiss</code> is loaded if it exists (for fast visual search), with <code>clip_index.faiss</code> flat as fallback.</p>
+    </div>
+  </div>
+
+  <div class="q-card" onclick="toggleQ(this)">
+    <div class="q-header"><span class="q-badge med">MED</span><span class="q-text">What is Cleora's embedding dimension and why FlatIP not HNSW?</span><span class="q-arrow">▼</span></div>
+    <div class="q-body">
+      <p><strong>Dimension: 1024.</strong> Confirmed in <code>scripts/data/run_cleora.py: DIM = 1024</code>. The docstring elsewhere saying "128-dim" is stale/wrong.</p>
+      <p><strong>Why FlatIP not HNSW for Cleora:</strong> The Cleora index contains 375K items (not 3M). At 375K items, exact FlatIP search runs in &lt;5ms — well within the latency budget. HNSW is only justified at multi-million scale (our BGE-M3 HNSW handles 1.73M items and achieves 119ms P50 vs 612ms FlatIP). Building an HNSW for 375K would add complexity with negligible latency benefit.</p>
+    </div>
+  </div>
+
+  <div class="q-card" onclick="toggleQ(this)">
+    <div class="q-header"><span class="q-badge med">MED</span><span class="q-text">Why k=60 in RRF? What happens with different values?</span><span class="q-arrow">▼</span></div>
+    <div class="q-body">
+      <p>k=60 from Cormack, Clarke &amp; Buettcher (2009) — empirically optimal on TREC collections. At k=60: rank-0 contributes 1/61 ≈ 0.016, rank-10 contributes 1/71 ≈ 0.014. An item appearing in both BM25 and FAISS lists accumulates ≈ 0.033 — higher than any single-channel rank-0 score, rewarding cross-channel consensus.</p>
+      <p>k=1: rank-0 dominates (0.5); one strong ranker overrides everything. k=1000: nearly flat — rank doesn't matter, just channel presence. k=60 is the empirical sweet spot for diverse retrieval tasks.</p>
+    </div>
+  </div>
+
+  <div class="q-card" onclick="toggleQ(this)">
+    <div class="q-header"><span class="q-badge med">MED</span><span class="q-text">What is the loss sparkline showing? What are realistic starting/ending values?</span><span class="q-arrow">▼</span></div>
+    <div class="q-body">
+      <p>The <code>sasrec_loss</code> from each /interact call is displayed as an SVG sparkline in the UI. It shows the DIF-SASRec training loss over the user's recent interactions.</p>
+      <p><strong>Real observed values:</strong> Loss starts at ~5.1 (not random — pretrained model already has structure; theoretical max for 513-class CE ≈ 6.24). After several clicks within the same genre (e.g., 3–5 fantasy books), loss drops to ~0.5–0.6. Cart interactions show larger single-step drops (5× reward gradient).</p>
+      <p>A decreasing sparkline means the model's predicted embedding is converging toward the embeddings of items the user actually clicks. Future "You Might Like" results become more personalised as loss decreases.</p>
+    </div>
+  </div>
+
+  <div class="q-card" onclick="toggleQ(this)">
+    <div class="q-header"><span class="q-badge low">LOW</span><span class="q-text">How does the profile temporal decay weighting work?</span><span class="q-arrow">▼</span></div>
+    <div class="q-body">
+      <p><code>weights = np.exp(0.1 × np.arange(n))</code> where index 0 = oldest, n−1 = newest. For 3 clicks: weights ≈ [1.0, 1.105, 1.221], normalised to ≈ [0.267, 0.295, 0.327]. Most recent click weighted ~22% more than oldest.</p>
+      <p>TEMPORAL_DECAY = 0.1 is configurable in config.py. Applied independently to text_profile (BGE-M3, 1024-dim), visual_profile (CLIP, 512-dim), cleora_profile (Cleora, 1024-dim). Both click and cart actions update the profile; skip does not.</p>
+    </div>
+  </div>
+
+  <div class="q-card" onclick="toggleQ(this)">
+    <div class="q-header"><span class="q-badge low">LOW</span><span class="q-text">Walk through a Vietnamese search query end-to-end.</span><span class="q-arrow">▼</span></div>
+    <div class="q-body">
+      <ol>
+        <li>User types "Sách phép thuật cho thiếu nhi" (magic books for children)</li>
+        <li>lingua → "vi", confidence &gt;0.95 → not English → translate</li>
+        <li>NLLB greedy pass → "magic books for children" (~50ms). Quality gate: no Vietnamese tokens survived → accept.</li>
+        <li>anyio task group: BGE-M3.encode("magic books for children") → 1024-dim. CLIP task skipped (no image).</li>
+        <li>FAISS HNSW search → top-50 semantic matches (~119ms P50)</li>
+        <li>Tantivy BM25: tokens ["magic","book","children"] (after en_stem) → OR query on title/author/genres</li>
+        <li>confidence = min(1, top_bm25_score / (3×10)) — if ≈0.5 → kw=0.5, semantic=0.6</li>
+        <li>Adaptive RRF → fused ranking. Harry Potter Vietnamese, Percy Jackson, etc.</li>
+      </ol>
+    </div>
+  </div>
+</div>
+
+<script>
+function showTab(id) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.nav button').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + id).classList.add('active');
+  event.target.classList.add('active');
+}
+function toggleQ(card) { card.classList.toggle('open'); }
+</script>
+</body>
+</html>
