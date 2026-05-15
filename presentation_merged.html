@@ -122,55 +122,82 @@ body { font-family:'Inter',sans-serif; letter-spacing:-0.02em; background:#FAFAF
 
 <!-- ══════════════════════════════════════ s1: TITLE -->
 <div class="slide active flex flex-col justify-center items-center text-center bg-slate-950 text-white" id="s1">
-  <div class="mb-8 text-emerald-400 font-bold tracking-[.4em] uppercase text-xs animate-pulse">Capstone Project Defense · 2026</div>
-  <h1 class="text-[5.5rem] font-black tracking-tighter leading-[.85] mb-10">
+  <div class="mb-6">
+    <img src="https://raw.githubusercontent.com/ascum/YomiAI/main/Captsone/images/Logo_BK.png" alt="HCMUT Logo" class="h-16 object-contain brightness-0 invert opacity-60">
+  </div>
+  <div class="mb-6 text-emerald-400 font-bold tracking-[.4em] uppercase text-sm animate-pulse">Capstone Project Defense · 2026</div>
+  <h1 class="text-[6.5rem] font-black tracking-tighter leading-[.8] mb-10">
     MULTIMEDIA DATA MINING<br/>FOR <span class="text-emerald-500 italic uppercase">Next Best Action</span>
   </h1>
-  <p class="text-xl text-slate-400 max-w-3xl mb-20 font-light leading-relaxed">
+  <p class="text-2xl text-slate-400 max-w-4xl mb-12 font-light leading-relaxed">
     Dual-mode multimodal recommendation · Behavioral graph · Sequential transformer ·
     <span class="text-white font-semibold">Multilingual search at production scale.</span>
   </p>
-  <div class="grid grid-cols-4 gap-20 border-t border-slate-900 pt-16">
-    <div><div class="text-5xl font-black text-emerald-500">0.9736</div><div class="text-[10px] uppercase tracking-[.4em] text-slate-500 mt-3">Final HR@10</div></div>
-    <div><div class="text-5xl font-black text-white">59 ms</div><div class="text-[10px] uppercase tracking-[.4em] text-slate-500 mt-3">Warm Search Latency</div></div>
-    <div><div class="text-5xl font-black text-white">3.08M</div><div class="text-[10px] uppercase tracking-[.4em] text-slate-500 mt-3">Items in Catalogue</div></div>
-    <div><div class="text-5xl font-black text-emerald-400">0.55</div><div class="text-[10px] uppercase tracking-[.4em] text-slate-500 mt-3">VI P@10 (was 0.025)</div></div>
+
+  <div class="flex gap-32 mb-16 text-xs font-black uppercase tracking-[.3em] text-slate-500 italic">
+    <div class="text-left border-l-[3px] border-emerald-500 pl-8">
+      <div class="text-emerald-500 mb-2">Supervisor</div>
+      <div class="text-white text-2xl font-black tracking-tighter">PhD. LE THANH VAN</div>
+    </div>
+    <div class="text-left border-l-[3px] border-slate-800 pl-8">
+      <div class="text-slate-400 mb-2">Authors</div>
+      <div class="text-white text-2xl font-black tracking-tighter">DANG MINH KHANG · PHAM TRAN DANG KHOA · LE HA NGUYEN KHANH</div>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-4 gap-24 border-t border-slate-900 pt-16">
+    <div><div class="text-6xl font-black text-emerald-500">0.9736</div><div class="text-xs uppercase tracking-[.4em] text-slate-500 mt-4">Final HR@10</div></div>
+    <div><div class="text-6xl font-black text-white">59 ms</div><div class="text-xs uppercase tracking-[.4em] text-slate-500 mt-4">Warm Search Latency</div></div>
+    <div><div class="text-6xl font-black text-white">3.08M</div><div class="text-xs uppercase tracking-[.4em] text-slate-500 mt-4">Items in Catalogue</div></div>
+    <div><div class="text-6xl font-black text-emerald-400">0.55</div><div class="text-xs uppercase tracking-[.4em] text-slate-500 mt-4">VI P@10 (was 0.025)</div></div>
   </div>
 </div>
 
 <!-- ══════════════════════════════════════ s2: AGENDA -->
-<div class="slide" id="s2">
-  <h2 class="text-xs font-black tracking-[.5em] uppercase text-emerald-600 mb-14 italic">Presentation Roadmap</h2>
-  <div class="grid grid-cols-2 gap-x-24 gap-y-9 max-w-5xl">
-    <div class="flex items-start gap-7 group">
-      <span class="text-slate-100 font-black text-4xl leading-none group-hover:text-emerald-500 transition-colors">01</span>
-      <div><h3 class="font-black text-xl mb-1 italic uppercase tracking-tighter">The Challenge</h3>
-           <p class="text-xs text-slate-400 uppercase tracking-widest font-medium">Scale, language exclusion &amp; latency.</p></div>
+<div class="slide flex flex-col justify-center items-center text-center" id="s2">
+  <h2 class="text-2xl font-black tracking-[.5em] uppercase text-emerald-600 mb-24 italic">Presentation Roadmap</h2>
+  <div class="grid grid-cols-2 gap-x-32 gap-y-16 max-w-7xl">
+    <div class="flex items-center gap-10 group text-left">
+      <span class="text-slate-100 font-black text-6xl leading-none group-hover:text-emerald-500 transition-colors">01</span>
+      <div>
+        <h3 class="font-black text-3xl mb-2 italic uppercase tracking-tighter">The Challenge</h3>
+        <p class="text-sm text-slate-400 uppercase tracking-widest font-bold">Scale, language exclusion &amp; latency.</p>
+      </div>
     </div>
-    <div class="flex items-start gap-7 group">
-      <span class="text-slate-100 font-black text-4xl leading-none group-hover:text-emerald-500 transition-colors">02</span>
-      <div><h3 class="font-black text-xl mb-1 italic uppercase tracking-tighter">Phase 1 → Phase 2 Evolution</h3>
-           <p class="text-xs text-slate-400 uppercase tracking-widest font-medium">Component-by-component upgrade rationale.</p></div>
+    <div class="flex items-center gap-10 group text-left">
+      <span class="text-slate-100 font-black text-6xl leading-none group-hover:text-emerald-500 transition-colors">02</span>
+      <div>
+        <h3 class="font-black text-3xl mb-2 italic uppercase tracking-tighter">Phase 1 → Phase 2 Evolution</h3>
+        <p class="text-sm text-slate-400 uppercase tracking-widest font-bold">Component-by-component upgrade rationale.</p>
+      </div>
     </div>
-    <div class="flex items-start gap-7 group">
-      <span class="text-slate-100 font-black text-4xl leading-none group-hover:text-emerald-500 transition-colors">03</span>
-      <div><h3 class="font-black text-xl mb-1 italic uppercase tracking-tighter">System Architecture</h3>
-           <p class="text-xs text-slate-400 uppercase tracking-widest font-medium">3-tier stack &amp; unified latent space.</p></div>
+    <div class="flex items-center gap-10 group text-left">
+      <span class="text-slate-100 font-black text-6xl leading-none group-hover:text-emerald-500 transition-colors">03</span>
+      <div>
+        <h3 class="font-black text-3xl mb-2 italic uppercase tracking-tighter">System Architecture</h3>
+        <p class="text-sm text-slate-400 uppercase tracking-widest font-bold">3-tier stack &amp; unified latent space.</p>
+      </div>
     </div>
-    <div class="flex items-start gap-7 group">
-      <span class="text-slate-100 font-black text-4xl leading-none group-hover:text-emerald-500 transition-colors">04</span>
-      <div><h3 class="font-black text-xl mb-1 italic uppercase tracking-tighter">ML Pipelines</h3>
-           <p class="text-xs text-slate-400 uppercase tracking-widest font-medium">Cleora floor · DIF-SASRec intent · veto tuning.</p></div>
+    <div class="flex items-center gap-10 group text-left">
+      <span class="text-slate-100 font-black text-6xl leading-none group-hover:text-emerald-500 transition-colors">04</span>
+      <div>
+        <h3 class="font-black text-3xl mb-2 italic uppercase tracking-tighter">ML Pipelines</h3>
+        <p class="text-sm text-slate-400 uppercase tracking-widest font-bold">Cleora floor · DIF-SASRec intent · veto tuning.</p>
+      </div>
     </div>
-    <div class="flex items-start gap-7 group">
-      <span class="text-slate-100 font-black text-4xl leading-none group-hover:text-emerald-500 transition-colors">05</span>
-      <div><h3 class="font-black text-xl mb-1 italic uppercase tracking-tighter">Active Search</h3>
-           <p class="text-xs text-slate-400 uppercase tracking-widest font-medium">Encoder choice · NLLB · Tantivy RRF · 59 ms.</p></div>
+    <div class="flex items-center gap-10 group text-left">
+      <span class="text-slate-100 font-black text-6xl leading-none group-hover:text-emerald-500 transition-colors">05</span>
+      <div>
+        <h3 class="font-black text-3xl mb-2 italic uppercase tracking-tighter">Active Search</h3>
+        <p class="text-sm text-slate-400 uppercase tracking-widest font-bold">Encoder choice · NLLB · Tantivy RRF · 59 ms.</p>
+      </div>
     </div>
-    <div class="flex items-start gap-7 border-emerald-500 border-l-4 pl-7 -ml-8 group">
-      <span class="text-emerald-500 font-black text-4xl leading-none">06</span>
-      <div><h3 class="font-black text-xl mb-1 italic uppercase tracking-tighter">Validation</h3>
-           <p class="text-xs text-slate-400 uppercase tracking-widest font-medium">Ablation · main results · robustness · limitations.</p></div>
+    <div class="flex items-center gap-10 border-emerald-500 border-l-[6px] pl-10 -ml-12 group text-left">
+      <span class="text-emerald-500 font-black text-6xl leading-none">06</span>
+      <div>
+        <h3 class="font-black text-3xl mb-2 italic uppercase tracking-tighter">Validation</h3>
+        <p class="text-sm text-slate-400 uppercase tracking-widest font-bold">Ablation · main results · robustness · limitations.</p>
+      </div>
     </div>
   </div>
 </div>
@@ -302,41 +329,78 @@ body { font-family:'Inter',sans-serif; letter-spacing:-0.02em; background:#FAFAF
 </div>
 
 <!-- ══════════════════════════════════════ s9: 3-TIER ARCHITECTURE -->
-<div class="slide" id="s9" style="padding:3.75rem 5rem;">
+<div class="slide" id="s9" style="padding:3rem 5rem;">
   <h2 class="text-xs font-black tracking-[.5em] uppercase text-emerald-600 mb-8 italic">Three-Tier Stack Overview</h2>
-  <div class="grid grid-cols-2 gap-14 h-full pb-4 items-center">
-    <div class="flex flex-col gap-4">
-      <div class="grid grid-cols-4 items-center bg-white rounded-[2rem] p-7 card-shadow border border-subtle hover:border-emerald-200 transition-all flex-1">
-        <div class="col-span-1 flex flex-col gap-2"><i data-lucide="monitor" class="text-slate-300 w-8 h-8"></i><span class="font-black text-[9px] uppercase tracking-[.4em] text-slate-400 italic leading-tight">Presentation</span></div>
-        <div class="col-span-3 flex justify-between px-5">
-          <div class="text-center"><div class="font-black text-sm italic">React 19</div><p class="text-[9px] uppercase text-slate-400 tracking-widest font-bold mt-0.5">SPA Framework</p></div>
-          <div class="text-center"><div class="font-black text-sm italic">Tailwind</div><p class="text-[9px] uppercase text-slate-400 tracking-widest font-bold mt-0.5">Minimalist UI</p></div>
-          <div class="text-center"><div class="font-black text-sm italic">Vite</div><p class="text-[9px] uppercase text-slate-400 tracking-widest font-bold mt-0.5">Fast HMR</p></div>
+  <div class="flex gap-10 h-full pb-12 overflow-hidden items-center">
+    <!-- Tech Stack Column -->
+    <div class="w-[45%] flex flex-col gap-3 flex-shrink-0">
+      <!-- Tier 1 -->
+      <div class="bg-white rounded-2xl p-4 card-shadow border border-subtle border-l-4 border-l-slate-200">
+        <div class="flex items-center gap-3 mb-3">
+          <i data-lucide="monitor" class="text-slate-300 w-5 h-5"></i>
+          <span class="font-black text-[9px] uppercase tracking-[.4em] text-slate-400 italic">Presentation</span>
+        </div>
+        <div class="grid grid-cols-3 gap-2">
+          <div class="text-center bg-slate-50 p-2 rounded-lg">
+            <div class="font-black text-[11px] italic">React 19</div>
+            <p class="text-[7px] uppercase text-slate-400 font-bold">SPA</p>
+          </div>
+          <div class="text-center bg-slate-50 p-2 rounded-lg">
+            <div class="font-black text-[11px] italic">Tailwind</div>
+            <p class="text-[7px] uppercase text-slate-400 font-bold">CSS</p>
+          </div>
+          <div class="text-center bg-slate-50 p-2 rounded-lg">
+            <div class="font-black text-[11px] italic">Vite</div>
+            <p class="text-[7px] uppercase text-slate-400 font-bold">Build</p>
+          </div>
         </div>
       </div>
-      <div class="grid grid-cols-4 items-center bg-slate-950 text-white rounded-[2rem] p-7 shadow-2xl relative flex-1">
-        <div class="absolute top-0 right-10 bg-emerald-500 h-1 w-24 rounded-b-full shadow-[0_0_20px_#88B04B]"></div>
-        <div class="col-span-1 flex flex-col gap-2"><i data-lucide="cpu" class="text-emerald-500 w-8 h-8"></i><span class="font-black text-[9px] uppercase tracking-[.4em] text-slate-500 italic leading-tight">Inference</span></div>
-        <div class="col-span-3 flex justify-between px-5">
-          <div class="text-center"><div class="font-black text-sm italic text-emerald-400">FastAPI</div><p class="text-[9px] uppercase text-slate-500 tracking-widest font-bold mt-0.5">Async API</p></div>
-          <div class="text-center"><div class="font-black text-sm italic text-emerald-400">PyTorch</div><p class="text-[9px] uppercase text-slate-500 tracking-widest font-bold mt-0.5">Transformer</p></div>
-          <div class="text-center"><div class="font-black text-sm italic text-emerald-400">BGE-M3</div><p class="text-[9px] uppercase text-slate-500 tracking-widest font-bold mt-0.5">Vectorize</p></div>
+      <!-- Tier 2 -->
+      <div class="bg-slate-950 text-white rounded-2xl p-4 shadow-2xl relative border-l-4 border-l-emerald-500">
+        <div class="flex items-center gap-3 mb-3">
+          <i data-lucide="cpu" class="text-emerald-500 w-5 h-5"></i>
+          <span class="font-black text-[9px] uppercase tracking-[.4em] text-slate-500 italic">Inference</span>
+        </div>
+        <div class="grid grid-cols-3 gap-2">
+          <div class="text-center bg-white/5 p-2 rounded-lg border border-white/5">
+            <div class="font-black text-[11px] italic text-emerald-400">FastAPI</div>
+            <p class="text-[7px] uppercase text-slate-500 font-bold">Async</p>
+          </div>
+          <div class="text-center bg-white/5 p-2 rounded-lg border border-white/5">
+            <div class="font-black text-[11px] italic text-emerald-400">PyTorch</div>
+            <p class="text-[7px] uppercase text-slate-500 font-bold">ML</p>
+          </div>
+          <div class="text-center bg-white/5 p-2 rounded-lg border border-white/5">
+            <div class="font-black text-[11px] italic text-emerald-400">BGE/NLLB</div>
+            <p class="text-[7px] uppercase text-slate-500 font-bold">NLP</p>
+          </div>
         </div>
       </div>
-      <div class="grid grid-cols-4 items-center bg-white rounded-[2rem] p-7 card-shadow border border-subtle flex-1">
-        <div class="col-span-1 flex flex-col gap-2"><i data-lucide="database" class="text-slate-300 w-8 h-8"></i><span class="font-black text-[9px] uppercase tracking-[.4em] text-slate-400 italic leading-tight">Persistence</span></div>
-        <div class="col-span-3 flex justify-between px-5">
-          <div class="text-center"><div class="font-black text-sm italic">MongoDB</div><p class="text-[9px] uppercase text-slate-400 tracking-widest font-bold mt-0.5">User Profiles</p></div>
-          <div class="text-center"><div class="font-black text-sm italic">Redis</div><p class="text-[9px] uppercase text-slate-400 tracking-widest font-bold mt-0.5">Interact Queue</p></div>
-          <div class="text-center"><div class="font-black text-sm italic">FAISS</div><p class="text-[9px] uppercase text-slate-400 tracking-widest font-bold mt-0.5">HNSW Index</p></div>
+      <!-- Tier 3 -->
+      <div class="bg-white rounded-2xl p-4 card-shadow border border-subtle border-l-4 border-l-slate-200">
+        <div class="flex items-center gap-3 mb-3">
+          <i data-lucide="database" class="text-slate-300 w-5 h-5"></i>
+          <span class="font-black text-[9px] uppercase tracking-[.4em] text-slate-400 italic">Persistence</span>
+        </div>
+        <div class="grid grid-cols-3 gap-2">
+          <div class="text-center bg-slate-50 p-2 rounded-lg">
+            <div class="font-black text-[11px] italic">MongoDB</div>
+            <p class="text-[7px] uppercase text-slate-400 font-bold">Logs</p>
+          </div>
+          <div class="text-center bg-slate-50 p-2 rounded-lg">
+            <div class="font-black text-[11px] italic">Redis</div>
+            <p class="text-[7px] uppercase text-slate-400 font-bold">Queue</p>
+          </div>
+          <div class="text-center bg-slate-50 p-2 rounded-lg">
+            <div class="font-black text-[11px] italic">FAISS</div>
+            <p class="text-[7px] uppercase text-slate-400 font-bold">Indices</p>
+          </div>
         </div>
       </div>
     </div>
-    <div class="img-ph">
-      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#86efac" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
-      <div class="img-ph-tag">Figure 3.1 — System Architecture</div>
-      <div class="img-ph-title">3-Tier Deployment Diagram</div>
-      <div class="img-ph-note">Box-and-arrow showing React → FastAPI → MongoDB / Redis / FAISS data-flow with async request paths and component interactions labelled</div>
+    <!-- Image Column -->
+    <div class="w-[55%] h-[75%] flex items-center justify-center p-6 bg-white rounded-[2rem] card-shadow border border-subtle overflow-hidden">
+      <img src="https://raw.githubusercontent.com/ascum/YomiAI/main/Captsone/images/chapter3/Fig3.1.png" alt="System Architecture" class="max-w-full max-h-full object-contain">
     </div>
   </div>
 </div>
@@ -369,11 +433,8 @@ body { font-family:'Inter',sans-serif; letter-spacing:-0.02em; background:#FAFAF
         </div>
       </div>
     </div>
-    <div class="img-ph h-full">
-      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#86efac" stroke-width="1.5"><circle cx="5" cy="5" r="1.5"/><circle cx="14" cy="8" r="1.5"/><circle cx="9" cy="14" r="1.5"/><circle cx="18" cy="16" r="1.5"/><circle cx="4" cy="17" r="1.5"/><path d="M5 5l9 3M14 8l4 8M9 14l9 2"/></svg>
-      <div class="img-ph-tag">Figure 3.2 — Latent Space</div>
-      <div class="img-ph-title">t-SNE / UMAP Projection</div>
-      <div class="img-ph-note">2-D projection of 50K item embeddings (BGE-M3, 1024-dim) coloured by genre cluster — shows semantic distance encodes reading intent</div>
+    <div class="flex-1 flex items-center justify-center p-8 bg-white/50 rounded-[2rem] border-2 border-emerald-100 overflow-hidden">
+      <img src="https://raw.githubusercontent.com/ascum/YomiAI/main/Captsone/images/chapter2/compareItemPresLearning.png" alt="Representation Learning" class="max-h-full object-contain">
     </div>
   </div>
 </div>
@@ -412,11 +473,8 @@ body { font-family:'Inter',sans-serif; letter-spacing:-0.02em; background:#FAFAF
         <div class="text-7xl font-black text-emerald-500 italic leading-none tracking-tighter">0.90</div>
         <div class="mt-7 text-xs font-black text-slate-400 uppercase tracking-[.4em] italic">Hit Rate @ 10</div>
       </div>
-      <div class="img-ph flex-1">
-        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#86efac" stroke-width="1.5"><path d="M3 3h18v3H3zM5 6v3h4V6M9 9h6V6M15 6v3h4V6M7 9v3h10V9M9 12v5H7v-5M15 12v5h-6v-5"/></svg>
-        <div class="img-ph-tag">Figure 4.1 — Pipeline A</div>
-        <div class="img-ph-title">Recommendation Funnel Diagram</div>
-        <div class="img-ph-note">Cleora KNN → top-50 candidates → BGE-M3 profile cosine re-rank → top-10 output, with item count at each stage</div>
+      <div class="flex-1 flex items-center justify-center p-8 bg-white/50 rounded-[2rem] border-2 border-emerald-100 overflow-hidden">
+        <img src="https://raw.githubusercontent.com/ascum/YomiAI/main/Captsone/images/chapter4/fig_rec_funnel.png" alt="Recommendation Funnel" class="max-h-full object-contain">
       </div>
     </div>
   </div>
@@ -533,12 +591,9 @@ body { font-family:'Inter',sans-serif; letter-spacing:-0.02em; background:#FAFAF
       <div class="mt-auto h-2 w-full bg-slate-900 rounded-full overflow-hidden"><div class="matcha-bg h-full" style="width:97.4%"></div></div>
     </div>
   </div>
-  <!-- Training loss curves image placeholder -->
-  <div class="img-ph" style="height:10rem;">
-    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#86efac" stroke-width="1.5"><polyline points="3 17 8 12 13 15 21 7"/><line x1="3" y1="20" x2="21" y2="20"/></svg>
-    <div class="img-ph-tag">Figure 4.2 — Training Curves</div>
-    <div class="img-ph-title">DIF-SASRec Loss over 30 Epochs (Runs 1–3)</div>
-    <div class="img-ph-note">BPR-Max loss per epoch for all three training runs — showing Run 2 collapse and Run 3 convergence</div>
+  <!-- Training stability visual -->
+  <div class="flex-1 flex items-center justify-center p-8 bg-white/50 rounded-[2rem] border-2 border-emerald-100 overflow-hidden" style="height:12rem;">
+    <img src="https://raw.githubusercontent.com/ascum/YomiAI/main/Captsone/images/chapter5/fig_multiseed_stability.png" alt="Training Stability" class="max-h-full object-contain">
   </div>
 </div>
 
@@ -641,11 +696,8 @@ body { font-family:'Inter',sans-serif; letter-spacing:-0.02em; background:#FAFAF
         <div class="hero-stat text-slate-950 italic leading-none tracking-tighter">59ms</div>
         <p class="text-sm text-slate-400 mt-8 font-light italic uppercase tracking-[.3em] leading-relaxed"><span class="text-emerald-600 font-black">18.6×</span> faster than 1,102 ms baseline.</p>
       </div>
-      <div class="img-ph flex-1">
-        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#86efac" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/><path d="M11 7v4l3 3"/></svg>
-        <div class="img-ph-tag">Figure 5.1 — Search Pipeline</div>
-        <div class="img-ph-title">Search Pipeline Flow Diagram</div>
-        <div class="img-ph-note">NLLB → BGE-M3 → FAISS HNSW + Tantivy BM25 → RRF → ranked results, with latency annotations per stage</div>
+      <div class="flex-1 flex items-center justify-center p-8 bg-white/50 rounded-[2rem] border-2 border-emerald-100 overflow-hidden">
+        <img src="https://raw.githubusercontent.com/ascum/YomiAI/main/Captsone/images/chapter4/fig_translation_pipeline.png" alt="Search Pipeline" class="max-h-full object-contain">
       </div>
     </div>
   </div>
