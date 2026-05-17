@@ -3,13 +3,13 @@
 **Reference:** `Markdowns/planning/phase2_slide_upgrade_analysis.md`
 
 ## 🔴 Critical Path: Structural Replacements
-- [ ] **NEW-SCOPE:** Replace Slide 5 (English-only) with Multilingual/Online Scope.
+- [x] **NEW-SCOPE:** Replace Slide 5 (English-only) with Multilingual/Online Scope.
 - [ ] **NEW-ARCH:** Replace Slide 29 (BLaIR Architecture) with Dual-Mode Architecture.
 - [ ] **NEW-RESULTS:** Replace Slide 26 (BLaIR+CLIP results) with HR@10=0.9736 results.
 - [ ] **NEW-ACH:** Replace Slide 37 (Future Plans) with Phase 2 Achievements.
 
 ## 🟠 Pillar Transitions: New Technical Slides
-- [ ] **NEW-01 (BGE-M3):** Explain why BLaIR was abandoned for Vietnamese support.
+- [ ] **NEW-01 (BGE-M3):** Explain why BLaIR was abandoned for robust fuzzy-query handling and pipeline unification.
 - [ ] **NEW-02 (Cleora):** Introduce the behavioral graph Markov equations.
 - [ ] **NEW-03 (DIF-SASRec):** Explain decoupled attention and intent modeling.
 - [ ] **NEW-04 (Union HR):** Mathematically justify the 0.9736 hit rate.
@@ -19,7 +19,7 @@
 - [ ] **Slide 14/15:** Reframe CLIP as visual-search only, not primary text encoder.
 - [ ] **Slide 19:** Update scale from 38K items to 3M catalogue items.
 - [ ] **Slide 20:** Update token limit logic (BLaIR 512 -> BGE 64 optimized).
-- [ ] **Slide 30:** Update Orchestrator logic with NLLB translation stage.
+- [ ] **Slide 30:** Update Orchestrator logic with unified BGE-M3 embedding routing.
 - [ ] **Slide 31:** Update Latency from ~1100ms to 59ms warm-cache.
 
 ## ✅ Final Validation (Gate Check)

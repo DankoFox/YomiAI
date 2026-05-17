@@ -25,6 +25,12 @@ const MOCK_RECS = {
     { id:"r003", title:"The Black Prism",  author:"Brent Weeks",      score:0.86, cover_color:"#1a1000", layer:"DIF-SASRec" },
     { id:"r004", title:"Kushiel's Dart",   author:"Jacqueline Carey", score:0.84, cover_color:"#100808", layer:"DIF-SASRec" },
   ],
+  combined: [
+    { id:"r001", title:"The Lies of Locke Lamora", author:"Scott Lynch",      score:0.91, cover_color:"#0a1a2d", layer:"Cleora + BGE-M3" },
+    { id:"r002", title:"Assassin's Apprentice",    author:"Robin Hobb",       score:0.88, cover_color:"#0d2010", layer:"Cleora + CLIP" },
+    { id:"r003", title:"The Black Prism",          author:"Brent Weeks",      score:0.86, cover_color:"#1a1000", layer:"DIF-SASRec" },
+    { id:"r004", title:"Kushiel's Dart",           author:"Jacqueline Carey", score:0.84, cover_color:"#100808", layer:"DIF-SASRec" },
+  ],
 };
 
 // ─── App ──────────────────────────────────────────────────────────────────────
@@ -46,6 +52,18 @@ export default function App() {
 
   const handleLogin = (uid) => {
     localStorage.setItem("yomiai_user_id", uid);
+    // Reset all user-scoped state so previous user's data never bleeds through
+    setInteractions([]);
+    setRlStep(0);
+    setRlMetrics({ loss_history: [], step: 0, arch: "" });
+    setProfileStats({ recent_items: [] });
+    setTrainPulse(null);
+    setRecommendations({ people_also_buy: [], you_might_like: [], combined: [] });
+    setNewRecAsins(new Set());
+    setSearchResults([]);
+    setCart([]);
+    prevRecMode.current  = null;
+    prevYmlAsins.current = new Set();
     setUserId(uid);
     setIsGuest(uid.startsWith("guest_"));
   };
@@ -64,8 +82,7 @@ export default function App() {
   const [searchError, setSearchError]   = useState(null);
 
   // ── Recommendations ─────────────────────────────────────────────────────────
-  const [recommendations, setRecommendations] = useState({ people_also_buy: [], you_might_like: [] });
-  const [recTab, setRecTab]             = useState("pab");
+  const [recommendations, setRecommendations] = useState({ people_also_buy: [], you_might_like: [], combined: [] });
   const [isLoadingRecs, setLoadingRecs] = useState(false);
   const [recsError, setRecsError]       = useState(null);
   const [lastRecsRefresh, setLastRecsRefresh] = useState(null);
@@ -115,7 +132,7 @@ export default function App() {
         setRecommendations(MOCK_RECS);
       } else {
         const d = await api.recommend(userId, sessionId);
-        const recs = d || { people_also_buy: [], you_might_like: [] };
+        const recs = d || { people_also_buy: [], you_might_like: [], combined: [] };
         setRecommendations(recs);
 
         // A: track mode, fire toast on cold-start → personalised transition
@@ -126,8 +143,8 @@ export default function App() {
         prevRecMode.current = mode;
         setRecMode(mode);
 
-        // F: diff you_might_like — mark ASINs that weren't in the previous refresh
-        const nextIds = (recs.you_might_like || []).map(b => b.id);
+        // F: diff combined — mark ASINs that weren't in the previous refresh
+        const nextIds = (recs.combined || []).map(b => b.id);
         const prev    = prevYmlAsins.current;
         if (prev.size > 0) {
           const fresh = new Set(nextIds.filter(id => !prev.has(id)));
@@ -617,28 +634,21 @@ export default function App() {
                 </button>
               </div>
 
-              {/* Sub-tabs */}
-              <div className={`flex rounded-xl p-1 border ${DIVIDER} bg-[#babbbd]/10 dark:bg-[#fffef7]/5`}>
-                {[
-                  { id: "pab", label: "People Also Buy", desc: "Cleora + BGE-M3/CLIP" },
-                  { id: "yml", label: "You Might Like",  desc: "DIF-SASRec Personalized" },
-                ].map(t => (
-                  <button
-                    key={t.id}
-                    onClick={() => setRecTab(t.id)}
-                    className={`flex-1 flex flex-col items-center py-1.5 rounded-lg transition-all duration-200 border
-                      ${recTab === t.id
-                        ? "bg-[#fffef7] dark:bg-[#2e3257]/80 border-[#babbbd] dark:border-[#627d9a]/60 shadow-sm"
-                        : "bg-transparent border-transparent hover:bg-[#dfc5a4]/10"}`}
-                  >
-                    <span className={`text-[11px] ${recTab === t.id ? "font-semibold text-[#2e3257] dark:text-[#fffef7]" : "font-normal text-[#627d9a] dark:text-[#babbbd]"}`}>{t.label}</span>
-                    <span className="text-[9px] text-[#babbbd] dark:text-[#627d9a]">{t.desc}</span>
-                  </button>
-                ))}
+              {/* Union label */}
+              <div className={`flex items-center justify-between px-3 py-2 rounded-xl border ${DIVIDER} bg-[#babbbd]/10 dark:bg-[#fffef7]/5`}>
+                <div>
+                  <span className="text-[11px] font-semibold text-[#2e3257] dark:text-[#fffef7]">Union (A∪B)</span>
+                  <span className="ml-2 text-[9px] text-[#babbbd] dark:text-[#627d9a]">Pipeline A + DIF-SASRec · deduplicated</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <span className="px-1.5 py-0.5 rounded-full text-[9px] border bg-[#2e3257]/10 dark:bg-[#fffef7]/10 border-[#2e3257]/25 dark:border-[#fffef7]/25 text-[#2e3257] dark:text-[#fffef7]">Cleora</span>
+                  <span className="text-[#babbbd] dark:text-[#627d9a]" style={{ fontSize: 9 }}>+</span>
+                  <span className="px-1.5 py-0.5 rounded-full text-[9px] border bg-emerald-500/10 dark:bg-emerald-400/10 border-emerald-500/30 dark:border-emerald-400/30 text-emerald-700 dark:text-emerald-400">DIF-SASRec</span>
+                </div>
               </div>
 
               {/* B: DIF-SASRec input sequence strip */}
-              {recTab === "yml" && recMode === "personalized" && (() => {
+              {recMode === "personalized" && (() => {
                 const seq = interactions
                   .filter(i => i.action === "click" || i.action === "cart")
                   .slice(0, 8)
@@ -698,11 +708,11 @@ export default function App() {
                     </button>
                   </div>
                 ) : (
-                  (recTab === "pab" ? recommendations.people_also_buy : recommendations.you_might_like)?.map((book, i) => (
+                  recommendations.combined?.map((book, i) => (
                     <RecommendCard
                       key={i} book={book} rank={i}
                       onInteract={handleInteract} onAskAIStream={handleAskAIStream}
-                      isNew={recTab === "yml" && newRecAsins.has(book.id)}
+                      isNew={newRecAsins.has(book.id)}
                     />
                   ))
                 )}

@@ -64,18 +64,17 @@ class PassiveRecommendationEngine:
             )
             pab_ranked = sorted(
                 verified_pab,
-                key=lambda x: max(x["text_score"], x["visual_score"]),
+                key=lambda x: x["text_score"],
                 reverse=True,
             )
             people_also_buy = []
             for item in pab_ranked[:top_k]:
                 text_s = float(item["text_score"])
                 vis_s  = float(item["visual_score"])
-                layer  = "Cleora + BGE-M3" if text_s >= vis_s else "Cleora + CLIP"
                 people_also_buy.append((
                     item["asin"],
-                    float(max(text_s, vis_s)),
-                    layer,
+                    text_s,
+                    "Cleora + BGE-M3",
                     {"text_sim": text_s, "img_sim": vis_s},
                 ))
         else:
@@ -87,7 +86,14 @@ class PassiveRecommendationEngine:
         if not people_also_buy and not you_might_like:
             return None
 
-        return {"people_also_buy": people_also_buy, "you_might_like": you_might_like}
+        pab_asins = {rec[0] for rec in people_also_buy}
+        combined  = people_also_buy + [rec for rec in you_might_like if rec[0] not in pab_asins]
+
+        return {
+            "people_also_buy": people_also_buy,
+            "you_might_like":  you_might_like,
+            "combined":        combined,
+        }
 
     # ── Pipeline B implementation ─────────────────────────────────────────────
 

@@ -30,7 +30,7 @@ async def recommend(user_id: str, container: AppContainer = Depends(require_read
     else:
         async with container.agent_pool.borrow() as agent:
             agent.load_user(user_id, settings.DATA_DIR)
-            res = await recommend_engine.recommend_for_user(user_id, agent, top_k=5)
+            res = await recommend_engine.recommend_for_user(user_id, agent, top_k=10)
         if res is None:
             rec_dict, mode = _cold_start(retriever)
         else:
@@ -61,6 +61,7 @@ async def recommend(user_id: str, container: AppContainer = Depends(require_read
     return {
         "people_also_buy": enrich_list(rec_dict["people_also_buy"]),
         "you_might_like":  enrich_list(rec_dict["you_might_like"]),
+        "combined":        enrich_list(rec_dict.get("combined", [])),
         "user_id":         user_id,
         "mode":            mode,
     }
@@ -68,10 +69,13 @@ async def recommend(user_id: str, container: AppContainer = Depends(require_read
 
 def _cold_start(retriever):
     pool   = [a for a in retriever.cleora_asins if a in retriever.asin_to_idx]
-    sample = random.sample(pool, min(10, len(pool)))
+    sample = random.sample(pool, min(20, len(pool)))
+    pab    = [(a, 1.0, "Discovery") for a in sample[:10]]
+    yml    = [(a, 1.0, "Discovery") for a in sample[10:]]
     rec_dict = {
-        "people_also_buy": [(a, 1.0, "Discovery") for a in sample[:5]],
-        "you_might_like":  [(a, 1.0, "Discovery") for a in sample[5:]],
+        "people_also_buy": pab,
+        "you_might_like":  yml,
+        "combined":        pab + yml,
     }
     return rec_dict, "cold_start"
 
