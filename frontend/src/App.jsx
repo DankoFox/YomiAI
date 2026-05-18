@@ -107,6 +107,7 @@ export default function App() {
   const [activeTab, setActiveTab]     = useState("search");
   const [activeRight, setActiveRight] = useState("profile");
   const [cart, setCart]               = useState([]);
+  const [rightPanelOpen, setRightPanelOpen] = useState(true);
 
   const [showImagePopover, setShowImagePopover] = useState(false);
 
@@ -423,6 +424,27 @@ export default function App() {
                 </div>
               ))}
             </div>
+
+            <div className={`w-px h-6 ${DIVIDER} border-l`} />
+
+            {/* Right panel toggle */}
+            <button
+              onClick={() => setRightPanelOpen(p => !p)}
+              title={rightPanelOpen ? "Collapse profile panel" : "Expand profile panel"}
+              className={`p-1.5 rounded-lg border transition-all duration-200
+                ${rightPanelOpen
+                  ? `border-[#2e3257]/25 dark:border-[#fffef7]/20 bg-[#2e3257]/6 dark:bg-[#fffef7]/6
+                     text-[#2e3257] dark:text-[#fffef7]`
+                  : `border-[#babbbd] dark:border-[#627d9a]/70
+                     text-[#627d9a] dark:text-[#babbbd]
+                     hover:border-[#dfc5a4] hover:text-[#2e3257] dark:hover:text-[#fffef7]`}`}
+            >
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"
+                   strokeLinecap="round" className="w-4 h-4">
+                <rect x="1.5" y="1.5" width="13" height="13" rx="2" />
+                <line x1="10.5" y1="1.5" x2="10.5" y2="14.5" />
+              </svg>
+            </button>
           </div>
         </div>
 
@@ -431,27 +453,28 @@ export default function App() {
       {/* ── MAIN ────────────────────────────────────────────────────────────── */}
       <div className="flex flex-1 min-h-0">
 
-        {/* ── LEFT PANEL (60%) ── */}
-        <div className={`flex flex-col flex-shrink-0 border-r ${DIVIDER}`} style={{ width: "60%" }}>
+        {/* ── LEFT PANEL — grows to fill remaining space ── */}
+        <div className={`flex flex-col flex-1 min-w-0 border-r ${DIVIDER}`}>
 
           {/* Tab bar */}
-          <div className={`flex px-4 pt-3 gap-1 border-b ${DIVIDER}`}>
-            {[["search", "Active Search", "Mode 1"], ["recs", "Recommendations", "Mode 2"]].map(([tab, label, mode]) => (
-              <button
-                key={tab}
-                onClick={() => setActiveTab(tab)}
-                className={`flex-1 py-3 text-center text-[14px] transition-all duration-200 rounded-t relative border-none cursor-pointer
-                  ${activeTab === tab
-                    ? "font-medium text-[#2e3257] dark:text-[#fffef7] bg-[#dfc5a4]/15 dark:bg-[#dfc5a4]/8"
-                    : "font-normal text-[#627d9a] dark:text-[#babbbd] hover:text-[#2e3257] dark:hover:text-[#fffef7] bg-transparent"}`}
-              >
-                {label}
-                <span className="text-[#babbbd] dark:text-[#627d9a] ml-1" style={{ fontSize: 11 }}>{mode}</span>
-                {activeTab === tab && (
-                  <div className="absolute bottom-0 left-0 right-0 h-0.5 rounded-t bg-[#2e3257] dark:bg-[#dfc5a4]" />
-                )}
-              </button>
-            ))}
+          <div className={`flex items-center px-4 py-2 border-b ${DIVIDER}`}>
+            <div className="flex rounded-lg p-0.5 gap-0.5
+                            bg-[#2e3257]/6 dark:bg-[#fffef7]/6
+                            border border-[#2e3257]/10 dark:border-[#fffef7]/10">
+              {[["search", "Active Search", "M1"], ["recs", "Recommendations", "M2"]].map(([tab, label, mode]) => (
+                <button
+                  key={tab}
+                  onClick={() => setActiveTab(tab)}
+                  className={`px-4 py-1.5 rounded-md text-[13px] font-medium transition-all duration-200 cursor-pointer border-none
+                    ${activeTab === tab
+                      ? "bg-[#2e3257] dark:bg-[#fffef7] text-[#fffef7] dark:text-[#2e3257] shadow-sm"
+                      : "bg-transparent text-[#627d9a] dark:text-[#babbbd] hover:text-[#2e3257] dark:hover:text-[#fffef7]"}`}
+                >
+                  {label}
+                  <span className="ml-1.5 opacity-50 font-mono" style={{ fontSize: 10 }}>{mode}</span>
+                </button>
+              ))}
+            </div>
           </div>
 
           {/* ── Search tab ── */}
@@ -731,24 +754,29 @@ export default function App() {
           )}
         </div>
 
-        {/* ── RIGHT PANEL ── */}
-        <div className="flex flex-col flex-1 overflow-hidden min-w-0">
+        {/* ── RIGHT PANEL — fixed width, collapsible ── */}
+        <div className={`flex-shrink-0 overflow-hidden transition-[width] duration-300 ease-in-out`}
+             style={{ width: rightPanelOpen ? 384 : 0 }}>
+        <div className="flex flex-col h-full" style={{ width: 384 }}>
 
           {/* Tabs */}
-          <div className={`flex px-4 pt-3 gap-1 border-b ${DIVIDER}`}>
-            {[["profile", "User Profile"], ["history", "Activity History"]].map(([tab, label]) => (
-              <button
-                key={tab}
-                onClick={() => setActiveRight(tab)}
-                className={`flex-1 py-2.5 text-center text-[11px] transition-all duration-200 rounded-t relative border-none cursor-pointer
-                  ${activeRight === tab
-                    ? "font-medium text-[#2e3257] dark:text-[#fffef7] bg-[#dfc5a4]/15 dark:bg-[#dfc5a4]/8"
-                    : "font-normal text-[#627d9a] dark:text-[#babbbd] hover:text-[#2e3257] dark:hover:text-[#fffef7] bg-transparent"}`}
-              >
-                {label}
-                {activeRight === tab && <div className="absolute bottom-0 left-0 right-0 h-0.5 rounded-t bg-[#2e3257] dark:bg-[#dfc5a4]" />}
-              </button>
-            ))}
+          <div className={`flex items-center px-3 py-2 border-b ${DIVIDER}`}>
+            <div className="flex w-full rounded-lg p-0.5 gap-0.5
+                            bg-[#2e3257]/6 dark:bg-[#fffef7]/6
+                            border border-[#2e3257]/10 dark:border-[#fffef7]/10">
+              {[["profile", "User Profile"], ["history", "Activity History"]].map(([tab, label]) => (
+                <button
+                  key={tab}
+                  onClick={() => setActiveRight(tab)}
+                  className={`flex-1 py-1.5 text-center text-[11px] font-medium transition-all duration-200 rounded-md cursor-pointer border-none
+                    ${activeRight === tab
+                      ? "bg-[#2e3257] dark:bg-[#fffef7] text-[#fffef7] dark:text-[#2e3257] shadow-sm"
+                      : "bg-transparent text-[#627d9a] dark:text-[#babbbd] hover:text-[#2e3257] dark:hover:text-[#fffef7]"}`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
           </div>
 
           {/* ── Profile tab — bento grid ── */}
@@ -929,7 +957,8 @@ export default function App() {
               )}
             </div>
           )}
-        </div>
+        </div>{/* end inner fixed-width wrapper */}
+        </div>{/* end collapsible outer */}
       </div>
     </div>
   );
