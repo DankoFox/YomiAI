@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef } from "react";
 import { BookCover } from "../../ui/BookCover";
-import { LayerTag } from "../../ui/LayerTag";
 import { ScoreBadge } from "../../ui/ScoreBadge";
 
 function parseAuthor(raw) {
@@ -11,12 +10,38 @@ function parseAuthor(raw) {
   return raw;
 }
 
+const PIPELINE_STYLE = {
+  "Cleora + BGE-M3": { bg: "#2e3257", glow: "rgba(98,125,154,0.5),rgba(46,50,87,0.5)"   },
+  "Cleora + CLIP":   { bg: "#1e3a5f", glow: "rgba(30,58,95,0.6),rgba(14,42,71,0.5)"     },
+  "DIF-SASRec":      { bg: "#065f46", glow: "rgba(16,185,129,0.5),rgba(6,95,70,0.55)"   },
+  "RL-DQN":          { bg: "#78350f", glow: "rgba(245,158,11,0.45),rgba(120,53,15,0.5)" },
+  "Cleora + BLaIR":  { bg: "#2e3257", glow: "rgba(98,125,154,0.5),rgba(46,50,87,0.5)"   },
+};
+
+function PipelineBadge({ label }) {
+  if (!label) return null;
+  const { bg, glow } = PIPELINE_STYLE[label] ?? { bg: "#374151", glow: "rgba(107,114,128,0.4),rgba(55,65,81,0.4)" };
+  const [ring, shadow] = glow.split(",");
+  return (
+    <span
+      className="inline-flex items-center px-2.5 py-1 rounded-full flex-shrink-0
+                 text-[#fffef7] font-semibold whitespace-nowrap"
+      style={{
+        fontSize: 11,
+        background: bg,
+        boxShadow: `0 0 0 1px ${ring}, 0 2px 8px ${shadow}`,
+      }}
+    >
+      {label}
+    </span>
+  );
+}
+
 export function RecommendCard({ book, onInteract, onAskAIStream, rank, isNew = false }) {
   const [showAI, setShowAI]     = useState(false);
   const [aiText, setAiText]     = useState("");
   const [aiLoading, setLoading] = useState(false);
 
-  // "New" badge — hold in DOM during exit animation before removing
   const [badgeVisible, setBadgeVisible] = useState(isNew);
   const [badgeExiting, setBadgeExiting] = useState(false);
   const prevIsNew = useRef(isNew);
@@ -26,7 +51,7 @@ export function RecommendCard({ book, onInteract, onAskAIStream, rank, isNew = f
       setBadgeVisible(true);
       setBadgeExiting(false);
     } else if (!isNew && prevIsNew.current && badgeVisible) {
-      setBadgeExiting(true);          // trigger exit animation
+      setBadgeExiting(true);
     }
     prevIsNew.current = isNew;
   }, [isNew]);
@@ -41,7 +66,7 @@ export function RecommendCard({ book, onInteract, onAskAIStream, rank, isNew = f
       try {
         const stream = onAskAIStream(book);
         for await (const chunk of stream) {
-          setLoading(false); // Hide loading as soon as first token arrives
+          setLoading(false);
           setAiText(prev => prev + chunk);
         }
       } catch (_) {
@@ -55,142 +80,148 @@ export function RecommendCard({ book, onInteract, onAskAIStream, rank, isNew = f
   const author = parseAuthor(book.author);
 
   return (
-    <div className="flex gap-3 p-3 rounded-xl border border-[#babbbd] dark:border-[#627d9a]/60
+    <div className="flex gap-3 p-4 rounded-xl border border-[#babbbd] dark:border-[#627d9a]/60
                     bg-white/40 dark:bg-[#fffef7]/5
                     hover:border-[#dfc5a4] dark:hover:border-[#dfc5a4]/50
-                    hover:bg-[#dfc5a4]/8 dark:hover:bg-[#dfc5a4]/5
+                    hover:bg-[#dfc5a4]/6 dark:hover:bg-[#dfc5a4]/4
                     transition-all duration-200 cursor-pointer shadow-sm">
 
-      <div className="flex flex-col items-center gap-1.5">
-        <span className="font-mono text-[#babbbd] dark:text-[#627d9a] font-bold" style={{ fontSize: 10 }}>
+      {/* Far-left — cover with rank + new badges overlaid */}
+      <div className="relative flex-shrink-0">
+        <span className="absolute -top-1 -left-1 z-10 font-mono font-bold leading-none
+                         bg-[#2e3257] dark:bg-[#fffef7] text-[#fffef7] dark:text-[#2e3257]
+                         rounded px-1 py-0.5"
+              style={{ fontSize: 10 }}>
           #{rank + 1}
         </span>
-        <BookCover color={cover} title={book.title} size="sm" imageUrl={book.image_url} />
         {badgeVisible && (
           <span
-            className={`px-1.5 py-0.5 rounded-full font-mono font-bold
-                        bg-[#dfc5a4]/30 border border-[#dfc5a4]
-                        text-[#2e3257] dark:text-[#dfc5a4]
+            className={`absolute -top-1 -right-1 z-10 px-1.5 py-0.5 rounded-full font-mono font-bold leading-none
+                        bg-[#dfc5a4] text-[#2e3257]
                         ${badgeExiting ? "badge-exit" : "fade-in"}`}
-            style={{ fontSize: 8 }}
+            style={{ fontSize: 7 }}
             onAnimationEnd={() => { if (badgeExiting) setBadgeVisible(false); }}
           >
             New
           </span>
         )}
+        <BookCover color={cover} title={book.title} size="md" imageUrl={book.image_url} />
       </div>
 
-      <div className="flex-1 min-w-0">
+      {/* Four-corners info panel */}
+      <div className="flex flex-col flex-1 min-w-0 justify-between gap-2">
+
+        {/* TOP ROW — title+author (left) · pipeline badge (right) */}
         <div className="flex items-start justify-between gap-2">
-          <div className="min-w-0">
-            <p className="font-serif font-semibold leading-snug text-[#2e3257] dark:text-[#fffef7]" style={{ fontSize: 12 }}>
+          <div className="min-w-0 flex-1">
+            <p className="font-serif font-semibold leading-tight text-[#2e3257] dark:text-[#fffef7] line-clamp-2"
+               style={{ fontSize: 15 }}>
               {book.title}
             </p>
-            <p className="text-[#627d9a] dark:text-[#babbbd] mt-0.5" style={{ fontSize: 10 }}>{author}</p>
+            <p className="text-[#627d9a] dark:text-[#babbbd] truncate mt-0.5" style={{ fontSize: 12 }}>
+              {author}
+            </p>
+          </div>
+          <PipelineBadge label={book.layer} />
+        </div>
 
-            <div className="flex items-center flex-wrap gap-1.5 mt-1.5">
-              {book.genre && (
-                <span className="px-2 py-0.5 rounded-full text-[9px]
-                                 bg-[#dfc5a4]/25 text-[#627d9a] dark:text-[#babbbd]">
-                  {book.genre}
-                </span>
-              )}
-              {book.sub_genre && book.sub_genre !== book.genre && (
-                <span className="px-2 py-0.5 rounded-full text-[9px]
-                                 bg-[#babbbd]/15 dark:bg-[#627d9a]/15
-                                 text-[#babbbd] dark:text-[#627d9a]">
-                  {book.sub_genre}
-                </span>
-              )}
-            </div>
+        {/* BOTTOM ROW — genres+score pills (left) · action buttons (right) */}
+        <div className="flex items-end justify-between gap-2">
 
-            <div className="mt-1">
-              {book.layer && <LayerTag label={book.layer} />}
+          {/* Bottom-left — genre tags then score pills stacked */}
+          <div className="flex flex-col gap-1 min-w-0">
+            {(book.genre || book.sub_genre) && (
+              <div className="flex flex-wrap gap-1">
+                {book.genre && (
+                  <span className="px-1.5 py-px rounded-full text-[11px]
+                                   bg-[#dfc5a4]/25 text-[#627d9a] dark:text-[#babbbd]">
+                    {book.genre}
+                  </span>
+                )}
+                {book.sub_genre && book.sub_genre !== book.genre && (
+                  <span className="px-1.5 py-px rounded-full text-[11px]
+                                   bg-[#babbbd]/15 dark:bg-[#627d9a]/15
+                                   text-[#babbbd] dark:text-[#627d9a]">
+                    {book.sub_genre}
+                  </span>
+                )}
+              </div>
+            )}
+            <div className="flex flex-wrap gap-1">
+              {book.text_sim > 0 && <ScoreBadge score={book.text_sim} label="BGE-M3" />}
+              {book.img_sim  > 0 && <ScoreBadge score={book.img_sim}  label="CLIP"   />}
+              {(!book.text_sim && !book.img_sim) && (
+                <ScoreBadge score={book.score || 0} label="SASRec" />
+              )}
             </div>
           </div>
 
-          <div className="flex gap-1.5 flex-shrink-0 items-start">
-            {book.text_sim > 0 && <ScoreBadge score={book.text_sim} label="BGE-M3" />}
-            {book.img_sim  > 0 && <ScoreBadge score={book.img_sim}  label="CLIP"   />}
-            {(!book.text_sim && !book.img_sim) && (
-              <ScoreBadge score={book.score || 0} label="SASRec" />
+          {/* Bottom-right — action buttons */}
+          <div className="flex gap-1 flex-shrink-0 relative">
+            <button
+              onClick={() => onInteract(book, "click")}
+              title="Mark as interested"
+              className="px-3 py-1 rounded-full text-[11px] font-medium transition-all duration-150
+                         bg-[#2e3257]/10 dark:bg-[#fffef7]/10
+                         border border-[#2e3257]/22 dark:border-[#fffef7]/18
+                         text-[#2e3257] dark:text-[#fffef7]
+                         hover:bg-[#dfc5a4]/30 hover:border-[#dfc5a4]"
+            >
+              ✓
+            </button>
+            <button
+              onClick={handleAI}
+              title="Ask AI about this book"
+              className="px-3 py-1 rounded-full text-[11px] transition-all duration-150
+                         bg-[#627d9a]/10 border border-[#627d9a]/25 dark:border-[#627d9a]/40
+                         text-[#627d9a] dark:text-[#babbbd]
+                         hover:bg-[#627d9a]/20"
+            >
+              {showAI ? "✕" : "✦"}
+            </button>
+            <button
+              onClick={e => { e.stopPropagation(); onInteract(book, "cart"); }}
+              title="Add to cart"
+              className="px-3 py-1 rounded-full text-[11px] font-medium transition-all duration-150
+                         bg-emerald-50 dark:bg-emerald-900/20
+                         border border-emerald-300 dark:border-emerald-700/60
+                         text-emerald-700 dark:text-emerald-400
+                         hover:bg-emerald-100 dark:hover:bg-emerald-900/40"
+            >
+              🛒
+            </button>
+
+            {showAI && (
+              <div className="absolute z-30 p-2.5 rounded-xl shadow-md fade-in text-left
+                              bg-[#fffef7] dark:bg-[#2e3257]
+                              border border-[#babbbd] dark:border-[#627d9a]"
+                style={{ bottom: "calc(100% + 6px)", right: 0, minWidth: 220 }}
+              >
+                <p className="font-serif font-bold text-[#2e3257] dark:text-[#fffef7] mb-0.5" style={{ fontSize: 11 }}>
+                  {book.title}
+                </p>
+                <p className="text-[#627d9a] dark:text-[#babbbd] mb-1.5" style={{ fontSize: 9 }}>by {author}</p>
+                <div className="text-[#2e3257] dark:text-[#fffef7] overflow-y-auto"
+                     style={{ fontSize: 10, lineHeight: 1.55, whiteSpace: "pre-wrap", maxHeight: 120 }}>
+                  {aiLoading ? (
+                    <span className="shimmer text-[#627d9a]">Thinking…</span>
+                  ) : (
+                    aiText.split("\n").map((line, i) => (
+                      <p key={i} className={line.startsWith("**") ? "mt-1" : ""}>
+                        {line.split(/(\*\*.*?\*\*)/).map((part, j) =>
+                          part.startsWith("**") && part.endsWith("**")
+                            ? <strong key={j}>{part.slice(2, -2)}</strong>
+                            : part
+                        )}
+                      </p>
+                    ))
+                  )}
+                </div>
+              </div>
             )}
           </div>
         </div>
 
-        {/* Row 1 */}
-        <div className="flex gap-1.5 mt-2">
-          <button
-            onClick={() => onInteract(book, "click")}
-            className="flex-1 py-1 rounded-lg text-[10px] transition-all duration-150
-                       bg-[#2e3257]/10 dark:bg-[#fffef7]/10
-                       border border-[#2e3257]/22 dark:border-[#fffef7]/18
-                       text-[#2e3257] dark:text-[#fffef7]
-                       hover:bg-[#dfc5a4]/30 hover:border-[#dfc5a4]"
-          >
-            ✓ Interested
-          </button>
-          <button
-            onClick={() => onInteract(book, "skip")}
-            className="flex-1 py-1 rounded-lg text-[10px] transition-all duration-150
-                       bg-transparent border border-[#babbbd] dark:border-[#627d9a]/55
-                       text-[#babbbd] dark:text-[#627d9a]
-                       hover:border-[#dfc5a4] hover:text-[#627d9a] dark:hover:text-[#babbbd]"
-          >
-            ✗ Not for me
-          </button>
-        </div>
-
-        {/* Row 2 */}
-        <div className="flex gap-1.5 mt-1.5 relative">
-          <button
-            onClick={handleAI}
-            className="flex-1 py-1 rounded-lg text-[10px] transition-all duration-150
-                       bg-[#627d9a]/10 border border-[#627d9a]/25 dark:border-[#627d9a]/40
-                       text-[#627d9a] dark:text-[#babbbd]
-                       hover:bg-[#627d9a]/20"
-          >
-            {showAI ? "✕ Close AI" : "✦ Ask AI"}
-          </button>
-          <button
-            onClick={e => { e.stopPropagation(); onInteract(book, "cart"); }}
-            className="flex-1 py-1 rounded-lg text-[10px] font-medium transition-all duration-150
-                       bg-emerald-50 dark:bg-emerald-900/20
-                       border border-emerald-300 dark:border-emerald-700/60
-                       text-emerald-700 dark:text-emerald-400
-                       hover:bg-emerald-100 dark:hover:bg-emerald-900/40"
-          >
-            Add to Cart
-          </button>
-
-          {showAI && (
-            <div className="absolute z-20 p-2.5 rounded-xl shadow-md fade-in text-left
-                            bg-[#fffef7] dark:bg-[#2e3257]
-                            border border-[#babbbd] dark:border-[#627d9a]"
-              style={{ top: "calc(100% + 8px)", left: 0, right: -60, minWidth: 240 }}
-            >
-              <p className="font-serif font-bold text-[#2e3257] dark:text-[#fffef7] mb-0.5" style={{ fontSize: 12 }}>
-                {book.title}
-              </p>
-              <p className="text-[#627d9a] dark:text-[#babbbd] mb-2" style={{ fontSize: 10 }}>by {author}</p>
-              <div className="text-[#2e3257] dark:text-[#fffef7] overflow-y-auto" style={{ fontSize: 10, lineHeight: 1.55, whiteSpace: "pre-wrap", maxHeight: 140 }}>
-                {aiLoading ? (
-                  <span className="shimmer text-[#627d9a]">Thinking…</span>
-                ) : (
-                  aiText.split("\n").map((line, i) => (
-                    <p key={i} className={line.startsWith("**") ? "mt-1.5" : ""}>
-                      {line.split(/(\*\*.*?\*\*)/).map((part, j) =>
-                        part.startsWith("**") && part.endsWith("**")
-                          ? <strong key={j}>{part.slice(2, -2)}</strong>
-                          : part
-                      )}
-                    </p>
-                  ))
-                )}
-              </div>
-            </div>
-          )}
-        </div>
       </div>
     </div>
   );

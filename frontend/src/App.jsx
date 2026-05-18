@@ -108,8 +108,20 @@ export default function App() {
   const [activeRight, setActiveRight] = useState("profile");
   const [cart, setCart]               = useState([]);
 
-  const fileRef = useRef();
-  const dropRef = useRef();
+  const [showImagePopover, setShowImagePopover] = useState(false);
+
+  const fileRef       = useRef();
+  const dropRef       = useRef();
+  const imageAreaRef  = useRef();
+
+  useEffect(() => {
+    const handler = (e) => {
+      if (imageAreaRef.current && !imageAreaRef.current.contains(e.target))
+        setShowImagePopover(false);
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
 
   // ── Helpers ─────────────────────────────────────────────────────────────────
   const toast = useCallback((msg, type = "info") => {
@@ -236,6 +248,7 @@ export default function App() {
     const file = e.dataTransfer?.files?.[0] || e.target?.files?.[0];
     if (file?.type.startsWith("image/")) {
       setImageFile(file);
+      setShowImagePopover(false);
       const r = new FileReader(); r.onload = () => setImagePreview(r.result); r.readAsDataURL(file);
       toast("Image loaded — CLIP encoder ready", "info");
     }
@@ -413,42 +426,13 @@ export default function App() {
           </div>
         </div>
 
-        {/* Recently Viewed strip — live: server profile, mock: local interactions */}
-        {(() => {
-          const items = useMock
-            ? interactions.slice(0, 8)
-            : profileStats.recent_items;
-          if (!items?.length) return null;
-          return (
-            <div className={`flex items-center gap-4 px-6 py-2 overflow-x-auto border-t ${DIVIDER} bg-[#babbbd]/10 dark:bg-[#fffef7]/3`}>
-              <span className="font-mono tracking-widest uppercase text-[#627d9a] dark:text-[#babbbd] whitespace-nowrap font-bold flex-shrink-0" style={{ fontSize: 9 }}>
-                Recently Viewed
-              </span>
-              {items.map((item, i) => (
-                <div key={i} className="flex items-center gap-2 group cursor-pointer flex-shrink-0" title={item.title}>
-                  {item.image_url ? (
-                    <div className={`w-8 h-10 rounded overflow-hidden relative border ${DIVIDER} group-hover:border-[#dfc5a4] transition-colors`}>
-                      <img src={item.image_url} alt="" className="w-full h-full object-cover" />
-                    </div>
-                  ) : (
-                    <div className="w-8 h-10 rounded flex-shrink-0" style={{ background: item.cover_color || "#2e3257" }} />
-                  )}
-                  <div style={{ maxWidth: 80 }}>
-                    <p className="truncate text-[#2e3257] dark:text-[#fffef7] font-medium" style={{ fontSize: 10 }}>{item.title}</p>
-                    <p className="truncate text-[#babbbd] dark:text-[#627d9a]" style={{ fontSize: 8 }}>{item.author}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          );
-        })()}
       </header>
 
       {/* ── MAIN ────────────────────────────────────────────────────────────── */}
       <div className="flex flex-1 min-h-0">
 
-        {/* ── LEFT PANEL (42%) ── */}
-        <div className={`flex flex-col flex-shrink-0 border-r ${DIVIDER}`} style={{ width: "42%" }}>
+        {/* ── LEFT PANEL (60%) ── */}
+        <div className={`flex flex-col flex-shrink-0 border-r ${DIVIDER}`} style={{ width: "60%" }}>
 
           {/* Tab bar */}
           <div className={`flex px-4 pt-3 gap-1 border-b ${DIVIDER}`}>
@@ -456,13 +440,13 @@ export default function App() {
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
-                className={`flex-1 py-2.5 text-center text-[11px] transition-all duration-200 rounded-t relative border-none cursor-pointer
+                className={`flex-1 py-3 text-center text-[14px] transition-all duration-200 rounded-t relative border-none cursor-pointer
                   ${activeTab === tab
                     ? "font-medium text-[#2e3257] dark:text-[#fffef7] bg-[#dfc5a4]/15 dark:bg-[#dfc5a4]/8"
                     : "font-normal text-[#627d9a] dark:text-[#babbbd] hover:text-[#2e3257] dark:hover:text-[#fffef7] bg-transparent"}`}
               >
                 {label}
-                <span className="text-[#babbbd] dark:text-[#627d9a] ml-1" style={{ fontSize: 9 }}>{mode}</span>
+                <span className="text-[#babbbd] dark:text-[#627d9a] ml-1" style={{ fontSize: 11 }}>{mode}</span>
                 {activeTab === tab && (
                   <div className="absolute bottom-0 left-0 right-0 h-0.5 rounded-t bg-[#2e3257] dark:bg-[#dfc5a4]" />
                 )}
@@ -475,74 +459,111 @@ export default function App() {
             <div className="flex flex-col flex-1 overflow-hidden px-4 pt-4 gap-3">
 
               {/* Input row */}
-              <div className="space-y-2">
-                <div className="flex gap-2">
+              <div className="flex gap-2">
+                {/* Text input with inset image button */}
+                <div ref={imageAreaRef} className="relative flex-1">
                   <input
                     value={query}
                     onChange={e => setQuery(e.target.value)}
                     onKeyDown={e => e.key === "Enter" && handleSearch()}
                     placeholder='"Dark Fantasy with complex magic systems"'
-                    className={`flex-1 px-3 py-2.5 rounded-xl text-[12px] transition-all duration-200
+                    className={`w-full pl-4 pr-12 py-3 rounded-xl text-[15px] transition-all duration-200
                                 bg-white dark:bg-[#fffef7]/5
                                 border ${DIVIDER}
                                 text-[#2e3257] dark:text-[#fffef7]
                                 placeholder:text-[#babbbd] dark:placeholder:text-[#627d9a]
                                 focus:border-[#2e3257] dark:focus:border-[#dfc5a4] focus:outline-none`}
                   />
+
+                  {/* Camera icon button */}
                   <button
-                    onClick={handleSearch}
-                    disabled={isSearching}
-                    className={`px-5 py-2.5 rounded-xl text-[12px] font-semibold flex-shrink-0 transition-all duration-200
-                                border border-transparent
-                                ${isSearching
-                                  ? "bg-[#babbbd]/30 text-[#627d9a] cursor-not-allowed"
-                                  : "bg-[#2e3257] dark:bg-[#fffef7] text-[#fffef7] dark:text-[#2e3257] hover:bg-[#dfc5a4] hover:text-[#2e3257] shadow-sm"}`}
+                    onClick={() => setShowImagePopover(p => !p)}
+                    title={imagePreview ? "Image loaded — click to change" : "Search by image"}
+                    className={`absolute right-2.5 top-1/2 -translate-y-1/2 w-8 h-8 rounded-lg flex items-center justify-center
+                                transition-all duration-200 border
+                                ${imagePreview
+                                  ? "border-[#dfc5a4] bg-[#dfc5a4]/20 hover:bg-[#dfc5a4]/35"
+                                  : `border-[#babbbd]/60 dark:border-[#627d9a]/50 bg-transparent
+                                     hover:border-[#dfc5a4] hover:bg-[#dfc5a4]/15
+                                     ${showImagePopover ? "border-[#2e3257] dark:border-[#dfc5a4] bg-[#2e3257]/8 dark:bg-[#dfc5a4]/10" : ""}`}`}
                   >
-                    {isSearching ? <span className="shimmer">…</span> : "Search"}
+                    {imagePreview ? (
+                      <img src={imagePreview} className="w-6 h-6 rounded object-cover" alt="" />
+                    ) : (
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"
+                        className="w-4 h-4 text-[#627d9a] dark:text-[#babbbd]">
+                        <path fillRule="evenodd" d="M1 8a2 2 0 0 1 2-2h.93a2 2 0 0 0 1.664-.89l.812-1.22A2 2 0 0 1 8.07 3h3.86a2 2 0 0 1 1.664.89l.812 1.22A2 2 0 0 0 16.07 6H17a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8Zm13.5 3a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0ZM10 14a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" clipRule="evenodd" />
+                      </svg>
+                    )}
                   </button>
+
+                  {/* Image popover */}
+                  {showImagePopover && (
+                    <div className="absolute z-30 left-0 right-0 mt-1 p-3 rounded-xl shadow-lg fade-in
+                                    bg-[#fffef7] dark:bg-[#2e3257]
+                                    border border-[#babbbd] dark:border-[#627d9a]/70"
+                      style={{ top: "calc(100% + 4px)" }}
+                    >
+                      <div
+                        ref={dropRef}
+                        onClick={() => fileRef.current?.click()}
+                        onDrop={handleImageDrop}
+                        onDragOver={e => e.preventDefault()}
+                        className={`flex items-center gap-3 rounded-xl cursor-pointer transition-all duration-200 border
+                                    ${imagePreview
+                                      ? "border-[#dfc5a4] bg-[#dfc5a4]/10"
+                                      : "border-dashed border-[#babbbd] dark:border-[#627d9a]/60 hover:border-[#dfc5a4] hover:bg-[#dfc5a4]/5"}`}
+                        style={{ padding: "10px 14px" }}
+                      >
+                        {imagePreview ? (
+                          <>
+                            <img src={imagePreview} className="w-11 h-11 rounded-lg object-cover flex-shrink-0 shadow-sm" alt="query" />
+                            <div className="flex-1 min-w-0">
+                              <p className="text-[12px] font-medium text-[#2e3257] dark:text-[#fffef7]">Image query loaded</p>
+                              <p className="text-[10px] text-[#627d9a] dark:text-[#babbbd]">CLIP will encode this for visual similarity</p>
+                            </div>
+                            <button
+                              onClick={e => { e.stopPropagation(); setImageFile(null); setImagePreview(null); }}
+                              className="text-[#babbbd] hover:text-rose-400 transition-colors flex-shrink-0 bg-transparent border-none cursor-pointer p-1"
+                              style={{ fontSize: 14 }}
+                            >
+                              ✕
+                            </button>
+                          </>
+                        ) : (
+                          <>
+                            <span className="text-[#babbbd] dark:text-[#627d9a] flex-shrink-0" style={{ fontSize: 22, opacity: 0.6 }}>🖼</span>
+                            <div>
+                              <p className="text-[12px] text-[#627d9a] dark:text-[#babbbd]">Drop a cover image here, or click to browse</p>
+                              <p className="text-[10px] text-[#babbbd] dark:text-[#627d9a]/70 mt-0.5">CLIP image encoder · visual similarity search</p>
+                            </div>
+                          </>
+                        )}
+                      </div>
+                      <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleImageDrop} />
+                    </div>
+                  )}
                 </div>
 
-                {/* Image drop zone */}
-                <div
-                  ref={dropRef}
-                  onClick={() => fileRef.current?.click()}
-                  onDrop={handleImageDrop}
-                  onDragOver={e => e.preventDefault()}
-                  className={`flex items-center gap-3 rounded-xl cursor-pointer transition-all duration-200
-                              border ${imagePreview ? "border-[#dfc5a4] bg-[#dfc5a4]/10" : `border-dashed border-[#babbbd] dark:border-[#627d9a]/60 bg-transparent hover:border-[#dfc5a4] hover:bg-[#dfc5a4]/5`}`}
-                  style={{ padding: imagePreview ? "8px 12px" : "10px 14px" }}
+                <button
+                  onClick={handleSearch}
+                  disabled={isSearching}
+                  className={`px-5 py-3 rounded-xl text-[15px] font-semibold flex-shrink-0 transition-all duration-200
+                              border border-transparent
+                              ${isSearching
+                                ? "bg-[#babbbd]/30 text-[#627d9a] cursor-not-allowed"
+                                : "bg-[#2e3257] dark:bg-[#fffef7] text-[#fffef7] dark:text-[#2e3257] hover:bg-[#dfc5a4] hover:text-[#2e3257] shadow-sm"}`}
                 >
-                  {imagePreview ? (
-                    <>
-                      <img src={imagePreview} className="w-11 h-11 rounded-lg object-cover flex-shrink-0 shadow-sm" alt="query" />
-                      <div className="flex-1 min-w-0">
-                        <p className="text-[11px] font-medium text-[#2e3257] dark:text-[#fffef7]">Image query loaded</p>
-                        <p className="text-[9px] text-[#627d9a] dark:text-[#babbbd]">CLIP will encode this for visual similarity</p>
-                      </div>
-                      <button onClick={e => { e.stopPropagation(); setImageFile(null); setImagePreview(null); }}
-                        className="text-[#babbbd] hover:text-[#627d9a] dark:hover:text-[#babbbd] transition-colors flex-shrink-0 bg-transparent border-none cursor-pointer p-1" style={{ fontSize: 14 }}>
-                        ✕
-                      </button>
-                    </>
-                  ) : (
-                    <>
-                      <span className="text-[#babbbd] dark:text-[#627d9a] flex-shrink-0" style={{ fontSize: 20, opacity: 0.6 }}>🖼</span>
-                      <div>
-                        <p className="text-[11px] text-[#627d9a] dark:text-[#babbbd]">Drop a cover image here</p>
-                        <p className="text-[9px] text-[#babbbd] dark:text-[#627d9a]/70">CLIP image encoder · visual similarity search</p>
-                      </div>
-                    </>
-                  )}
-                  <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleImageDrop} />
-                </div>
+                  {isSearching ? <span className="shimmer">…</span> : "Search"}
+                </button>
               </div>
 
               {/* Encoder legend */}
               <div className="flex items-center gap-4">
                 {[["BGE-M3", "#2e3257", "text semantics"], ["CLIP", "#627d9a", "visual features"], ["RRF", "#dfc5a4", "fusion score"]].map(([name, color, desc]) => (
                   <div key={name} className="flex items-center gap-1.5">
-                    <div className="rounded-full flex-shrink-0" style={{ width: 6, height: 6, background: color }} />
-                    <span className="text-[#627d9a] dark:text-[#babbbd]" style={{ fontSize: 9 }}>
+                    <div className="rounded-full flex-shrink-0" style={{ width: 7, height: 7, background: color }} />
+                    <span className="text-[#627d9a] dark:text-[#babbbd]" style={{ fontSize: 12 }}>
                       <span className="font-medium text-[#2e3257] dark:text-[#fffef7]">{name}</span> · {desc}
                     </span>
                   </div>
@@ -570,10 +591,10 @@ export default function App() {
                   ))
                 ) : (
                   <div className="flex flex-col items-center justify-center h-48 gap-3 text-center">
-                    <div className="text-[#babbbd] dark:text-[#627d9a]" style={{ fontSize: 40, opacity: 0.4 }}>📖</div>
+                    <div className="text-[#babbbd] dark:text-[#627d9a]" style={{ fontSize: 48, opacity: 0.4 }}>📖</div>
                     <div>
-                      <p className="text-[13px] font-medium text-[#627d9a] dark:text-[#babbbd]">Search for a book to begin</p>
-                      <p className="text-[10px] text-[#babbbd] dark:text-[#627d9a]/70 mt-1">BGE-M3 + CLIP · 3M book catalog</p>
+                      <p className="text-[16px] font-medium text-[#627d9a] dark:text-[#babbbd]">Search for a book to begin</p>
+                      <p className="text-[13px] text-[#babbbd] dark:text-[#627d9a]/70 mt-1">BGE-M3 + CLIP · 3M book catalog</p>
                     </div>
                   </div>
                 )}
@@ -583,37 +604,35 @@ export default function App() {
           ) : (
             /* ── Recs tab ── */
             <div className="flex flex-col flex-1 overflow-hidden px-4 pt-4 gap-3">
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="flex items-center gap-2">
-                    <p className="text-[12px] font-medium text-[#2e3257] dark:text-[#fffef7]">Personalized For You</p>
-                    {/* A: cold-start / personalised status pill */}
-                    {recMode === "personalized" && (
-                      <span className="flex items-center gap-1 px-2 py-0.5 rounded-full fade-in
-                                       bg-emerald-50 dark:bg-emerald-900/20
-                                       border border-emerald-300 dark:border-emerald-700/50
-                                       text-emerald-700 dark:text-emerald-400"
-                            style={{ fontSize: 9 }}>
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 live-dot" />
-                        DIF-SASRec active
-                      </span>
-                    )}
-                    {recMode === "cold_start" && (
-                      <span className="px-2 py-0.5 rounded-full fade-in
-                                       bg-[#babbbd]/15 dark:bg-[#627d9a]/15
-                                       border border-[#babbbd]/40 dark:border-[#627d9a]/40
-                                       text-[#babbbd] dark:text-[#627d9a]"
-                            style={{ fontSize: 9 }}>
-                        Discovery mode
-                      </span>
-                    )}
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2.5 flex-wrap min-w-0">
+                  <p className="text-[15px] font-medium text-[#2e3257] dark:text-[#fffef7] flex-shrink-0">Personalized For You</p>
+
+                  {/* Consolidated pipeline badge cluster */}
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <span className="px-2 py-0.5 rounded-full border text-[10px] font-medium
+                                     bg-[#627d9a]/10 border-[#627d9a]/35 dark:border-[#627d9a]/50
+                                     text-[#627d9a] dark:text-[#babbbd]">
+                      Multi-mode
+                    </span>
+                    <span className="px-2 py-0.5 rounded-full border text-[10px] font-medium
+                                     bg-[#dfc5a4]/15 border-[#dfc5a4]/55
+                                     text-[#627d9a] dark:text-[#babbbd]">
+                      Union (A∪B)
+                    </span>
+                    <span className="px-2 py-0.5 rounded-full border text-[10px] font-medium
+                                     bg-[#2e3257]/8 dark:bg-[#fffef7]/6
+                                     border-[#2e3257]/25 dark:border-[#fffef7]/20
+                                     text-[#2e3257] dark:text-[#fffef7]">
+                      Cleora + DIF-SASRec
+                    </span>
                   </div>
-                  <p className="text-[10px] text-[#627d9a] dark:text-[#babbbd] mt-0.5">Retrieval + DIF-SASRec Multi-mode</p>
                 </div>
+
                 <button
                   onClick={loadRecs}
                   disabled={isLoadingRecs}
-                  className={`text-[11px] px-3 py-1.5 rounded-lg border transition-all duration-200
+                  className={`flex-shrink-0 text-[11px] px-3 py-1.5 rounded-lg border transition-all duration-200
                     ${isLoadingRecs
                       ? "border-[#babbbd] dark:border-[#627d9a]/50 text-[#babbbd] cursor-not-allowed"
                       : `border-[#babbbd] dark:border-[#627d9a]/70 text-[#627d9a] dark:text-[#babbbd]
@@ -632,19 +651,6 @@ export default function App() {
                     </span>
                   )}
                 </button>
-              </div>
-
-              {/* Union label */}
-              <div className={`flex items-center justify-between px-3 py-2 rounded-xl border ${DIVIDER} bg-[#babbbd]/10 dark:bg-[#fffef7]/5`}>
-                <div>
-                  <span className="text-[11px] font-semibold text-[#2e3257] dark:text-[#fffef7]">Union (A∪B)</span>
-                  <span className="ml-2 text-[9px] text-[#babbbd] dark:text-[#627d9a]">Pipeline A + DIF-SASRec · deduplicated</span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <span className="px-1.5 py-0.5 rounded-full text-[9px] border bg-[#2e3257]/10 dark:bg-[#fffef7]/10 border-[#2e3257]/25 dark:border-[#fffef7]/25 text-[#2e3257] dark:text-[#fffef7]">Cleora</span>
-                  <span className="text-[#babbbd] dark:text-[#627d9a]" style={{ fontSize: 9 }}>+</span>
-                  <span className="px-1.5 py-0.5 rounded-full text-[9px] border bg-emerald-500/10 dark:bg-emerald-400/10 border-emerald-500/30 dark:border-emerald-400/30 text-emerald-700 dark:text-emerald-400">DIF-SASRec</span>
-                </div>
               </div>
 
               {/* B: DIF-SASRec input sequence strip */}
@@ -693,9 +699,11 @@ export default function App() {
                 );
               })()}
 
-              <div className="flex-1 overflow-y-auto space-y-2 pr-1">
+              <div className="flex-1 overflow-y-auto pr-1 pb-2">
                 {isLoadingRecs ? (
-                  [0,1,2,3].map(i => <SkeletonCard key={i} size="sm" />)
+                  <div className="grid grid-cols-2 gap-2">
+                    {[0,1,2,3].map(i => <SkeletonCard key={i} size="sm" />)}
+                  </div>
                 ) : recsError ? (
                   <div className={`p-4 rounded-xl border ${DIVIDER} text-center space-y-2`}>
                     <p className="text-[12px] font-medium text-red-500 dark:text-red-400">{recsError}</p>
@@ -708,13 +716,15 @@ export default function App() {
                     </button>
                   </div>
                 ) : (
-                  recommendations.combined?.map((book, i) => (
-                    <RecommendCard
-                      key={i} book={book} rank={i}
-                      onInteract={handleInteract} onAskAIStream={handleAskAIStream}
-                      isNew={newRecAsins.has(book.id)}
-                    />
-                  ))
+                  <div className="grid grid-cols-2 gap-2">
+                    {recommendations.combined?.map((book, i) => (
+                      <RecommendCard
+                        key={i} book={book} rank={i}
+                        onInteract={handleInteract} onAskAIStream={handleAskAIStream}
+                        isNew={newRecAsins.has(book.id)}
+                      />
+                    ))}
+                  </div>
                 )}
               </div>
             </div>
@@ -767,32 +777,8 @@ export default function App() {
                   <ProfileRadar interactions={interactions} />
                 </div>
 
-                {/* SASRec Training Feed */}
-                <div className={`p-3 ${CARD}`}>
-                  <div className="flex items-center justify-between mb-2">
-                    <p className="text-[10px] font-semibold tracking-widest uppercase text-[#627d9a] dark:text-[#babbbd]">Train Feed</p>
-                    <div className="flex items-center gap-1.5">
-                      <div className={`w-1.5 h-1.5 rounded-full ${rlStep > 0 ? "bg-emerald-500 live-dot" : "bg-[#babbbd] dark:bg-[#627d9a]"}`} />
-                      <span className="font-mono text-[#babbbd] dark:text-[#627d9a]" style={{ fontSize: 9 }}>{rlStep} steps</span>
-                    </div>
-                  </div>
-                  <div className="space-y-1.5 overflow-y-auto" style={{ maxHeight: 110 }}>
-                    {interactions.slice(0, 6).map((item, i) => (
-                      <div key={i} className="flex items-center gap-2 fade-in">
-                        <span className={`font-mono text-[9px] min-w-[60px] ${(item.action === "click" || item.action === "cart") ? "text-emerald-600 dark:text-emerald-400" : "text-red-500 dark:text-red-400"}`}>
-                          {(item.action === "click" || item.action === "cart") ? "▲ trained" : "▼ skipped"}
-                        </span>
-                        <span className="flex-1 truncate font-mono text-[9px] text-[#babbbd] dark:text-[#627d9a]">{item.title}</span>
-                      </div>
-                    ))}
-                    {interactions.length === 0 && (
-                      <p className="text-[10px] text-[#babbbd] dark:text-[#627d9a]">No interactions yet — click or skip items to train</p>
-                    )}
-                  </div>
-                </div>
-
                 {/* SASRec Loss */}
-                <div className={`p-3 ${CARD}`}>
+                <div className={`col-span-2 p-3 ${CARD}`}>
                   <div className="flex items-center justify-between mb-2">
                     <div>
                       {/* C: InfoTooltip explaining the pretraining→online drop */}
@@ -803,7 +789,6 @@ export default function App() {
                           formula="Pretrain loss ≠ Online loss scale"
                         />
                       </div>
-                      <p className="font-mono text-[9px] text-[#babbbd] dark:text-[#627d9a] mt-0.5">{rlMetrics.step} online steps</p>
                     </div>
                     <div className="flex items-center gap-2">
                       {/* D: training pulse badge */}

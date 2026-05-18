@@ -1,41 +1,30 @@
-// Stroke colors reference CSS variables defined in index.css so they adapt to dark mode
-// without needing JS-level theme awareness.
-const stroke = (pct) => {
-  if (pct > 85) return "var(--score-high)";
-  if (pct > 70) return "var(--score-mid)";
-  return "var(--score-low)";
-};
-
 export function ScoreBadge({ score, label }) {
   const pct = Math.round(score * 100);
+
+  const fillRgb = pct > 85 ? "16,185,129"   // emerald
+                : pct > 70 ? "245,158,11"    // amber
+                :            "98,125,154";   // slate
+
+  const fillColor   = `rgba(${fillRgb},0.28)`;
+  const borderColor = `rgba(${fillRgb},0.55)`;
+
   return (
-    <div className="flex flex-col items-center">
-      <div className="relative w-10 h-10">
-        <svg className="w-10 h-10 -rotate-90" viewBox="0 0 36 36">
-          <circle
-            cx="18" cy="18" r="14"
-            fill="none"
-            stroke="var(--score-track)"
-            strokeWidth="2.5"
-          />
-          <circle
-            cx="18" cy="18" r="14"
-            fill="none"
-            stroke={stroke(pct)}
-            strokeWidth="2.5"
-            strokeDasharray={`${pct * 0.88} 88`}
-            strokeLinecap="round"
-          />
-        </svg>
-        <span
-          className="absolute inset-0 flex items-center justify-center font-mono text-[#2e3257] dark:text-[#fffef7]"
-          style={{ fontSize: 9 }}
-        >
-          {pct}
-        </span>
-      </div>
-      <span className="text-[#babbbd] dark:text-[#627d9a] mt-0.5" style={{ fontSize: 9 }}>
-        {label}
+    <div
+      title={`${label}: ${pct}`}
+      className="relative flex items-center justify-center rounded-full overflow-hidden border flex-shrink-0"
+      style={{
+        height: 20,
+        minWidth: 68,
+        paddingInline: 8,
+        borderColor,
+        background: `linear-gradient(to right, ${fillColor} ${pct}%, transparent ${pct}%)`,
+      }}
+    >
+      <span
+        className="font-mono font-semibold text-[#2e3257] dark:text-[#fffef7] whitespace-nowrap select-none"
+        style={{ fontSize: 10, letterSpacing: "0.02em", textShadow: "0 0 6px rgba(255,255,255,0.6)" }}
+      >
+        {label} · {pct}
       </span>
     </div>
   );
