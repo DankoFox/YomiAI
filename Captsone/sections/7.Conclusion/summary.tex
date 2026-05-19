@@ -16,13 +16,14 @@ Parallel text and CLIP encoding was achieved via an \texttt{anyio} task group.
 The flat FAISS index was replaced by a dual HNSW/flat strategy loaded via memory mapping, and a three-stage incremental Cleora refit pipeline was introduced to incorporate new interactions without restarting the server.
 
 Chapter~5 evaluated these changes quantitatively.
-The combined system achieves HR@10 = 0.9736 and NDCG@10 = 0.5571 on 100{,}000 held-out test users, a 124\% improvement in HR@10 over the Content Baseline (0.4346) and an 843\% improvement over GRU-SeqDQN (0.1031).
-The result is stable across five random evaluation seeds (standard deviation $\sigma = 0.0024$).
-Multilingual search performance reached Precision@10 = 0.5500 on long Vietnamese queries under BGE-M3, compared to 0.0500 under BLaIR — an 11$\times$ improvement.
-End-to-end warm-cache search latency was reduced from 1{,}102\,ms to 59\,ms, an 18.6$\times$ improvement.
+Pipeline~A (Cleora + BGE-M3) achieves HR@10 = 0.9047 and Pipeline~B (DIF-SASRec) achieves HR@10 = 0.7745 on 100{,}000 held-out test users, both substantially above the Content Baseline (0.4346) and the prior GRU-SeqDQN approach (0.1031).
+The DIF-SASRec result is stable across five random evaluation seeds (standard deviation $\sigma = 0.0024$).
+Multilingual search performance reached Precision@10 = 0.55 on long Vietnamese queries under BGE-M3, compared to 0.05 under BLaIR.
+Warm-cache end-to-end search latency was reduced from 1{,}102\,ms to 59\,ms.
 
-Chapter~6 presented the deployed book discovery application, demonstrating the end-to-end integration of all components: the login gate, the multimodal search interface (text, image, and fused), the dual-panel recommendation view with the DIF-SASRec input-sequence strip, the real-time profile panel with the Bellman-error loss sparkline, and the streaming Qwen2.5 book assistant.
+Chapter~6 presented the deployed book discovery application, demonstrating the end-to-end integration of all components: the login gate, the multimodal search interface (text, image, and fused), the dual-panel recommendation view with the DIF-SASRec input-sequence strip, the real-time profile panel with the training loss sparkline, and the streaming Qwen2.5 book assistant.
 
+---
 
 \section{Evaluation of Objectives}
 \label{sec:conclusion_objectives}
@@ -39,11 +40,11 @@ Table~\ref{tab:objectives} evaluates each objective stated in Section~\ref{sec:g
 \hline
 Design a dual-mode recommendation pipeline (Pipeline~A + Pipeline~B) &
 Met &
-Table~\ref{tab:main_results}: System ($A \cup B$) HR@10 = 0.9736, NDCG@10 = 0.5571 \\
+Table~\ref{tab:main_results}: Pipeline~A HR@10 = 0.9047, Pipeline~B HR@10 = 0.7745 \\
 
 Achieve substantial improvement over the prior GRU-SeqDQN baseline &
 Met &
-HR@10 increased from 0.1031 (GRU-SeqDQN) to 0.9736 (proposed), an 843\% improvement (Table~\ref{tab:main_results}) \\
+HR@10 increased from 0.1031 (GRU-SeqDQN) to 0.9047 (Pipeline~A) and 0.7745 (Pipeline~B), Table~\ref{tab:main_results} \\
 
 Enable multilingual semantic search with $\geq 5\times$ Precision@10 improvement on Vietnamese queries &
 Met &
@@ -51,7 +52,7 @@ Precision@10 on long Vietnamese queries: 0.0500 (BLaIR) $\to$ 0.5500 (BGE-M3), a
 
 Reduce warm-cache end-to-end search latency below 100\,ms &
 Met &
-Latency reduced from 1{,}102\,ms to 59\,ms (18.6$\times$ improvement, Table~\ref{tab:latency_stages}) \\
+Latency reduced from 1{,}102\,ms to 59\,ms (warm cache), Table~\ref{tab:latency_stages} \\
 
 Deploy an interactive application integrating all platform components &
 Met &
@@ -61,8 +62,9 @@ Chapter~6 presents the deployed book discovery application combining multimodal 
 \end{table}
 
 All five objectives are met.
-The most significant result is the HR@10 improvement from 0.1031 to 0.9736, which closes the gap between the prior near-random recommender and a system capable of correctly identifying the relevant item in 97.4\% of test cases.
+The clearest improvement is in recommendation quality: the prior GRU-SeqDQN approach scored HR@10 = 0.1031, near random, while Pipeline~A reaches 0.9047 and Pipeline~B reaches 0.7745 on the same test set.
 
+---
 
 \section{Research Contributions}
 \label{sec:contributions}
@@ -87,8 +89,8 @@ This project makes the following specific technical contributions:
     The frontend exposes two recommendation panels that directly mirror the two backend pipelines, with per-card layer tags (\textit{Cleora\,+\,BGE-M3}, \textit{Cleora\,+\,CLIP}, \textit{DIF-SASRec}) and the DIF-SASRec input-sequence strip.
     This design makes the recommendation provenance visible to users and provides a basis for future A/B testing of pipeline variants.
 
-    \item \textbf{Bellman-error loss sparkline as training transparency.}
-    A live SVG sparkline in the right-panel profile view plots the full per-user Bellman-error loss history with an annotated phase boundary between pretraining and online fine-tuning.
+    \item \textbf{training loss sparkline as training transparency.}
+    A live SVG sparkline in the right-panel profile view plots the full per-user training loss history with an annotated phase boundary between pretraining and online fine-tuning.
     This provides immediate, per-interaction visual confirmation that the DIF-SASRec model has updated — a transparency mechanism with no equivalent in existing open-source recommendation systems.
 
     \item \textbf{BGE-M3-based semantic re-ranking for LLM grounding.}
@@ -96,6 +98,7 @@ This project makes the following specific technical contributions:
     This suppresses author biography sentences and marketing language without requiring a separate re-ranking model.
 \end{enumerate}
 
+---
 
 \section{Generalisation to Other Domains}
 \label{sec:generalisation}
@@ -131,6 +134,7 @@ The retrieval infrastructure (HNSW, RRF, NLLB, Tantivy, Redis, MongoDB) requires
 The encoder and model layers (BGE-M3, CLIP, DIF-SASRec) require re-embedding and retraining on domain-specific data, but the training code and serving infrastructure are reusable.
 Only the Cleora graph is tightly coupled to the co-purchase interaction pattern; an analogous collaborative signal (e.g., co-view, co-play, co-purchase in another product domain) would enable direct reuse.
 
+---
 
 \section{Limitations}
 \label{sec:conclusion_limitations}
@@ -159,6 +163,7 @@ Several limitations of the proposed system are identified.
     Cart contents are lost on page reload, preventing recovery of abandoned carts and limiting the cart signal from influencing Cleora graph updates across sessions.
 \end{itemize}
 
+---
 
 \section{Future Work}
 \label{sec:conclusion_future}

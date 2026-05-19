@@ -72,10 +72,9 @@ Five systems are compared to assess the contribution of each component:
 \begin{enumerate}
     \item \textbf{Random Baseline}: uniform random ranking over the $N+1$ candidates. Provides a lower bound.
     \item \textbf{Content Baseline}: mean pooling of BGE-M3 embeddings over the user's training sequence, followed by cosine similarity ranking. Represents a simple semantic profile without sequential modelling.
-    \item \textbf{GRU-SeqDQN}: a recurrent reinforcement-learning approach using a GRU-based policy network trained with Deep Q-Network objectives. Represents a prior sequential recommendation approach from the existing system.
+    \item \textbf{GRU-SeqDQN}: a recurrent reinforcement-learning approach using a GRU-based policy network trained with Deep Q-Network objectives. Represents the prior recommendation module.
     \item \textbf{DIF-SASRec (Pipeline B)}: the proposed Decoupled Intent-Feature Self-Attentive Recommendation model with separate content and category attention streams.
     \item \textbf{Pipeline A (Cleora + BGE-M3)}: behavioural co-purchase graph embeddings (Cleora) for candidate retrieval, re-ranked by BGE-M3 semantic similarity.
-    \item \textbf{System ($A \cup B$)}: the combined output of Pipeline A and Pipeline B, taking the union of their top-10 sets with RRF-based re-ranking ($k = 60$).
 \end{enumerate}
 
 \subsection{Model Configurations}
@@ -95,7 +94,7 @@ Architecture     & Decoupled Intent-Feature SASRec \\
 Transformer blocks & 4 \\
 Attention heads  & 8 \\
 Hidden dimension & 512 \\
-Max sequence length & 200 \\
+Max sequence length & 50 \\
 Parameters       & $\approx$12.4M \\
 Training users   & 100{,}000 (pretrained) \\
 Epochs           & 30 \\
@@ -105,7 +104,7 @@ Content veto $\tau$ & 0.3 (cosine threshold) \\
 \hline
 \multicolumn{2}{l}{\textit{Pipeline A — Cleora + BGE-M3}} \\
 Graph embedding  & Cleora (co-purchase behavioral graph) \\
-Cleora index size & 375{,}280 items \\
+Cleora index size & 375{,}439 items \\
 Profile encoder  & BGE-M3 (\texttt{BAAI/bge-m3}), 1{,}024-dim, fp16 \\
 FAISS index (prod.) & HNSW, 1.7M vectors \\
 FAISS index (eval.) & Flat exact, 3M vectors \\

@@ -64,7 +64,7 @@ The right panel contains two tabs: \textit{User Profile} and \textit{Activity Hi
 The \textit{User Profile} tab is arranged as a grid of three cards.
 The \textbf{Engagement Signals} card (full width) renders a \texttt{ProfileRadar} radar chart visualising five dimensions derived from the session's interaction history: click rate, cart rate, skip rate, interaction count, and recency.
 The \textbf{Train Feed} card lists the six most recent interactions with per-event outcome labels (\textit{trained} for clicks and carts, \textit{skipped} for skips) alongside a gradient-step counter.
-The \textbf{SASRec Loss} card renders an SVG sparkline of the full Bellman-error loss history as a filled area chart.
+The \textbf{SASRec Loss} card renders an SVG sparkline of the full training loss history as a filled area chart.
 A dashed divider marks the boundary between the pretraining phase and the online fine-tuning phase; an information tooltip beside the chart title explains the expected loss-scale drop between the two phases.
 When a gradient step fires, a transient loss-decrease badge is displayed for 2.5 seconds beside the current loss value, providing immediate confirmation that the model has updated.
 

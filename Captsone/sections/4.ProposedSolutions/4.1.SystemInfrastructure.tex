@@ -101,9 +101,9 @@ Figure~\ref{fig:new_system_overview} shows the revised architecture.
   \node[anchor=south west, font=\sffamily\bfseries\color{gray!70}]
         at ([shift={(-5pt,2pt)}]bg_rep.north west)    {Phase 1};
   \node[anchor=south west, font=\sffamily\bfseries\color{blue!50}]
-        at ([shift={(-5pt,2pt)}]bg_search.north west) {Phase 2A};
+        at ([shift={(-5pt,2pt)}]bg_search.north west) {Pipeline A};
   \node[anchor=south west, font=\sffamily\bfseries\color{green!60!black}]
-        at ([shift={(-5pt,2pt)}]bg_rec.north west)    {Phase 2B};
+        at ([shift={(-5pt,2pt)}]bg_rec.north west)    {Pipeline B};
 \end{pgfonlayer}
 
 \end{tikzpicture}%
@@ -165,7 +165,7 @@ A three-stage translation pipeline is inserted before the BGE-M3 encoding step i
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=0.88\textwidth]{images/chapter4/fig_translation_pipeline}
+\includegraphics[width=0.55\textwidth]{images/chapter4/fig_translation_pipeline}
 \caption{NLLB-200 translation pipeline. Language detection (lingua, $< 1$\,ms), greedy translation, and a quality gate that retries with beam search if the first pass leaves source-language tokens in the output.}
 \label{fig:translation_pipeline}
 \end{figure}
@@ -192,18 +192,19 @@ The revised search route runs them concurrently using an \texttt{anyio} task gro
 
 Both tasks are submitted to the task group simultaneously; the route waits only for the slower of the two before proceeding to the FAISS and Tantivy retrieval stages.
 For text-only queries, the CLIP task is skipped.
-The combined effect of the encoder upgrade, HNSW index, and parallelisation reduces end-to-end warm-cache search latency from 1{,}102 ms to 59 ms — an 18.6$\times$ improvement (Table~\ref{tab:latency_stages}).
+The combined effect of the encoder upgrade, HNSW index, and parallelisation reduces end-to-end warm-cache search latency from 1{,}102 ms to 59 ms (Table~\ref{tab:latency_stages}).
 
 \subsection{Dual-Mode Recommendation Architecture}
 \label{sec:dual_mode_rec}
 
-The GRU-SeqDQN recommendation module is replaced by a two-pipeline architecture mapped to two distinct UI panels: \textit{People Also Buy} (Pipeline~A) and \textit{You Might Like} (Pipeline~B).
+The recommendation backend uses two independent pipelines: Pipeline~A (People Also Buy) and Pipeline~B (You Might Like).
+Both return their top 10 items and are displayed side by side in a two-column panel.
 Figure~\ref{fig:rec_funnel} illustrates the recommendation funnel.
 
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.90\textwidth]{images/chapter4/fig_rec_funnel}
-\caption{Dual-mode recommendation funnel. Pipeline~A (behavioural) and Pipeline~B (sequential) run independently and serve distinct UI panels. Cold-start users (fewer than 5 interactions) receive items sampled from the Cleora catalogue.}
+\caption{Dual-mode recommendation funnel. Pipeline~A (behavioural) and Pipeline~B (sequential) run independently and each return top 10 items, displayed side by side in the interface. Cold-start users (fewer than 5 interactions) receive items sampled from the Cleora catalogue.}
 \label{fig:rec_funnel}
 \end{figure}
 
@@ -214,8 +215,10 @@ These candidates are then re-ranked by cosine similarity to the profile vector a
 
 \paragraph{Pipeline B — DIF-SASRec (You Might Like) —}
 An \texttt{AgentPool} of 8 isolated DIF-SASRec agents handles concurrent personalisation requests.
-Each agent loads the per-user checkpoint from disk, runs inference over the user's recent interaction sequence, and applies the content veto filter ($\tau = 0.3$ cosine threshold) to remove semantically unrelated candidates.
-Per-user online fine-tuning is triggered at every click or cart interaction, updating the personal checkpoint via a Bellman-error training step.
+For each request, the user's BGE-M3 profile vector is used to retrieve 200 candidate items from the HNSW index.
+Those candidates pass through the same content veto filter ($\tau = 0.3$) as Pipeline~A.
+The surviving candidates are then scored by DIF-SASRec: an agent loads the user's personal checkpoint, runs a forward pass over the recent click sequence to produce an intent vector, and ranks candidates by dot product against that vector.
+Per-user fine-tuning is triggered at every click or cart event, updating the personal checkpoint via a sampled softmax gradient step.
 
 \paragraph{Cold-start handling —}
 Users with fewer than \texttt{COLD\_START\_THRESHOLD} = 5 interactions bypass both pipelines.

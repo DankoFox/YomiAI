@@ -34,7 +34,7 @@ GET  & \texttt{/recommend}        & Dual-pipeline recommendations; returns \text
 POST & \texttt{/interact}         & Log a click, skip, or cart event; triggers a DIF-SASRec gradient step for click and cart; returns updated loss \\
 \hline
 \multicolumn{3}{l}{\textit{User profile}} \\
-GET  & \texttt{/profile}          & Return click sequence, session statistics (CTR, train steps, interactions), and Bellman-error loss history \\
+GET  & \texttt{/profile}          & Return click sequence, session statistics (CTR, train steps, interactions), and training loss history \\
 \hline
 \multicolumn{3}{l}{\textit{LLM assistant}} \\
 POST & \texttt{/ask\_llm\_stream} & Stream Qwen2.5 book description as SSE token chunks (\textbf{Genre}, \textbf{Plot Summary}, \textbf{Pitch}) \\
@@ -68,9 +68,9 @@ Table~\ref{tab:app_model_config} extends the model configuration summary in Tabl
 Transformer blocks      & 4 \\
 Attention heads         & 8 \\
 Hidden dimension        & 512 \\
-Feed-forward dimension  & 2{,}048 \\
-Dropout rate            & 0.1 \\
-Max sequence length     & 200 \\
+Feed-forward dimension  & 1{,}024 \\
+Dropout rate            & 0.2 \\
+Max sequence length     & 50 \\
 Total parameters        & $\approx$12.4M \\
 \hline
 \multicolumn{2}{l}{\textit{DIF-SASRec — Pre-training}} \\
@@ -78,20 +78,20 @@ Training users          & 100{,}000 \\
 Epochs                  & 30 \\
 Batch size              & 2{,}048 \\
 Optimiser               & AdamW \\
-Learning rate           & $10^{-4}$ with cosine annealing \\
+Learning rate           & $10^{-3}$ with cosine annealing \\
 Weight decay            & 0.01 \\
 Hard negatives per step & 512 \\
 \hline
 \multicolumn{2}{l}{\textit{DIF-SASRec — Online fine-tuning}} \\
-Trigger events          & click (reward 1.0), cart (reward 5.0) \\
+Trigger events          & click, cart (skip events are not used for training) \\
 Gradient steps per event & 1 \\
-Online learning rate    & $10^{-5}$ \\
+Learning rate           & $10^{-3}$ (same AdamW optimizer as pretraining) \\
 Negative sample pool    & full 3M-item catalogue \\
 Checkpoint format       & per-user \texttt{.pt} file (disk) \\
 \hline
 \multicolumn{2}{l}{\textit{FAISS HNSW index (production)}} \\
 Dimension               & 1{,}024 (BGE-M3) \\
-Vectors                 & 1{,}742{,}826 \\
+Vectors                 & 1{,}732{,}910 \\
 HNSW $M$                & 32 \\
 $\mathit{efConstruction}$ & 200 \\
 Recall vs.\ flat index  & 0.521 \\
@@ -105,7 +105,7 @@ P50 search latency      & 612.19\,ms \\
 \multicolumn{2}{l}{\textit{Cleora graph embedding}} \\
 Graph type              & Co-purchase bipartite graph \\
 Embedding dimension     & 1{,}024 \\
-Items covered           & 375{,}280 \\
+Items covered           & 375{,}439 \\
 Refit threshold         & 50 new interactions \\
 Refit stages            & delta export $\to$ augment $\to$ hot-swap \\
 \hline

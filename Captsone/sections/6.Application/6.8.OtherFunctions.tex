@@ -20,7 +20,7 @@ The cart interaction also dispatches a cart event to the \texttt{POST /interact}
 
 The \texttt{POST /interact} endpoint accepts \texttt{user\_id}, \texttt{item\_id}, and \texttt{action} (\texttt{click}, \texttt{skip}, or \texttt{cart}).
 The backend assigns the corresponding reward, updates the in-memory user profile, and pushes the event to the Redis queue for asynchronous MongoDB persistence.
-For click and cart actions, the endpoint borrows a DIF-SASRec agent from the pool, loads the user's personal checkpoint, runs a Bellman-error gradient step, saves the updated checkpoint, and returns the resulting \texttt{sasrec\_loss} value.
+For click and cart actions, the endpoint borrows a DIF-SASRec agent from the pool, loads the user's personal checkpoint, runs one sampled softmax gradient step, saves the updated checkpoint, and returns the resulting \texttt{sasrec\_loss} value.
 The frontend appends this loss value to the sparkline immediately on response, providing sub-second visual feedback that the model has updated.
 
 \subsection{Mock/Live Mode}

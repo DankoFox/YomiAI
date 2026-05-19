@@ -17,7 +17,7 @@ The model is trained on historical Amazon Reviews 2023 Books interactions using 
 \label{sec:train_run1}
 
 The first run established a working baseline using a lightweight 2-block architecture trained on 20{,}000 users.
-Users were selected from the Books 5-core subset of the Amazon Reviews 2023 dataset~\cite{hou2024blair}, filtered to items present in the FAISS index, and split by leave-one-out: each user's last interaction is held out as the test item, the preceding sequence is used for training.
+Users were selected from the Books 5-core subset of the Amazon Reviews 2023 dataset, filtered to items present in the FAISS index, and split by leave-one-out: each user's last interaction is held out as the test item, the preceding sequence is used for training.
 
 \begin{table}[H]
 \centering
@@ -158,47 +158,10 @@ Run~3 (Apr~12) & 12.4M & 100k & 33.5   & \textbf{0.7745} & \textbf{0.5029} \\
 
 \subsection{Training Loss vs.\ Benchmark Quality}
 
-A superficial reading of the final training losses — 3.35 (Run~1), 3.06 (Run~2), 5.34 (Run~3) — would suggest that Run~3 was the weakest of the three.
-In fact it is the strongest by a wide margin (HR@10 = 0.7745).
-Three separate factors explain why the raw loss numbers are misleading.
-
-\textbf{Different random baselines.}
-The training loss is sampled softmax over $K+1$ items (1 positive + $K$ negatives).
-For a uniformly random model, the expected loss is $\ln(K+1)$.
-Runs~1 used $K=256$ negatives (random baseline $= \ln(257) \approx 5.55$), while Runs~2 and~3 used $K=512$ negatives (random baseline $= \ln(513) \approx 6.24$).
-Comparing absolute losses across different $K$ values therefore conflates model quality with task difficulty.
-Table~\ref{tab:loss_normalised} reports each run's loss \emph{as a fraction of its own random baseline}, a scale-free measure of how much the model improved over chance.
-
-\begin{table}[H]
-\centering
-\caption{Training loss normalised by the random baseline $\ln(K+1)$ for each run.}
-\label{tab:loss_normalised}
-\begin{tabular}{lrrrr}
-\hline
-\textbf{Run} & \textbf{Negatives $K$} & \textbf{Random baseline} & \textbf{Final loss} & \textbf{Loss / baseline} \\
-\hline
-Run~1 & 256 & $\ln(257) \approx 5.55$ & 3.35 & 60.4\% \\
-Run~2 & 512 & $\ln(513) \approx 6.24$ & 3.06 & 49.0\% \\
-Run~3 & 512 & $\ln(513) \approx 6.24$ & 5.34 & 85.6\% \\
-\hline
-\end{tabular}
-\end{table}
-
-By this normalised measure, Run~2 appears to have the best discrimination (49\% of random), yet it produced the worst benchmark.
-
-\textbf{Overfitting inflates apparent training quality.}
-Run~2 trained a 12.4M-parameter model on only 20{,}000 unique users — the same population as Run~1.
-With 5$\times$ more parameters and an identical data distribution, the model was able to partially memorise the training sequences.
-A model that has memorised its training data will show a very low training loss while generalising poorly to held-out users, which is precisely what Run~2's HR@10 = 0.1950 reveals.
-Run~3's higher normalised loss (85.6\%) is not a sign of weakness — it is the expected signature of a model that is fitting 100{,}000 \emph{diverse} users and cannot take a shortcut by memorisation.
-
-\textbf{Training and evaluation measure different tasks.}
-The training loss requires the model to rank the true next item at position~1 among $K+1$ candidates — an extremely hard task.
-The evaluation protocol only requires the item to appear in the top~10 among 100 candidates (1 positive + 99 random negatives).
-A model that cannot consistently top-rank among 513 items can still achieve excellent HR@10 when evaluated against only 99 random negatives, because the evaluation pool is both smaller and randomly composed rather than adversarially hard.
-
-Taken together, these three factors explain the seemingly paradoxical result: the run with the highest absolute training loss (Run~3, 5.34) produced the best recommendation quality (HR@10 = 0.7745), while the run with the lowest training loss (Run~2, 3.06) produced the worst (HR@10 = 0.1950).
-The lesson is that training loss should always be interpreted relative to the random baseline for the specific negative sampling configuration, and that a generously low loss in a low-data regime is more likely to signal overfitting than genuine capability.
+The final training losses across the three runs — 3.35 (Run~1), 3.06 (Run~2), 5.34 (Run~3) — cannot be compared directly.
+Runs~1 and~2 used different negative pool sizes than Run~3, which changes the scale of the loss function.
+More importantly, Run~2's low loss reflects overfitting to a small dataset, not genuine improvement.
+HR@10 on held-out users is the reliable measure; training loss is reported in the tables above for completeness only.
 
 \subsection{Final Checkpoint}
 

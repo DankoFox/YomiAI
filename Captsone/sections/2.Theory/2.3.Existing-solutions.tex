@@ -24,7 +24,8 @@ Xie et al.~\cite{xie2022difsasrec} observed that prior methods fuse side informa
 DIF-SASRec decouples these streams into separate attention modules and shows consistent gains over SASRec and BERT4Rec across multiple datasets.
 This architecture is adopted as Pipeline~B of the proposed system.
 
-\subsection{Limitations of Early Fusion Side Information Models}
+\subsection{ Limitations of Early Fusion Side Information Models
+}
 
 Early side information-aware recommendation models typically incorporate textual or categorical metadata by merging side information embeddings with item embeddings before the self attention layer. This introduces several architectural limitations.
 
@@ -49,11 +50,11 @@ Table~\ref{tab:seq_model_comparison} summarises the key architectural properties
 \hline
 \textbf{Model} & \textbf{Encoder} & \textbf{Training} & \textbf{Side info} & \textbf{Cold-start} & \textbf{Online update} \\
 \hline
-GRU4Rec~\cite{hidasi2016gru4rec}    & GRU            & Sequential & None    & Poor   & Possible \\
-SASRec~\cite{kang2018self}          & Causal Attn    & Parallel   & None    & Poor   & Possible \\
-BERT4Rec~\cite{sun2019bert4rec}     & Bidir.\ Attn   & Masked     & None    & Poor   & Incompatible$^\dagger$ \\
+GRU4Rec  & GRU            & Sequential & None    & Poor   & Possible \\
+SASRec       & Causal Attn    & Parallel   & None    & Poor   & Possible \\
+BERT4Rec    & Bidir.\ Attn   & Masked     & None    & Poor   & Incompatible$^\dagger$ \\
 GRU-SeqDQN (prior)                  & GRU + DQN      & RL         & None    & Poor   & Online RL \\
-DIF-SASRec~\cite{xie2022difsasrec} & Decoupled Attn & Parallel   & Content + Category & Via content & Per-interaction \\
+DIF-SASRec & Decoupled Attn & Parallel   & Content + Category & Via content & Per-interaction \\
 \hline
 \multicolumn{6}{l}{\footnotesize $^\dagger$ BERT4Rec requires masked-item retraining; incremental online updates are not well-defined.} \\
 \end{tabular}

@@ -31,9 +31,9 @@ Total                           & 100{,}000 & 100\% \\
 \label{fig:complementarity}
 \end{figure}
 
-The majority of users (70.6\%) are served by both pipelines simultaneously, reflecting the strong individual performance of each.
-Pipeline A uniquely recovers 19{,}909 users (19.9\%) that Pipeline B misses, while Pipeline B uniquely recovers 6{,}893 users (6.9\%) that Pipeline A misses.
-The union therefore covers 97.4\% of test users (HR@10 = 0.9736), with only 2.6\% remaining unreachable by either pipeline.
+The majority of users (70.6\%) are served by both pipelines.
+Pipeline~A uniquely recovers 19{,}909 users (19.9\%) that Pipeline~B misses, while Pipeline~B uniquely recovers 6{,}893 users (6.9\%) that Pipeline~A misses.
+Together the two pipelines cover 97.4\% of test users, with only 2.6\% unreachable by either.
 
 \subsection{User Behaviour Archetypes}
 
@@ -78,7 +78,7 @@ Cross-domain genre shift         &   290  & 11.0\% & Profile and sequence reflec
 
 The dominant failure mode is the Cleora catalogue boundary: 45\% of unserved users have a target item that lies outside the 375{,}280-item co-purchase graph, making it unreachable by Pipeline~A entirely.
 If DIF-SASRec's sequential candidate also fails the content veto for the same user, the combined system returns no relevant result.
-The second largest category (24\%) is content veto over-filtering, where the DIF-SASRec prediction is plausibly relevant but the user's BGE-M3 profile vector — accumulated from earlier interactions in a different genre — does not align closely enough with the candidate.
+The second largest category (24\%) is content veto over-filtering, where the DIF-SASRec prediction is plausibly relevant but the user's BGE-M3 profile vector (accumulated from earlier interactions in a different genre) does not align closely enough with the candidate.
 Relaxing $\tau$ from 0.3 to 0.2 for users with fewer than 20 interactions would address a large portion of these cases (Section~\ref{sec:veto_sensitivity}).
 Sparse-history users (20\%) benefit least from either pipeline: DIF-SASRec requires a coherent sequence to attend over, and Cleora requires co-purchase connectivity.
 The cold-start threshold of 5 interactions prevents DIF-SASRec from activating prematurely, but users between 5 and 10 interactions remain at elevated failure risk.
@@ -95,23 +95,21 @@ The results are shown in Table~\ref{tab:perf_by_history}.
 \centering
 \caption{HR@10 by user interaction history quartile (100k users, $N=99$, seed=42).}
 \label{tab:perf_by_history}
-\begin{tabular}{lccccc}
+\begin{tabular}{lcccc}
 \hline
-\textbf{Quartile} & \textbf{Seq. length range} & \textbf{Users} & \textbf{Pipeline A} & \textbf{Pipeline B} & \textbf{$A \cup B$} \\
+\textbf{Quartile} & \textbf{Seq. length range} & \textbf{Users} & \textbf{Pipeline A} & \textbf{Pipeline B} \\
 \hline
-Q1 (sparse)   & $<$ 120       & 25{,}000 & 0.831 & 0.688 & 0.921 \\
-Q2            & 120 -- 260    & 25{,}000 & 0.899 & 0.759 & 0.968 \\
-Q3            & 261 -- 480    & 25{,}000 & 0.913 & 0.791 & 0.978 \\
-Q4 (dense)    & $>$ 480       & 25{,}000 & 0.927 & 0.836 & 0.988 \\
+Q1 (sparse)   & $<$ 120       & 25{,}000 & 0.831 & 0.688 \\
+Q2            & 120 -- 260    & 25{,}000 & 0.899 & 0.759 \\
+Q3            & 261 -- 480    & 25{,}000 & 0.913 & 0.791 \\
+Q4 (dense)    & $>$ 480       & 25{,}000 & 0.927 & 0.836 \\
 \hline
 \end{tabular}
 \end{table}
 
-Several patterns emerge.
-Pipeline~A (Cleora + BGE-M3) maintains strong performance even for sparse users (HR@10 = 0.831 in Q1), because the Cleora co-purchase graph encodes community-level co-occurrence that does not depend on the individual user's sequence length.
-Pipeline~B (DIF-SASRec) shows a steeper gradient across quartiles: HR@10 rises from 0.688 for sparse users to 0.836 for dense users, confirming that sequential modelling benefits more from longer, richer interaction histories.
-The combined system narrows the performance gap across quartiles: the Q1–Q4 spread for $A \cup B$ is only 0.067 (0.921 to 0.988), compared to 0.148 for Pipeline~B alone.
-This confirms that Pipeline~A acts as a reliable floor for sparse users while Pipeline~B provides additional signal for dense users — the complementarity is not merely additive but specifically compensatory.
+Pipeline~A holds up well even for sparse users (HR@10 = 0.831 in Q1) because the Cleora co-purchase graph encodes community-level co-occurrence that does not depend on how long an individual's interaction history is.
+Pipeline~B shows a steeper gradient: HR@10 rises from 0.688 for sparse users to 0.836 for dense users, as sequential modelling needs enough context to be useful.
+The gap between Q1 and Q4 is 0.096 for Pipeline~A and 0.148 for Pipeline~B, confirming that Pipeline~A is the more reliable floor for users with short histories.
 
 \subsection{Search Query Quality}
 

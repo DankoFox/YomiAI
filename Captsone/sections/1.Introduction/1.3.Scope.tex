@@ -6,12 +6,12 @@
 The following are within the scope of this project:
 
 \begin{itemize}
-    \item \textbf{Dataset}: The Amazon Book Reviews dataset~\cite{ni2019justifying}, comprising 3{,}080{,}829 catalogue items and 100{,}000 sampled evaluation users with held-out test interactions.
-    \item \textbf{Recommendation}: Offline evaluation of all proposed and baseline systems using sampled negative protocols ($N = 99$ and $N = 999$), reporting HR@$k$, NDCG@$k$, and MRR@$k$ at $k = 10$.
-    \item \textbf{Semantic search}: Text-based retrieval supporting English and Vietnamese queries, evaluated through a manually curated query set covering five query-type groups.
-    \item \textbf{Visual search}: CLIP-based image embedding index for cover-image search over the full 3M-item catalogue.
-    \item \textbf{Latency evaluation}: End-to-end profiling of the search pipeline under warm- and cold-cache conditions.
-    \item \textbf{Application deployment}: Full deployment of the data platform as an interactive book discovery application, integrating multimodal search, dual-pipeline recommendations, online DIF-SASRec fine-tuning, and a streaming LLM assistant.
+    \item \textbf{Dataset}: The Amazon Book Reviews dataset, comprising 3{,}080{,}829 catalogue items and 100{,}000 sampled evaluation users with held-out test interactions.
+    \item \textbf{Recommendation}: Two independent recommendation pipelines: Pipeline~A using Cleora behavioural graph embeddings re-ranked by BGE-M3 profile similarity, and Pipeline~B using DIF-SASRec sequential modelling with per-user online fine-tuning.
+    \item \textbf{Semantic search}: Text based retrieval supporting English and Vietnamese queries, evaluated through a manually curated query set covering five query type groups.
+    \item \textbf{Visual search}: CLIP based image embedding index for cover image search over the full 3M item catalogue.
+    \item \textbf{Latency evaluation}: End to end profiling of the search pipeline under warm and cold cache conditions.
+    \item \textbf{Application deployment}: Full deployment of the data platform as an interactive book discovery application, integrating multimodal search, dual pipeline recommendations, online DIF-SASRec fine tuning, and a streaming LLM assistant.
     \item \textbf{System implementation}: A FastAPI backend with a React frontend, deployed locally via Docker.
 \end{itemize}
 
@@ -20,10 +20,11 @@ The following are within the scope of this project:
 The following are explicitly outside the scope of this project:
 
 \begin{itemize}
-    \item \textbf{Production-scale reinforcement learning}: Per-session online fine-tuning of DIF-SASRec via Bellman-error gradient steps is implemented. However, large-scale bandit or RL-based policy optimisation across concurrent users and distributed agents is not addressed.
+    \item \textbf{Large-scale online learning}: Per-user online fine-tuning of DIF-SASRec via sampled softmax gradient steps is implemented. The system does not address distributed policy optimisation across multiple concurrent users or multi-agent bandit settings.
     \item \textbf{A/B testing and user studies}: No live user experimentation or subjective preference evaluation is conducted. All evaluation is offline.
-    \item \textbf{Production-scale deployment}: The system is evaluated on a single machine. Distributed deployment, load balancing, and horizontal scaling are not addressed.
-    \item \textbf{Collaborative filtering beyond Cleora}: Traditional matrix-factorisation or neighbourhood-based collaborative filtering methods are not included; the behavioural signal is provided solely through the Cleora graph embedding.
-    \item \textbf{Cross-domain recommendation}: The recommendation evaluation covers the book domain only; transfer to other product categories is not evaluated.
+    \item \textbf{Production scale deployment}: The system is evaluated on a single machine. Distributed deployment, load balancing, and horizontal scaling are not addressed.
+    \item \textbf{Collaborative filtering beyond Cleora}: Traditional matrix factorization and neighborhood based collaborative filtering methods are not used; user behavior is represented only through the Cleora graph embedding.
+    
+    \item \textbf{Cross domain recommendation}: The recommendation evaluation covers the book domain only; transfer to other product categories is not evaluated.
 \end{itemize}
 

@@ -123,12 +123,12 @@ Cold cache           & 185.25 ms & 37.16 ms & 1{,}186.66 ms & 1{,}204.11 ms \\
 \begin{figure}[H]
 \centering
 \includegraphics[width=\textwidth]{images/chapter5/fig_search_pipeline_latency}
-\caption{End-to-end search pipeline latency by optimisation stage (stacked bars: translation, BGE-M3 encoding, and FAISS + RRF overhead). The dominant baseline bottleneck (translation, 204 ms) was reduced to under 2 ms through model quantisation and warm caching, achieving an 18.6$\times$ overall latency reduction (1{,}102 ms $\to$ 59 ms, warm cache).}
+\caption{End-to-end search pipeline latency by optimisation stage (stacked bars: translation, BGE-M3 encoding, and FAISS + RRF overhead). The dominant baseline bottleneck was translation at 204 ms; model quantisation and warm caching bring it under 2 ms.}
 \label{fig:pipeline_latency}
 \end{figure}
 
-The combined optimisations reduce warm-cache E2E latency from 1{,}102 ms to 59 ms — an \textbf{18.6$\times$ improvement}.
-Cold-cache latency (e.g., after process restart) remains around 1{,}200 ms due to NLLB model cold-start; subsequent queries benefit from the warm cache immediately.
+The combined optimisations reduce warm-cache E2E latency from 1{,}102 ms to 59 ms.
+Cold-cache latency (after process restart) stays around 1{,}200 ms due to NLLB model cold-start; subsequent queries benefit from the warm cache immediately.
 BGE-M3 encoding on CUDA shows stable latency: P50 = 19.68 ms, P95 = 30.65 ms, P99 = 34.87 ms (60-query benchmark).
 
 \subsection{Ablation Study}
@@ -150,19 +150,16 @@ Random Baseline                       & 0.1000 & 0.0454 \\
 Content Baseline (BGE-M3 profile)     & 0.4353 & 0.3030 \\
 GRU-SeqDQN                            & 0.0823 & 0.0368 \\
 DIF-SASRec (early checkpoint)         & 0.4836 & 0.3737 \\
-Pipeline A (Cleora + BGE-M3)          & 0.7626 & 0.4867 \\
-System ($A \cup B$, final)            & \textbf{0.9736} & \textbf{0.5571} \\
+Pipeline A (Cleora + BGE-M3)          & \textbf{0.7626} & \textbf{0.4867} \\
 \hline
 \end{tabular}
 \end{table}
 
-Several observations follow.
-First, the GRU-SeqDQN model (HR@10 = 0.0823) performs near random-baseline level, confirming that the prior RL-based approach was inadequate for this catalogue scale.
-Second, the Content Baseline achieves a strong HR@10 of 0.4353, demonstrating that BGE-M3 profile similarity alone is a competitive starting point.
-Third, Pipeline A (Cleora + BGE-M3) substantially outperforms all sequential methods in this ablation (HR@10 = 0.7626), showing the power of the behavioural co-purchase graph for candidate filtering.
-Fourth, the final System ($A \cup B$) brings HR@10 to 0.9736, confirming the complementary nature of the two pipelines.
+GRU-SeqDQN (HR@10 = 0.0823) scores below random baseline, confirming the prior approach did not work at this catalogue scale.
+The Content Baseline (HR@10 = 0.4353) shows that a plain BGE-M3 profile mean-pool is already a decent starting point.
+Pipeline A (Cleora + BGE-M3) reaches HR@10 = 0.7626 in this run, demonstrating that the co-purchase graph adds substantial signal on top of semantic similarity alone.
 
-\textit{Note}: The DIF-SASRec result in Table~\ref{tab:ablation} (0.4836) reflects an earlier model checkpoint.
+\textit{Note}: The DIF-SASRec result here (0.4836) is from an earlier model checkpoint run in the same ablation pass.
 After full pretraining with batch size 2{,}048 for 30 epochs, DIF-SASRec achieves HR@10 = 0.7745 in the canonical evaluation (Section~\ref{sec:end_to_end}).
 
 \subsection{Content Veto Threshold Sensitivity}
@@ -193,7 +190,7 @@ $\tau$ & \textbf{Candidates passing veto (\%)} & \textbf{Pipeline~B HR@10} \\
 
 HR@10 peaks at $\tau = 0.3$ (0.774), where 61\% of candidates pass the filter.
 Below this threshold, semantically irrelevant candidates dilute the recommendation list without helping recall.
-Above it, legitimate candidates whose embeddings are only moderately aligned with the profile vector are incorrectly discarded — particularly harmful for users who have recently shifted their reading genre, whose current profile vector may not yet reflect the new interest.
+Above it, legitimate candidates with moderately aligned embeddings are discarded, which is particularly harmful for users who have recently shifted their reading genre and whose profile vector has not yet caught up.
 The result confirms $\tau = 0.3$ as the balanced operating point.
 
 \subsection{DIF-SASRec Sequence Length Sensitivity}
@@ -220,6 +217,6 @@ To assess whether this cap is appropriate, Pipeline~B was evaluated with four tr
 \end{table}
 
 Performance improves steadily from length 10 to 50, confirming that the model benefits from additional context.
-Beyond 50, the gain is marginal (0.774 vs.\ 0.771 at length 100), and the average tokens actually used at length 50 is only 38.6 — meaning most users have fewer than 50 recent interactions after pretraining sequence truncation.
+Beyond 50, the gain is marginal (0.774 vs.\ 0.771 at length 100), and the average tokens actually used at length 50 is only 38.6, so most users have fewer than 50 recent interactions after pretraining sequence truncation.
 Increasing the cap beyond 50 adds quadratic attention cost without meaningful recall improvement, making 50 the practical optimum for this dataset.
 Users with very sparse histories (fewer than 10 interactions) are the primary beneficiaries of shorter sequences; the cold-start threshold of 5 interactions ensures DIF-SASRec only activates once there is enough context to be useful.

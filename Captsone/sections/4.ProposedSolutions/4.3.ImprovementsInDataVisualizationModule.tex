@@ -8,45 +8,39 @@ The revised frontend addresses all three through asynchronous loading patterns, 
 \label{sec:skeleton_loading}
 
 In the prior system, the React component tree rendered synchronously: the search view blocked the main thread while awaiting the API response, producing a visibly frozen interface during the 1{,}102 ms baseline latency window.
-The revised implementation transitions all data-fetching calls to non-blocking \texttt{async}/\texttt{await} handlers managed by React state.
-While a request is in flight, the result area is replaced by a configurable number of \texttt{SkeletonCard} placeholder elements — animated loading stubs that match the dimensions of the real result cards.
-The user therefore sees immediate visual feedback and can continue interacting with other parts of the interface while the response is pending.
-This pattern is applied uniformly to the search result list (four skeleton cards during query processing), the recommendation panels (four skeleton cards during profile loading), and the profile data fetch.
+The revised implementation uses non-blocking async handlers for all data-fetching calls.
+While a request is in flight, the result area is replaced by skeleton card placeholders that match the dimensions of the actual result cards.
+This pattern applies to the search result list, the recommendation panels, and the profile data fetch.
 
 \subsection{Dual Recommendation Panels}
 \label{sec:dual_panels}
 
 The prior recommendation panel was a single flat list with no indication of how or why items appeared.
-The revised panel exposes the two-pipeline architecture directly in the UI through a pair of sub-tabs.
+The revised panel presents both pipelines in a single two-column view: People Also Buy on the left (top 10 from Pipeline~A) and You Might Like on the right (top 10 from Pipeline~B).
+Each card carries a label showing which model produced it (Cleora + BGE-M3 or DIF-SASRec), so the source of each recommendation is visible.
 
-
-The \textit{People Also Buy} sub-tab renders the output of Pipeline~A: Cleora co-purchase neighbours re-ranked by the user's BGE-M3 profile vector.
-The \textit{You Might Like} sub-tab renders Pipeline~B output from the DIF-SASRec \texttt{AgentPool}.
-Each recommendation card carries a pipeline label (e.g., \texttt{Cleora + BGE-M3} or \texttt{DIF-SASRec}) so users can see which model generated each suggestion.
-
-A mode status pill above the sub-tabs reflects the personalisation state returned by the \texttt{/recommend} endpoint.
-Cold-start users (fewer than \texttt{COLD\_START\_THRESHOLD} = 5 interactions) see a grey \textit{Discovery mode} badge; once the threshold is crossed, the pill transitions to a green live-dot \textit{DIF-SASRec active} badge with a toast notification informing the user that personalised ranking has engaged.
-When new items appear in \textit{You Might Like} after a refresh, those cards are briefly highlighted with a new-badge for four seconds, making it visually clear that the personalisation has updated.
+A mode status indicator above the panel reflects the personalisation state from the \texttt{/recommend} endpoint.
+Users with fewer than 5 interactions see a Discovery mode badge; once that threshold is crossed, it switches to a DIF-SASRec active badge and a toast notification confirms that personalised ranking is running.
+New cards appearing after a refresh are highlighted for four seconds to make it clear the recommendations have updated.
 
 \subsection{Online Training Visualisation}
 \label{sec:training_viz}
 
-A dedicated profile panel on the right half of the interface exposes the online learning state in real time.
-The \texttt{ProfileRadar} component renders a radar chart of engagement signals derived from the user's interaction history (click rate, cart rate, skip rate, interaction count, and recency), giving a compact visual fingerprint of revealed preferences.
+A profile panel on the right side of the interface shows the online learning state in real time.
+A radar chart (Engagement Signals) summarises five dimensions from the user's interaction history: click rate, cart rate, skip rate, interaction count, and recency.
 
-A \textit{Train Feed} widget lists the six most recent interactions alongside a per-event training outcome: click and cart events are labelled \texttt{▲ trained} in green, while skip events are labelled \texttt{▼ skipped} in red.
-Below it, a \textit{SASRec Loss} sparkline plots the full Bellman-error loss history as a filled area chart.
-The sparkline annotates the boundary between the pretraining phase (checkpoint-loaded loss, higher scale) and the online fine-tuning phase (per-user gradient steps, lower scale) with a dashed divider, as the loss scales differ between the two phases due to the change in negative sampling strategy.
-When a click or cart event triggers a gradient step, the most recent loss value is flashed as a transient badge (\texttt{↓ 0.xxx trained}) for 2.5 seconds, providing immediate feedback that the model updated.
+Below the radar chart, a SASRec Loss sparkline plots the training loss history as a filled area chart.
+A dashed divider marks the boundary between the pretraining phase and the online fine-tuning phase, since the two phases use different negative pool sizes and the loss scales differ.
+When a click or cart event triggers a gradient step, the latest loss value appears briefly as a badge for 2.5 seconds, confirming that the model updated.
 
 \subsection{Multimodal Search Interface}
 \label{sec:multimodal_ui}
 
-The search view now accepts both text queries and image queries from a single input area.
-Below the text field, an image drop zone accepts drag-and-drop or file-picker uploads; on image load, the zone transitions from a dashed placeholder to a preview thumbnail with a label confirming that the CLIP encoder will process it.
-Text-only queries bypass the CLIP branch; image-only queries bypass the text encoder; both can be supplied simultaneously for a fused retrieval.
-Search results remain hidden behind skeleton cards until the API response arrives, then replace the skeletons without a page reload or scroll reset.
+The search view accepts both text and image queries from a single input area.
+An image drop zone below the text field accepts drag-and-drop or file-picker uploads and shows a preview thumbnail on load.
+Text-only queries bypass the CLIP branch; image-only queries bypass the text encoder; both can be combined for fused retrieval.
+Results replace the skeleton placeholders in place, with no page reload.
 
-A dark mode toggle in the header applies a site-wide colour scheme switch (light to dark and back) using Tailwind CSS \texttt{dark:} variants and a \texttt{document.documentElement} class toggle, with no page reload required.
-A persistent \textit{Recently Viewed} strip in the header displays book cover thumbnails from the user's interaction history, providing a continuous navigation context.
-Toast notifications confirm every significant action — search completion, cart addition, model update, and cold-start-to-personalised transition — using a 3-second auto-dismiss overlay rack in the top-right corner.
+A dark mode toggle in the header applies a site-wide colour scheme switch using Tailwind CSS dark-mode variants, with no page reload required.
+A Recently Viewed strip in the header shows book cover thumbnails from the user's interaction history.
+Toast notifications confirm significant actions (search completion, cart addition, model update) using a 3-second auto-dismiss overlay in the top-right corner.

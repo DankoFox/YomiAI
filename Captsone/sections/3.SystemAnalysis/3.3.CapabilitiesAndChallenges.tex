@@ -35,13 +35,11 @@ Table~\ref{tab:challenges} summarises the principal limitations identified throu
 \hline
 \textbf{Module} & \textbf{Challenge} & \textbf{Addressed in} \\
 \hline
-Data Ingestion    & Batch-only pipeline; no deduplication; no error recovery; shallow schema validation & Section~\ref{sec:ingestion_improvements} \\
-\hline
-Data Storage      & 612 ms P50 FAISS search latency; no programmatic indexes defined on MongoDB collections — full collection scans on all profile and interaction queries & Section~\ref{sec:storage_improvements} \\
+Data Storage      & 612 ms P50 FAISS search latency; no programmatic indexes on MongoDB collections, causing full collection scans on all profile and interaction queries & Section~\ref{sec:storage_improvements} \\
 \hline
 Data Visualisation & Synchronous rendering causes UI freezes on slow queries; no filtering or sorting controls; no multilingual input support & Section~\ref{sec:viz_improvements} \\
 \hline
-Recommendation    & GRU-SeqDQN HR@10 = 0.1031 (near random); no content feature integration; no behavioural graph signal; large action-space convergence failure & Sections~\ref{sec:infra_improvements}--\ref{sec:storage_improvements} \\
+Recommendation    & GRU-SeqDQN HR@10 = 0.1031 (near random); no content feature integration; no behavioural graph signal; large action-space convergence failure & Section~\ref{sec:infra_improvements} \\
 \hline
 Search latency    & End-to-end warm-cache latency of 1{,}102 ms driven by slow FAISS search and unoptimised encoder & Section~\ref{sec:infra_improvements} \\
 \hline

@@ -1,8 +1,8 @@
 \section{Improvements in Data Ingestion Module}
 \label{sec:ingestion_improvements}
 
-Three deficiencies in the prior ingestion pipeline were identified in Section~\ref{sec:ingestion_analysis}: the batch-only design prevented incremental updates, repeated interactions with the same item were not deduplicated, and no error-recovery mechanism existed.
-The improvements introduced here address all three by replacing the offline-batch Cleora rebuild with an incremental, fault-tolerant update pipeline triggered automatically by the live interaction stream.
+The Cleora co-purchase graph embeddings were generated once from the Amazon Books dataset during initial setup and had no mechanism to incorporate new user interactions at runtime.
+This section describes the incremental update pipeline added to address that gap: a three-stage, fault-tolerant process that detects new interactions, augments the graph, and hot-reloads the embeddings without restarting the server.
 
 \subsection{Incremental Cleora Update Pipeline}
 \label{sec:cleora_incremental}

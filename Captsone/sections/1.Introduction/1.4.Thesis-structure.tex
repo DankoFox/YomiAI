@@ -3,23 +3,23 @@
 
 The remainder of this report is organised into six chapters as follows.
 
-\textbf{Chapter 2 — Theoretical Background} reviews the foundational concepts and prior work relevant to this project.
-This includes the theoretical basis of sequential recommendation models, graph-based collaborative filtering, dense retrieval with transformer encoders, approximate nearest-neighbour search, and multilingual language modelling.
-Existing commercial and academic recommendation systems are also surveyed to contextualise the proposed approach.
+\textbf{Chapter 2 Theoretical Background} reviews the foundational concepts and prior work relevant to this project.
+This includes the theoretical basis of sequential recommendation models, graph based collaborative filtering, dense retrieval with transformer encoders, approximate nearest neighbor search, and multilingual language modeling.
+Existing commercial and academic recommendation systems are also reviewed to provide context for the proposed approach.
 
-\textbf{Chapter 3 — System Analysis} describes the design and prior implementation of the data platform.
-The overall architecture, individual module designs (ingestion, visualisation, storage), and the legacy GRU-SeqDQN recommendation component are analysed.
+\textbf{Chapter 3 System Analysis} describes the design and prior implementation of the data platform.
+The overall architecture, individual module designs (ingestion, visualization, storage), and the legacy GRU-SeqDQN recommendation component are analyzed.
 The chapter concludes with an identification of the system's limitations that motivate the proposed improvements.
 
-\textbf{Chapter 4 — Proposed Solutions} presents the technical contributions of this project.
+\textbf{Chapter 4 Proposed Solutions} presents the technical contributions of this project.
 The infrastructure changes are described first, followed by the improvements to each of the three data platform modules.
-The dual-mode recommendation architecture — Pipeline~A (Cleora + BGE-M3) and Pipeline~B (DIF-SASRec) — is introduced and justified in detail.
+The dual mode recommendation architecture — Pipeline~A (Cleora + BGE-M3) and Pipeline~B (DIF-SASRec) is introduced and justified in detail.
 
-\textbf{Chapter 5 — Experiments and Evaluation} reports the quantitative evaluation of the proposed system.
-Component-level analyses (encoder comparison, HNSW vs.\ flat index, search latency profiling) are presented first, followed by end-to-end recommendation results on 100{,}000 users, sensitivity analyses, and a qualitative pipeline complementarity study.
+\textbf{Chapter 5 Experiments and Evaluation} reports the quantitative evaluation of the proposed system.
+Component level analyses (encoder comparison, HNSW vs.\ flat index, search latency profiling) are presented first, followed by end to end recommendation results on 100{,}000 users, sensitivity analysis and a qualitative study of how the different pipelines complement each other.
 
-\textbf{Chapter 6 — Application} presents the deployed interactive book discovery application that integrates all system components.
-The chapter describes the application overview, the dataset and its preparation pipelines, the React frontend interface, the multimodal search and recommendation flows, additional features including authentication and the Qwen2.5 LLM assistant, and a walkthrough of the three primary user interactions.
+\textbf{Chapter 6 Application} presents the deployed interactive book discovery application that integrates all system components.
+The chapter describes the application overview, the dataset and its preparation pipelines, the React front end interface, the multimodal search and recommendation flows, additional features including authentication and the Qwen2.5 LLM assistant, and a walkthrough of the three primary user interactions.
 
-\textbf{Chapter 7 — Conclusion} summarises the achievements of the project against the stated goals, identifies limitations, and proposes directions for future work.
+\textbf{Chapter 7 Conclusion} summarizes the project’s achievements based on the stated goals, discusses its limitations, and suggests directions for future work.
 

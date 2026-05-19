@@ -1,28 +1,7 @@
 \section{Modules Analysis}
 \label{sec:modules_analysis}
 
-This section examines each of the four functional modules of the current system in detail: data ingestion, data storage, data visualisation, and recommendation.
-
-\subsection{Data Ingestion Module}
-\label{sec:ingestion_analysis}
-
-The data ingestion module is responsible for loading raw item and interaction data into the system's storage layer.
-In the current implementation, ingestion is performed as an offline batch process.
-A set of pre-processing scripts reads source files (Amazon Book Reviews JSON dumps and item metadata CSVs), parses records, applies minimal schema validation (checking for required fields), and bulk-inserts the resulting documents into MongoDB.
-Figure~\ref{fig:ingestion_pipeline} illustrates the ingestion pipeline.
-
-\begin{figure}[H]
-\centering
-\includegraphics[width=0.90\textwidth]{images/chapter3/fig_ingestion_pipeline}
-\caption{Current data ingestion pipeline. All ingestion is performed offline in batch; there is no streaming or incremental update path.}
-\label{fig:ingestion_pipeline}
-\end{figure}
-
-Several limitations are evident.
-First, the pipeline has no deduplication step: re-running ingestion on an overlapping data slice creates duplicate interaction records in MongoDB, corrupting downstream model training.
-Second, schema validation is shallow — only the presence of required keys is checked, without type coercion or range validation, allowing malformed records to pass silently.
-Third, the batch-only design means that new data sources (e.g., a live user interaction stream) cannot be incorporated without a full re-run of the entire ingestion pipeline, which takes several hours for the full Amazon dataset.
-Fourth, no error recovery mechanism exists: a failure mid-run leaves MongoDB in a partially ingested state that requires manual cleanup.
+This section examines three functional modules of the current system: data storage, data visualisation, and recommendation.
 
 \subsection{Data Storage Module}
 \label{sec:storage_analysis}
@@ -84,16 +63,8 @@ The recommendation panel displays a static list that is refreshed only on full p
 \subsection{Recommendation Module}
 \label{sec:rec_analysis}
 
-The recommendation module in the current system is GRU-SeqDQN, a hybrid sequential-reinforcement learning approach.
-
-A \texttt{DualStreamItemEncoder} projects each item's text embedding (1{,}024-dim, BLaIR) and CLIP image embedding (512-dim) independently into a 512-dimensional space and concatenates them, producing a 1{,}024-dimensional item representation per sequence step.
-A three-layer GRU (\texttt{GRU\_HIDDEN\_DIM} = 512) processes the packed sequence of item representations and produces a fixed-length user state $\mathbf{h}_T \in \mathbb{R}^{512}$.
-The \texttt{SequentialDQN} scorer concatenates $\mathbf{h}_T$ with the candidate item representation (512 + 1{,}024 = 1{,}536 dimensions) and passes it through three fully connected layers (1{,}024 → 512 → 256 → 1) to output a scalar Q-value for that candidate.
-
-Training is performed online via experience replay: every click and cart event triggers a \texttt{train\_step} call that pushes the transition $(s_t, a_t, r_t, s_{t+1})$ to a replay buffer and immediately samples a mini-batch to update the network by minimising the Bellman error.
-
-Two structural weaknesses are observable from the design.
-First, the GRU hidden state is a fixed-size bottleneck: for users with hundreds of interactions, the model must compress a long, diverse sequence into a 512-dimensional vector using a truncated window of only \texttt{MAX\_SEQ\_LEN} = 50 steps, discarding any context from earlier in the history.
-Second, the DQN action space is the full 3-million-item catalogue, which is far too large for Q-value estimation to converge reliably; the effective action space seen during online training is limited to items that happen to appear in user sessions, creating severe distributional shift for long-tail items.
-These weaknesses are confirmed quantitatively in Chapter~5, where GRU-SeqDQN achieves HR@10 = 0.0823 — near the random baseline of 0.1000.
+The recommendation module in the prior system was GRU-SeqDQN, a recurrent reinforcement-learning approach that trained online from user interactions.
+Offline evaluation placed it at HR@10 $\approx 0.10$, statistically indistinguishable from the random baseline.
+The two main reasons were a fixed-size GRU hidden state that could not adequately summarise long reading histories, and a 3-million-item DQN action space too large for Q-value estimation to converge on the data available.
+This result is documented in Chapter~5 and motivated replacing the recommendation backend with the dual-mode architecture described in Chapter~4.
 

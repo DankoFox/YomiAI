@@ -4,7 +4,7 @@
 This chapter described the four infrastructure changes that address the highest-priority challenges identified in Chapter~3.
 
 Section~\ref{sec:infra_improvements} replaced the BLaIR encoder with BGE-M3, introduced the NLLB-200 multilingual translation pipeline, parallelised text and CLIP encoding via an \texttt{anyio} task group, and replaced the GRU-SeqDQN recommendation module with a dual-pipeline architecture.
-These changes collectively reduce warm-cache end-to-end search latency from 1{,}102 ms to 59 ms — an 18.6$\times$ improvement — while enabling Vietnamese-language queries that previously achieved Precision@10 $\leq 0.05$ under BLaIR.
+These changes reduce warm-cache end-to-end search latency from 1{,}102 ms to 59 ms and enable Vietnamese-language queries that previously achieved Precision@10 $\leq 0.05$ under BLaIR.
 
 Section~\ref{sec:ingestion_improvements} replaced the batch-only Cleora rebuild with a three-stage incremental pipeline: a delta export script that queries MongoDB for new click and cart events since the last run, a Cleora augmentation step that updates the co-purchase graph, and a hot-reload step that atomically swaps the in-memory index.
 The pipeline is triggered automatically at \texttt{CLEORA\_REFIT\_THRESHOLD} = 50 interactions and is fault-isolated at each stage, retaining the previous embeddings if any stage fails.

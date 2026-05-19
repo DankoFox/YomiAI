@@ -1,16 +1,14 @@
 \section{Chapter Conclusion}
 
-This chapter presented a comprehensive evaluation of the proposed dual-mode multimodal book recommendation system across multiple dimensions.
+This chapter evaluated the proposed recommendation and search system across multiple dimensions.
 
-The main findings are as follows.
-The combined system achieves \textbf{HR@10 = 0.9736} on 100{,}000 held-out users with $N = 99$ sampled negatives, representing a 124\% improvement over the Content Baseline and an improvement of more than 8$\times$ over the prior GRU-SeqDQN approach.
-This result is stable across five evaluation seeds (standard deviation $\sigma = 0.0024$), confirming that the improvement is not an artefact of evaluation randomness.
+Pipeline~A (Cleora + BGE-M3) achieves HR@10 = 0.9047 and Pipeline~B (DIF-SASRec) achieves HR@10 = 0.7745 on 100{,}000 held-out users with $N = 99$ sampled negatives.
+Both substantially outperform the Content Baseline (0.4346) and the prior GRU-SeqDQN approach (0.1031).
+The DIF-SASRec result is stable across five random evaluation seeds (standard deviation $\sigma = 0.0024$), confirming it is not an artefact of a particular negative draw.
 
-Component-level analysis established that BGE-M3 is the superior encoder for this use case despite slightly lower recommendation accuracy compared to BLaIR on a subset evaluation: its multilingual capability is essential for Vietnamese-language queries, where it achieves up to 11$\times$ higher Precision@10 than BLaIR.
-The HNSW index provides a 5.12$\times$ median latency reduction over exact flat search at a cost of 47.9\% approximate recall, which is compensated by the downstream BM25 re-ranking stage.
-Search pipeline optimisations reduced end-to-end query latency from 1{,}102 ms to 59 ms (warm cache), an 18.6$\times$ improvement.
+BGE-M3 was chosen over the legacy BLaIR encoder primarily for multilingual support: on long Vietnamese queries, BGE-M3 reaches Precision@10 = 0.55 while BLaIR returns 0.05.
+The HNSW index reduces P50 FAISS latency from 612 ms to 120 ms at the cost of 47.9\% approximate recall, which the downstream BM25 re-ranking stage partially recovers.
+Combined with encoder and parallelisation improvements, warm-cache end-to-end search latency drops from 1{,}102 ms to 59 ms.
 
-The complementarity analysis reveals that Pipeline A and Pipeline B capture largely independent signals: Pipeline A uniquely serves 19.9\% of users through co-purchase graph proximity, while Pipeline B uniquely serves 6.9\% through sequential intent modelling.
-The union achieves 97.4\% coverage, with the remaining 2.6\% corresponding to cold-start, long-tail, or cross-domain scenarios that represent directions for future improvement.
-
-Overall, the experimental results validate the design decisions underlying the proposed system: (i) the use of a co-purchase graph for behavioural candidate retrieval, (ii) the DIF-SASRec transformer for sequential intent modelling, (iii) BGE-M3 as the multilingual encoder, and (iv) HNSW for scalable production-grade approximate search.
+The complementarity analysis shows the two pipelines cover largely non-overlapping cases: Pipeline~A alone serves 19.9\% of users that Pipeline~B misses, and Pipeline~B alone serves 6.9\% that Pipeline~A misses.
+The 2.6\% of users neither pipeline reaches are mainly those with long-tail target items outside the Cleora index, very sparse histories, or recent cross-domain genre shifts.

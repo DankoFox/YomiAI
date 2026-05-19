@@ -5,10 +5,10 @@
 \label{sec:seq_rec}
 
 A recommendation system aims to predict items that a user is likely to interact with, given their historical behaviour.
-Three broad paradigms have been studied in the literature.
-\textit{Collaborative filtering} constructs a user–item interaction matrix and exploits co-occurrence patterns, typically via matrix factorisation, to infer latent user and item factors.
-\textit{Content-based filtering} represents items by their attributes (title, genre, description) and retrieves items similar to those a user has previously consumed.
-\textit{Hybrid} approaches combine both signals to mitigate the individual weaknesses of each: collaborative methods suffer from the cold-start problem when a new item has no interactions, while content-based methods ignore the community-level purchasing signals that often drive discovery.
+The literature mainly studies three broad approaches.
+\textit{Collaborative filtering} builds a user item interaction matrix and uses interaction patterns, often through matrix factorization, to learn hidden relationships between users and items.
+\textit{Content based filtering} represents items by their attributes (title, genre, description) and retrieves items similar to those a user has previously consumed.
+\textit{Hybrid} approaches combine both signals to mitigate the individual weaknesses of each: collaborative methods suffer from the cold start problem when a new item has no interactions, while content based methods ignore the community level purchasing signals that often drive discovery.
 
 Sequential recommendation refines the problem further by treating a user's interactions as an ordered sequence and predicting the \textit{next} item.
 The key observation is that a user's near-term intent is more accurately reflected by their most recent interactions than by their full historical profile.
@@ -149,7 +149,7 @@ This decoupling preserves the ability to attend to content-relevant history and 
 
 Although SASRec and BERT4Rec significantly advanced sequential recommendation performance compared with recurrent architectures such as GRU4Rec, both models retain limitations that reduce their suitability for large-scale real-time recommendation systems with rich side information.
 
-SASRec replaces recurrent sequence modelling with a causal self attention Transformer architecture, enabling parallel training. However, the original SASRec design represents each item primarily through an item ID embedding. Consequently, semantic information such as textual descriptions, categories, or visual features is not explicitly modelled within the attention mechanism.
+SASRec replaces recurrent sequence modelling with a causal self attention Transformer architecture, enabling parallel training.However, the original SASRec design represents each item primarily through an item ID embedding. Consequently, semantic information such as textual descriptions, categories, or visual features is not explicitly modelled within the attention mechanism.
 
 BERT4Rec addresses some sequence modelling limitations by introducing bidirectional self attention with a Cloze style prediction. Unlike SASRec, which predicts the next item autoregressively, BERT4Rec learns contextual representations using both left and right sequence context. Despite these advantages, BERT4Rec has several practical limitations for recommendation systems. First, the training objective is inconsistent with real time  recommendation. Second, BERT4Rec does not explicitly separate collaborative and content based signals within the attention architecture
 
@@ -160,14 +160,16 @@ The below figure compares the item representation learning process used in SASRe
 \begin{figure}[H]
 \centering
 \includegraphics[width=1.1\textwidth]{Captsone/images/chapter2/compareItemPresLearning.png}
-\caption{Comparison of item representation learning in SASRecF, NOVA-SR, and DIF-SR. Early-fusion approaches (left) merge all side information into a single embedding before attention; DIF-SR (right) decouples the attention computation for each feature modality and fuses the resulting attention matrices afterwards.}
-\label{fig:compare_item_pres_learning}
+\caption{Comparison of item representation learning in SASRecF, NOVA-SR, and DIF-SR. Early-fusion approaches (left) merge all side information into a single embedding before attention; DIF-SR (right) decouples the attention computation for each feature modality and fuses the resulting attention matrices afterwards}
+\label{fig:compare_item_pres_learning }
 \end{figure}
+
+\label{sec:difsasrec_arch}
 
 
 \subsection{DIF-SASRec Architecture}
 \label{sec:difsasrec_arch}
-DIF-SASRec extends the SASRec sequential recommendation architecture by explicitly decoupling different side information modalities within the self attention mechanism. Instead of combining all item attributes into a single embedding representation before attention computation, DIF-SASRec maintains independent attention streams for content and category information. This design enables the model to capture heterogeneous behavioural patterns more effectively while preserving the parallel training advantages of Transformer based recommendation models. The below figure illustrates the overall architecture of the proposed DIF-SASRec network.
+DIF-SASRec extends the SASRec sequential recommendation architecture by explicitly decoupling different side information modalities within the self attention mechanism. Instead of combining all item attributes into a single embedding representation before attention computation, DIF-SASRec maintains independent attention streams for content and category information. This design enables the model to capture heterogeneous behavioural patterns more effectively while preserving the parallel training advantages of Transformer based recommendation models.The below figure illustrates the overall architecture of the proposed DIF-SASRec network.
 
 \begin{figure}[H]
 \centering
@@ -176,64 +178,24 @@ DIF-SASRec extends the SASRec sequential recommendation architecture by explicit
 \label{fig:dif_sasrec_architecture}
 \end{figure}
 
+\textbf{Embedding module.}
+Each item $i_t$ in the interaction sequence is represented by three components: a pre-computed dense text embedding projected to the model's hidden dimension $d$; a learned category embedding for the item's genre; and a position embedding that encodes sequence order.
 
-\noindent\textbf{Embedding Module.}
-
-Let $S = [i_1, i_2, \ldots, i_n]$ be a user's interaction sequence of length $n$, where each item $i_t$ is associated with three representation components:
-\begin{itemize}
-    \item A \textbf{content embedding} $\mathbf{c}_{i_t} \in \mathbb{R}^{1024}$ — the item's pre-computed BGE-M3 text embedding, projected to the hidden dimension $d$ via a shared \texttt{ContentProjector} (Linear + LayerNorm + Dropout).
-    \item A \textbf{category embedding} $\mathbf{k}_{i_t} \in \mathbb{R}^{d}$ — a learned embedding for the item's discrete genre category.
-    \item A \textbf{position embedding} $\mathbf{p}_t \in \mathbb{R}^{d}$ — added to the content embedding to encode sequence order.
-\end{itemize}
-
-\medskip
-\noindent\textbf{Decoupled Side Information Fusion Module.}
-
-Each DIF attention layer maintains two independent multi-head attention streams operating over the same sequence.
-The content stream computes queries, keys, and values entirely from projected content embeddings:
-\begin{equation}
-  \mathbf{A}^{\text{content}} = \text{softmax}\!\left(\frac{\mathbf{Q}_c \mathbf{K}_c^\top}{\sqrt{d_h}} + \mathbf{M}\right)
-\end{equation}
-where $\mathbf{Q}_c = \mathbf{H}\mathbf{W}^Q_c$, $\mathbf{K}_c = \mathbf{H}\mathbf{W}^K_c$, $\mathbf{H}$ is the content hidden state, $d_h = d / H$ is the per-head dimension, and $\mathbf{M}$ is a causal lower-triangular mask (positions above the diagonal are set to $-\infty$ before softmax).
-
-The category stream computes queries and keys from category embeddings but contributes no values (values are always drawn from the content stream):
-\begin{equation}
-  \mathbf{A}^{\text{cat}} = \text{softmax}\!\left(\frac{\mathbf{Q}_k \mathbf{K}_k^\top}{\sqrt{d_h}} + \mathbf{M}\right)
-\end{equation}
-where $\mathbf{Q}_k = \mathbf{K}_{\text{emb}}\mathbf{W}^Q_k$ and $\mathbf{K}_k = \mathbf{K}_{\text{emb}}\mathbf{W}^K_k$ are projections of the category embedding matrix $\mathbf{K}_{\text{emb}}$.
-
-The two attention maps are fused via a learnable scalar $\alpha \in (0, 1)$:
+\textbf{Decoupled attention.}
+Each DIF layer runs two independent multi-head attention streams over the same sequence.
+The content stream produces attention weights from text embeddings; the category stream produces attention weights from genre embeddings.
+Both streams share the same value matrix (drawn from text embeddings), so only the attention pattern, not the attended content, is decoupled.
+The two attention maps are fused via a learnable scalar $\alpha$:
 \begin{equation}
   \mathbf{A}^{\text{fused}} = \alpha\,\mathbf{A}^{\text{cat}} + (1 - \alpha)\,\mathbf{A}^{\text{content}}
 \end{equation}
-The fused attention is applied to the content value matrix $\mathbf{V} = \mathbf{H}\mathbf{W}^V$ to produce the layer output, which is passed through a position-wise feed-forward network with a pre-norm residual connection.
-The scalar $\alpha$ is initialised via a logit so that $\text{sigmoid}(\alpha_{\text{logit}}) = 0.7$, giving the category stream a slight initial advantage while allowing the model to learn the optimal balance during training.
+The causal mask ensures each position attends only to past positions.
+After $L$ stacked DIF blocks, the hidden state at the last interaction position is used as the user's intent vector for next-item prediction.
 
-
-\medskip
-\noindent\textbf{Prediction Module.}
-
-After $L = 4$ stacked DIF blocks, the hidden state at the last non-padding position is extracted as the \textit{intent vector} $\mathbf{h}_n \in \mathbb{R}^{d}$.
-For next-item prediction, candidate items are projected by the same \texttt{ContentProjector} to produce $\mathbf{e}_{i^+}$, and the score is the dot product $s(i) = \mathbf{h}_n^\top \mathbf{e}_i$.
-
-\medskip
-\noindent\textbf{Pretraining and Online Fine-Tuning}
-\label{sec:difsasrec_training}
-
-During offline pretraining, the model is trained with a \textit{sampled softmax} loss.
-For each training step the positive item is the ground-truth next item, and 512 hard negative items are sampled uniformly from the catalogue:
-\begin{equation}
-  \mathcal{L}_{\text{main}} = -\log\frac{\exp(\mathbf{h}_n^\top \mathbf{e}_{i^+})}{\exp(\mathbf{h}_n^\top \mathbf{e}_{i^+}) + \sum_{j \in \mathcal{N}} \exp(\mathbf{h}_n^\top \mathbf{e}_j)}
-\end{equation}
-An auxiliary category prediction loss is added to reinforce the category stream:
-\begin{equation}
-  \mathcal{L}_{\text{cat}} = \text{CrossEntropy}\!\left(\mathbf{W}_{\text{cat}}\mathbf{h}_n,\; k_{i^+}\right)
-\end{equation}
-where $\mathbf{W}_{\text{cat}}$ is the category classification head and $k_{i^+}$ is the target item's category.
-The combined pretraining loss is $\mathcal{L} = \mathcal{L}_{\text{main}} + \lambda\,\mathcal{L}_{\text{cat}}$ with $\lambda = 0.1$.
-
-At runtime, each click or cart event triggers one online gradient step using the same loss with the interacted item as the positive and negatives drawn from the full 3-million-item catalogue.
-The personal checkpoint is immediately serialised to disk; the loss value is returned to the frontend to drive the Bellman-error sparkline.
+\textbf{Training.}
+The model is trained with a sampled softmax loss: the ground-truth next item is ranked against a fixed pool of sampled negatives.
+An auxiliary category prediction loss ($\lambda = 0.1$) reinforces the category stream.
+At inference time, each user click triggers one additional gradient step on the personal checkpoint, keeping the model current with the user's latest interactions.
 
 \subsection{Graph-Based Behavioural Embedding: Cleora}
 \label{sec:cleora}

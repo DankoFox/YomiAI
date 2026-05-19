@@ -84,7 +84,7 @@ Items that are new since the previous refresh are highlighted for four seconds.
 
 \subsection{Online Learning Observation}
 
-Every click or cart event triggers a Bellman-error gradient step on the user's personal DIF-SASRec checkpoint.
+Every click or cart event triggers a sampled softmax gradient step on the user's personal DIF-SASRec checkpoint.
 The \textit{SASRec Loss} sparkline in the right-side profile panel shows the full loss history as a filled area chart.
 A dashed divider marks the boundary between the pretraining phase (checkpoint-loaded, high loss scale) and the online fine-tuning phase (per-user gradient steps, lower scale).
 An information tooltip beside the chart title explains the expected scale difference, noting that pretraining uses 512 hard negatives whereas online training samples from the full 3-million-item catalogue, producing a structurally lower loss.

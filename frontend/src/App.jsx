@@ -156,8 +156,11 @@ export default function App() {
         prevRecMode.current = mode;
         setRecMode(mode);
 
-        // F: diff combined — mark ASINs that weren't in the previous refresh
-        const nextIds = (recs.combined || []).map(b => b.id);
+        // F: diff both pipelines — mark ASINs that weren't in the previous refresh
+        const nextIds = [
+          ...(recs.people_also_buy || []),
+          ...(recs.you_might_like  || []),
+        ].map(b => b.id);
         const prev    = prevYmlAsins.current;
         if (prev.size > 0) {
           const fresh = new Set(nextIds.filter(id => !prev.has(id)));
@@ -639,11 +642,6 @@ export default function App() {
                       Multi-mode
                     </span>
                     <span className="px-2 py-0.5 rounded-full border text-[10px] font-medium
-                                     bg-[#dfc5a4]/15 border-[#dfc5a4]/55
-                                     text-[#627d9a] dark:text-[#babbbd]">
-                      Union (A∪B)
-                    </span>
-                    <span className="px-2 py-0.5 rounded-full border text-[10px] font-medium
                                      bg-[#2e3257]/8 dark:bg-[#fffef7]/6
                                      border-[#2e3257]/25 dark:border-[#fffef7]/20
                                      text-[#2e3257] dark:text-[#fffef7]">
@@ -724,8 +722,15 @@ export default function App() {
 
               <div className="flex-1 overflow-y-auto pr-1 pb-2">
                 {isLoadingRecs ? (
-                  <div className="grid grid-cols-2 gap-2">
-                    {[0,1,2,3].map(i => <SkeletonCard key={i} size="sm" />)}
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="flex flex-col gap-2">
+                      <div className="h-3 w-24 rounded bg-[#babbbd]/30 mb-1" />
+                      {[0,1,2].map(i => <SkeletonCard key={i} size="sm" />)}
+                    </div>
+                    <div className="flex flex-col gap-2">
+                      <div className="h-3 w-24 rounded bg-[#babbbd]/30 mb-1" />
+                      {[0,1,2].map(i => <SkeletonCard key={i} size="sm" />)}
+                    </div>
                   </div>
                 ) : recsError ? (
                   <div className={`p-4 rounded-xl border ${DIVIDER} text-center space-y-2`}>
@@ -739,14 +744,44 @@ export default function App() {
                     </button>
                   </div>
                 ) : (
-                  <div className="grid grid-cols-2 gap-2">
-                    {recommendations.combined?.map((book, i) => (
-                      <RecommendCard
-                        key={i} book={book} rank={i}
-                        onInteract={handleInteract} onAskAIStream={handleAskAIStream}
-                        isNew={newRecAsins.has(book.id)}
-                      />
-                    ))}
+                  <div className="grid grid-cols-2 gap-4 h-full">
+                    {/* Left — People Also Buy (Pipeline A) */}
+                    <div className="flex flex-col gap-2 overflow-y-auto pr-1">
+                      <p className="text-[10px] font-mono tracking-widest uppercase text-[#627d9a] dark:text-[#babbbd] flex-shrink-0">
+                        People Also Buy · Cleora + BGE-M3
+                      </p>
+                      {recommendations.people_also_buy?.slice(0, 10).map((book, i) => (
+                        <RecommendCard
+                          key={book.id ?? i} book={book} rank={i}
+                          onInteract={handleInteract} onAskAIStream={handleAskAIStream}
+                          isNew={newRecAsins.has(book.id)}
+                        />
+                      ))}
+                      {(!recommendations.people_also_buy?.length) && (
+                        <p className="text-[11px] text-[#babbbd] dark:text-[#627d9a] text-center mt-4">
+                          No candidates yet
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Right — You Might Like (Pipeline B) */}
+                    <div className="flex flex-col gap-2 overflow-y-auto pl-1">
+                      <p className="text-[10px] font-mono tracking-widest uppercase text-[#627d9a] dark:text-[#babbbd] flex-shrink-0">
+                        You Might Like · DIF-SASRec
+                      </p>
+                      {recommendations.you_might_like?.slice(0, 10).map((book, i) => (
+                        <RecommendCard
+                          key={book.id ?? i} book={book} rank={i}
+                          onInteract={handleInteract} onAskAIStream={handleAskAIStream}
+                          isNew={newRecAsins.has(book.id)}
+                        />
+                      ))}
+                      {(!recommendations.you_might_like?.length) && (
+                        <p className="text-[11px] text-[#babbbd] dark:text-[#627d9a] text-center mt-4">
+                          Interact with books to activate DIF-SASRec
+                        </p>
+                      )}
+                    </div>
                   </div>
                 )}
               </div>
