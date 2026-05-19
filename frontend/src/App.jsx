@@ -8,31 +8,6 @@ import { SkeletonCard } from "./components/ui/SkeletonCard";
 import { LoginPage } from "./components/LoginPage";
 import { InfoTooltip } from "./components/ui/InfoTooltip";
 
-// ─── Mock data ────────────────────────────────────────────────────────────────
-const MOCK_BOOKS = [
-  { id:"b001", title:"The Name of the Wind",       author:"Patrick Rothfuss",        genre:"Dark Fantasy",        score:0.94, cover_color:"#1a0a2e", text_sim:0.91, img_sim:0.88 },
-  { id:"b002", title:"Mistborn: The Final Empire", author:"Brandon Sanderson",       genre:"Epic Fantasy",        score:0.89, cover_color:"#0d1b2a", text_sim:0.85, img_sim:0.82 },
-  { id:"b003", title:"The Way of Kings",           author:"Brandon Sanderson",       genre:"High Fantasy",        score:0.87, cover_color:"#162040", text_sim:0.83, img_sim:0.79 },
-  { id:"b004", title:"A Shadow in the Ember",      author:"Jennifer L. Armentrout", genre:"Dark Romance Fantasy", score:0.82, cover_color:"#2d0a0a", text_sim:0.78, img_sim:0.81 },
-  { id:"b005", title:"Blood and Ash",              author:"Jennifer L. Armentrout", genre:"Dark Fantasy",        score:0.80, cover_color:"#1a0000", text_sim:0.76, img_sim:0.83 },
-];
-const MOCK_RECS = {
-  people_also_buy: [
-    { id:"r001", title:"The Lies of Locke Lamora", author:"Scott Lynch",      score:0.91, cover_color:"#0a1a2d", layer:"Cleora + BGE-M3" },
-    { id:"r002", title:"Assassin's Apprentice",    author:"Robin Hobb",       score:0.88, cover_color:"#0d2010", layer:"Cleora + CLIP" },
-  ],
-  you_might_like: [
-    { id:"r003", title:"The Black Prism",  author:"Brent Weeks",      score:0.86, cover_color:"#1a1000", layer:"DIF-SASRec" },
-    { id:"r004", title:"Kushiel's Dart",   author:"Jacqueline Carey", score:0.84, cover_color:"#100808", layer:"DIF-SASRec" },
-  ],
-  combined: [
-    { id:"r001", title:"The Lies of Locke Lamora", author:"Scott Lynch",      score:0.91, cover_color:"#0a1a2d", layer:"Cleora + BGE-M3" },
-    { id:"r002", title:"Assassin's Apprentice",    author:"Robin Hobb",       score:0.88, cover_color:"#0d2010", layer:"Cleora + CLIP" },
-    { id:"r003", title:"The Black Prism",          author:"Brent Weeks",      score:0.86, cover_color:"#1a1000", layer:"DIF-SASRec" },
-    { id:"r004", title:"Kushiel's Dart",           author:"Jacqueline Carey", score:0.84, cover_color:"#100808", layer:"DIF-SASRec" },
-  ],
-};
-
 // ─── App ──────────────────────────────────────────────────────────────────────
 export default function App() {
   // ── Theme (initialised first — LoginPage needs it) ──────────────────────────
@@ -103,7 +78,6 @@ export default function App() {
 
   // ── UI state ────────────────────────────────────────────────────────────────
   const [toasts, setToasts]           = useState([]);
-  const [useMock, setUseMock]         = useState(false);
   const [activeTab, setActiveTab]     = useState("search");
   const [activeRight, setActiveRight] = useState("profile");
   const [cart, setCart]               = useState([]);
@@ -132,7 +106,6 @@ export default function App() {
   }, []);
 
   const loadProfile = async () => {
-    if (useMock) return;
     try { const d = await api.profile(userId); if (d) { setProfileStats(d); setInteractions(d.recent_items || []); } } catch (_) {}
   };
 
@@ -140,48 +113,43 @@ export default function App() {
     setLoadingRecs(true);
     setRecsError(null);
     try {
-      if (useMock) {
-        await new Promise(r => setTimeout(r, 600));
-        setRecommendations(MOCK_RECS);
-      } else {
-        const d = await api.recommend(userId, sessionId);
-        const recs = d || { people_also_buy: [], you_might_like: [], combined: [] };
-        setRecommendations(recs);
+      const d = await api.recommend(userId, sessionId);
+      const recs = d || { people_also_buy: [], you_might_like: [], combined: [] };
+      setRecommendations(recs);
 
-        // A: track mode, fire toast on cold-start → personalised transition
-        const mode = d?.mode || null;
-        if (mode === "personalized" && prevRecMode.current === "cold_start") {
-          toast("DIF-SASRec is now ranking for you", "success");
-        }
-        prevRecMode.current = mode;
-        setRecMode(mode);
-
-        // F: diff both pipelines — mark ASINs that weren't in the previous refresh
-        const nextIds = [
-          ...(recs.people_also_buy || []),
-          ...(recs.you_might_like  || []),
-        ].map(b => b.id);
-        const prev    = prevYmlAsins.current;
-        if (prev.size > 0) {
-          const fresh = new Set(nextIds.filter(id => !prev.has(id)));
-          if (fresh.size > 0) {
-            setNewRecAsins(fresh);
-            setTimeout(() => setNewRecAsins(new Set()), 4000);
-          }
-        }
-        prevYmlAsins.current = new Set(nextIds);
-
-        try { const m = await api.rlMetrics(userId); setRlMetrics(m); } catch (_) {}
+      // A: track mode, fire toast on cold-start → personalised transition
+      const mode = d?.mode || null;
+      if (mode === "personalized" && prevRecMode.current === "cold_start") {
+        toast("DIF-SASRec is now ranking for you", "success");
       }
+      prevRecMode.current = mode;
+      setRecMode(mode);
+
+      // F: diff both pipelines — mark ASINs that weren't in the previous refresh
+      const nextIds = [
+        ...(recs.people_also_buy || []),
+        ...(recs.you_might_like  || []),
+      ].map(b => b.id);
+      const prev    = prevYmlAsins.current;
+      if (prev.size > 0) {
+        const fresh = new Set(nextIds.filter(id => !prev.has(id)));
+        if (fresh.size > 0) {
+          setNewRecAsins(fresh);
+          setTimeout(() => setNewRecAsins(new Set()), 4000);
+        }
+      }
+      prevYmlAsins.current = new Set(nextIds);
+
+      try { const m = await api.rlMetrics(userId); setRlMetrics(m); } catch (_) {}
       setLastRecsRefresh(new Date());
     } catch (_) {
       setRecsError("Could not load recommendations.");
-      toast("Backend unreachable — enable mock mode", "error");
+      toast("Backend connection failed: Displaying cached data", "error");
     } finally { setLoadingRecs(false); }
-  }, [userId, useMock, sessionId, toast]);
+  }, [userId, sessionId, toast]);
 
   // Single effect — fires on mount and whenever userId/useMock change
-  useEffect(() => { loadRecs(); loadProfile(); }, [userId, useMock]);
+  useEffect(() => { loadRecs(); loadProfile(); }, [userId]);
 
   // ── Search handler ──────────────────────────────────────────────────────────
   const handleSearch = async () => {
@@ -189,20 +157,13 @@ export default function App() {
     setIsSearching(true);
     setSearchError(null);
     try {
-      if (useMock) {
-        await new Promise(r => setTimeout(r, 800));
-        setSearchResults(MOCK_BOOKS);
-        toast("Mock search: BGE-M3 + CLIP fusion complete", "success");
-      } else {
-        let imgB64 = null;
-        if (imageFile) imgB64 = await new Promise(res => { const r = new FileReader(); r.onload = () => res(r.result.split(",")[1]); r.readAsDataURL(imageFile); });
-        const d = await api.search(query, imgB64, sessionId);
-        setSearchResults(d.results || []);
-        toast(`Found ${d.results?.length ?? 0} results`, "success");
-      }
+      let imgB64 = null;
+      if (imageFile) imgB64 = await new Promise(res => { const r = new FileReader(); r.onload = () => res(r.result.split(",")[1]); r.readAsDataURL(imageFile); });
+      const d = await api.search(query, imgB64, sessionId);
+      setSearchResults(d.results || []);
     } catch (_) {
       setSearchError("Search failed. Is the backend running?");
-      toast("Backend unreachable — enable mock mode", "error");
+      toast("Backend connection failed: Displaying cached data", "error");
     } finally { setIsSearching(false); }
   };
 
@@ -214,33 +175,18 @@ export default function App() {
     else if (action === "click") { toast(`Clicked "${book.title}" — profile updated`, "success"); }
     else                         { toast(`✕ Skipped "${book.title}" — RL penalized`, "info"); }
     try {
-      if (!useMock) {
-        const res  = await api.interact(userId, book.id, action, sessionId);
-        const loss = res?.sasrec_loss;
-        // D: if the backend returned a fresh loss value, push it to the sparkline
-        //    immediately and flash the training badge (skip actions don't train)
-        if (loss != null) {
-          setRlMetrics(p => ({
-            ...p,
-            loss_history: [...p.loss_history, loss].slice(-100),
-            step: p.step + 1,
-          }));
-          setTrainPulse(loss);
-          setTimeout(() => setTrainPulse(null), 2500);
-        } else {
-          try { const m = await api.rlMetrics(userId); setRlMetrics(m); } catch (_) {}
-        }
-      } else {
-        const mockLoss = Math.max(0.1, (rlMetrics.loss_history.at(-1) || 0.8) - 0.05 + (Math.random() * 0.02 - 0.01));
+      const res  = await api.interact(userId, book.id, action, sessionId);
+      const loss = res?.sasrec_loss;
+      if (loss != null) {
         setRlMetrics(p => ({
-          loss_history: [...p.loss_history, mockLoss].slice(-100),
+          ...p,
+          loss_history: [...p.loss_history, loss].slice(-100),
           step: p.step + 1,
-          arch: "DIF-SASRec",
         }));
-        if (action !== "skip") {
-          setTrainPulse(mockLoss);
-          setTimeout(() => setTrainPulse(null), 2500);
-        }
+        setTrainPulse(loss);
+        setTimeout(() => setTrainPulse(null), 2500);
+      } else {
+        try { const m = await api.rlMetrics(userId); setRlMetrics(m); } catch (_) {}
       }
       setLastTrained(new Date());
       if ((rlStep + 1) % 3 === 0) setTimeout(loadRecs, 800);
@@ -259,23 +205,11 @@ export default function App() {
   };
 
   const handleAskAI = async (book) => {
-    if (useMock) { await new Promise(r => setTimeout(r, 1500)); return "A fantastic book the author masterfully weaves a gripping narrative. Highly recommended!"; }
     const d = await api.askLLM(book.title, book.author, "Why should I read this? Give a short 2-sentence pitch.");
     return d.response;
   };
 
   const handleAskAIStream = (book) => {
-    if (useMock) {
-      // Return a generator that mimics a stream for mock mode
-      return (async function* () {
-        const text = "A fantastic book! The author masterfully weaves a gripping narrative. Highly recommended!";
-        const words = text.split(" ");
-        for (const word of words) {
-          await new Promise(r => setTimeout(r, 100));
-          yield word + " ";
-        }
-      })();
-    }
     return api.askLLMStream(book.title, book.author, "Why should I read this? Give a short 2-sentence pitch.");
   };
 
@@ -310,13 +244,20 @@ export default function App() {
     <div className="h-screen flex flex-col font-sans bg-[#fffef7] dark:bg-[#2e3257] text-[#2e3257] dark:text-[#fffef7] overflow-hidden transition-colors duration-300">
 
       {/* Toast rack */}
-      <div className="fixed top-4 right-4 z-50 flex flex-col gap-2" style={{ maxWidth: 300 }}>
+      <div className="fixed top-4 right-4 z-50 flex flex-col gap-2" style={{ maxWidth: 320 }}>
         {toasts.map(t => (
-          <div key={t.id} className={`fade-in px-3 py-2 rounded-xl text-[11px] border shadow-sm
+          <div key={t.id} className={`fade-in flex items-start gap-2 px-3 py-2 rounded-xl text-[11px] border shadow-sm
             ${t.type === "success" ? "bg-emerald-50 dark:bg-emerald-900/30 border-emerald-300 dark:border-emerald-700/60 text-emerald-700 dark:text-emerald-300"
             : t.type === "error"   ? "bg-red-50 dark:bg-red-900/30 border-red-300 dark:border-red-700/60 text-red-600 dark:text-red-300"
             : "bg-[#dfc5a4]/20 dark:bg-[#dfc5a4]/10 border-[#dfc5a4] text-[#627d9a] dark:text-[#babbbd]"}`}>
-            {t.msg}
+            <span className="flex-1 leading-snug">{t.msg}</span>
+            <button
+              onClick={() => setToasts(ts => ts.filter(x => x.id !== t.id))}
+              className="flex-shrink-0 opacity-40 hover:opacity-100 transition-opacity bg-transparent border-none cursor-pointer p-0 leading-none"
+              style={{ fontSize: 11 }}
+            >
+              ✕
+            </button>
           </div>
         ))}
       </div>
@@ -344,7 +285,7 @@ export default function App() {
           <div className="flex items-center gap-4">
 
             {/* Logged-in user badge + logout */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1">
               <span className={`px-3 py-1.5 rounded-lg text-[12px] font-semibold flex items-center gap-1.5 border
                 ${isGuest
                   ? "bg-[#627d9a]/10 border-[#627d9a]/30 text-[#627d9a] dark:text-[#babbbd]"
@@ -355,16 +296,19 @@ export default function App() {
               </span>
               <button
                 onClick={handleLogout}
-                className="px-2 py-1.5 rounded-lg text-[11px] border border-[#babbbd]/50 dark:border-[#627d9a]/40
+                className="p-1.5 rounded-lg bg-transparent border-none
                            text-[#babbbd] dark:text-[#627d9a]
-                           hover:border-rose-300 hover:text-rose-400 transition-all duration-200"
-                title="Sign out"
+                           hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-all duration-200"
+                title="Log out"
               >
-                ⎋
+                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"
+                     strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
+                  <path d="M6 2H3a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3" />
+                  <polyline points="10 11 13 8 10 5" />
+                  <line x1="13" y1="8" x2="5" y2="8" />
+                </svg>
               </button>
             </div>
-
-            <div className={`w-px h-6 ${DIVIDER} border-l`} />
 
             {/* Theme + Cart */}
             <div className="flex items-center gap-2">
@@ -387,48 +331,6 @@ export default function App() {
                 </span>
               </button>
             </div>
-
-            <div className={`w-px h-6 ${DIVIDER} border-l`} />
-
-            {/* Mock / Live */}
-            <div className="flex items-center gap-2">
-              <span className={`font-mono tracking-widest uppercase text-[9px] ${useMock ? "text-[#627d9a] dark:text-[#dfc5a4]" : "text-[#babbbd] dark:text-[#627d9a]/60"}`}>Mock</span>
-              <button
-                onClick={() => { setUseMock(m => !m); toast(useMock ? "Switched to Live API" : "Switched to Mock mode", "info"); }}
-                className="relative rounded-full flex-shrink-0 transition-all duration-300"
-                style={{
-                  width: 36, height: 18,
-                  background: useMock ? "#627d9a" : "#10b981",
-                  border: `1px solid ${useMock ? "#babbbd" : "#6ee7b7"}`,
-                }}
-              >
-                <div className="absolute rounded-full bg-white transition-all duration-300"
-                  style={{ width: 12, height: 12, top: 2, left: useMock ? 2 : 20, boxShadow: "0 1px 3px rgba(0,0,0,0.3)" }} />
-              </button>
-              <span className={`font-mono tracking-widest uppercase text-[9px] ${!useMock ? "text-emerald-600 dark:text-emerald-400" : "text-[#babbbd] dark:text-[#627d9a]/60"}`}>Live</span>
-            </div>
-
-            <div className={`w-px h-6 ${DIVIDER} border-l`} />
-
-            {/* Stats */}
-            <div className="flex gap-4">
-              {[
-                { label: "Train Steps",   value: rlStep,             hi: rlStep > 0 },
-                { label: "CTR",          value: `${ctr}%`,          hi: ctr !== "—" },
-                { label: "Interactions", value: interactions.length, hi: interactions.length > 0 },
-              ].map(s => (
-                <div key={s.label} className="text-center">
-                  <div className={`font-mono font-semibold tabular-nums ${s.hi ? "text-[#2e3257] dark:text-[#fffef7]" : "text-[#babbbd] dark:text-[#627d9a]"}`} style={{ fontSize: 15 }}>
-                    {s.value}
-                  </div>
-                  <div className="font-mono tracking-widest uppercase text-[#627d9a] dark:text-[#babbbd]" style={{ fontSize: 8 }}>
-                    {s.label}
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <div className={`w-px h-6 ${DIVIDER} border-l`} />
 
             {/* Right panel toggle */}
             <button
@@ -457,7 +359,7 @@ export default function App() {
       <div className="flex flex-1 min-h-0">
 
         {/* ── LEFT PANEL — grows to fill remaining space ── */}
-        <div className={`flex flex-col flex-1 min-w-0 border-r ${DIVIDER}`}>
+        <div className={`flex flex-col flex-1 min-w-0 min-h-0 border-r ${DIVIDER}`}>
 
           {/* Tab bar */}
           <div className={`flex items-center px-4 py-2 border-b ${DIVIDER}`}>
@@ -482,10 +384,10 @@ export default function App() {
 
           {/* ── Search tab ── */}
           {activeTab === "search" ? (
-            <div className="flex flex-col flex-1 overflow-hidden px-4 pt-4 gap-3">
+            <div className="flex flex-col flex-1 min-h-0 px-4 pt-4 gap-3">
 
               {/* Input row */}
-              <div className="flex gap-2">
+              <div className="flex gap-2 flex-shrink-0">
                 {/* Text input with inset image button */}
                 <div ref={imageAreaRef} className="relative flex-1">
                   <input
@@ -585,7 +487,7 @@ export default function App() {
               </div>
 
               {/* Encoder legend */}
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-4 flex-shrink-0">
                 {[["BGE-M3", "#2e3257", "text semantics"], ["CLIP", "#627d9a", "visual features"], ["RRF", "#dfc5a4", "fusion score"]].map(([name, color, desc]) => (
                   <div key={name} className="flex items-center gap-1.5">
                     <div className="rounded-full flex-shrink-0" style={{ width: 7, height: 7, background: color }} />
@@ -597,7 +499,7 @@ export default function App() {
               </div>
 
               {/* Results */}
-              <div className="flex-1 overflow-y-auto space-y-2 pr-1 pb-2">
+              <div className="flex-1 min-h-0 overflow-y-auto space-y-2 pr-1 pb-6">
                 {isSearching ? (
                   [0,1,2,4].map(i => <SkeletonCard key={i} size="md" />)
                 ) : searchError ? (
@@ -629,8 +531,8 @@ export default function App() {
 
           ) : (
             /* ── Recs tab ── */
-            <div className="flex flex-col flex-1 overflow-hidden px-4 pt-4 gap-3">
-              <div className="flex items-center justify-between gap-3">
+            <div className="flex flex-col flex-1 min-h-0 px-4 pt-4 gap-3">
+              <div className="flex items-center justify-between gap-3 flex-shrink-0">
                 <div className="flex items-center gap-2.5 flex-wrap min-w-0">
                   <p className="text-[15px] font-medium text-[#2e3257] dark:text-[#fffef7] flex-shrink-0">Personalized For You</p>
 
@@ -720,7 +622,7 @@ export default function App() {
                 );
               })()}
 
-              <div className="flex-1 overflow-y-auto pr-1 pb-2">
+              <div className="flex-1 overflow-y-auto pr-1 pb-6 min-h-0">
                 {isLoadingRecs ? (
                   <div className="grid grid-cols-2 gap-4">
                     <div className="flex flex-col gap-2">
@@ -744,9 +646,9 @@ export default function App() {
                     </button>
                   </div>
                 ) : (
-                  <div className="grid grid-cols-2 gap-4 h-full">
+                  <div className="grid grid-cols-2 grid-rows-1 gap-4 h-full">
                     {/* Left — People Also Buy (Pipeline A) */}
-                    <div className="flex flex-col gap-2 overflow-y-auto pr-1">
+                    <div className="flex flex-col gap-2 overflow-y-auto min-h-0 pr-1 pb-4">
                       <p className="text-[10px] font-mono tracking-widest uppercase text-[#627d9a] dark:text-[#babbbd] flex-shrink-0">
                         People Also Buy · Cleora + BGE-M3
                       </p>
@@ -765,7 +667,7 @@ export default function App() {
                     </div>
 
                     {/* Right — You Might Like (Pipeline B) */}
-                    <div className="flex flex-col gap-2 overflow-y-auto pl-1">
+                    <div className="flex flex-col gap-2 overflow-y-auto min-h-0 pl-1 pb-4">
                       <p className="text-[10px] font-mono tracking-widest uppercase text-[#627d9a] dark:text-[#babbbd] flex-shrink-0">
                         You Might Like · DIF-SASRec
                       </p>
