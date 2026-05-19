@@ -56,7 +56,7 @@ Figure~\ref{fig:new_system_overview} shows the revised architecture.
 
 % Phase 2A: Search
 \node[task]   (t_search)   at (\colPhaseA, \rowTask) {\textbf{Multi-Modal Query}\\Text or Image Input};
-\node[fusion] (f_rrf)      at (\colPhaseA, \rowPipe) {Reciprocal Rank\\Fusion (RRF)};
+\node[fusion] (f_rrf)      at (\colPhaseA, \rowPipe) {Adaptive Weighted\\RRF};
 \node[output] (out_search) at (\colPhaseA, \rowOut)  {Search Results};
 
 \draw (l_vis.south) -- ++(0,-0.8) coordinate (junction) -| (l_sem.south);
@@ -101,9 +101,9 @@ Figure~\ref{fig:new_system_overview} shows the revised architecture.
   \node[anchor=south west, font=\sffamily\bfseries\color{gray!70}]
         at ([shift={(-5pt,2pt)}]bg_rep.north west)    {Phase 1};
   \node[anchor=south west, font=\sffamily\bfseries\color{blue!50}]
-        at ([shift={(-5pt,2pt)}]bg_search.north west) {Pipeline A};
+        at ([shift={(-5pt,2pt)}]bg_search.north west) {Active Search};
   \node[anchor=south west, font=\sffamily\bfseries\color{green!60!black}]
-        at ([shift={(-5pt,2pt)}]bg_rec.north west)    {Pipeline B};
+        at ([shift={(-5pt,2pt)}]bg_rec.north west)    {Recommendation};
 \end{pgfonlayer}
 
 \end{tikzpicture}%
@@ -190,7 +190,7 @@ The revised search route runs them concurrently using an \texttt{anyio} task gro
     \item \texttt{encode\_image\_task}: runs \texttt{ml.encode\_image\_b64(..., clip\_model)} in a parallel thread.
 \end{itemize}
 
-Both tasks are submitted to the task group simultaneously; the route waits only for the slower of the two before proceeding to the FAISS and Tantivy retrieval stages.
+Both tasks are submitted to the task group simultaneously; the route waits only for the slower of the two before proceeding to the FAISS and Tantivy retrieval stages, which are fused via adaptive weighted RRF (BM25 channel weight scales with query confidence; semantic weight adjusts inversely).
 For text-only queries, the CLIP task is skipped.
 The combined effect of the encoder upgrade, HNSW index, and parallelisation reduces end-to-end warm-cache search latency from 1{,}102 ms to 59 ms (Table~\ref{tab:latency_stages}).
 
@@ -209,9 +209,12 @@ Figure~\ref{fig:rec_funnel} illustrates the recommendation funnel.
 \end{figure}
 
 \paragraph{Pipeline A — Cleora + BGE-M3 (People Also Buy) —}
-A mean-pool of the user's interaction history is computed over BGE-M3 item embeddings to form a profile vector.
-The Cleora co-purchase graph embedding index (375{,}280 items) is searched for the 50 nearest neighbours by inner product.
-These candidates are then re-ranked by cosine similarity to the profile vector and the top items are returned.
+Candidate generation uses two complementary Cleora lookups.
+First, a mean-pool of the user's Cleora-space item embeddings forms a behavioural profile vector, which is used to query the Cleora co-purchase index (375{,}439 items) for up to 50 nearest neighbours.
+Second, per-item Cleora neighbours are retrieved for each of the user's 5 most recent interactions, adding locally relevant co-purchase candidates.
+The union of both sets is then filtered by a content veto: candidates whose cosine similarity to the user's BGE-M3 profile vector falls below $\tau = 0.3$ are discarded.
+Surviving candidates are ranked by BGE-M3 semantic similarity to the profile vector, and the top items are returned.
+(The BGE-M3 profile used here for veto and re-ranking is a separate mean-pool of BGE-M3 text embeddings, distinct from the Cleora-space profile used for the initial index query.)
 
 \paragraph{Pipeline B — DIF-SASRec (You Might Like) —}
 An \texttt{AgentPool} of 8 isolated DIF-SASRec agents handles concurrent personalisation requests.

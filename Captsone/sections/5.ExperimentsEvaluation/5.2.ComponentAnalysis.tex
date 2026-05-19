@@ -162,6 +162,11 @@ Pipeline A (Cleora + BGE-M3) reaches HR@10 = 0.7626 in this run, demonstrating t
 \textit{Note}: The DIF-SASRec result here (0.4836) is from an earlier model checkpoint run in the same ablation pass.
 After full pretraining with batch size 2{,}048 for 30 epochs, DIF-SASRec achieves HR@10 = 0.7745 in the canonical evaluation (Section~\ref{sec:end_to_end}).
 
+Pipeline~A also differs between this table (0.7626) and the canonical result (0.9047).
+Pipeline~A does not depend on a model checkpoint, so the gap is caused by negative sampling: the ablation was run without a fixed random seed, meaning the 99 sampled negatives per user differ from the canonical seed-42 draw.
+Because Pipeline~A assigns a score of $-2.0$ to any candidate outside the Cleora index, the Cleora membership of the specific negatives drawn has a measurable effect on HR@10.
+The canonical result (Section~\ref{sec:end_to_end}) uses seed = 42 throughout and is the authoritative figure for comparison.
+
 \subsection{Content Veto Threshold Sensitivity}
 \label{sec:veto_sensitivity}
 

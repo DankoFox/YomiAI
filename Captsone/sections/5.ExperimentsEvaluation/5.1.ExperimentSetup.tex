@@ -73,7 +73,7 @@ Five systems are compared to assess the contribution of each component:
     \item \textbf{Random Baseline}: uniform random ranking over the $N+1$ candidates. Provides a lower bound.
     \item \textbf{Content Baseline}: mean pooling of BGE-M3 embeddings over the user's training sequence, followed by cosine similarity ranking. Represents a simple semantic profile without sequential modelling.
     \item \textbf{GRU-SeqDQN}: a recurrent reinforcement-learning approach using a GRU-based policy network trained with Deep Q-Network objectives. Represents the prior recommendation module.
-    \item \textbf{DIF-SASRec (Pipeline B)}: the proposed Decoupled Intent-Feature Self-Attentive Recommendation model with separate content and category attention streams.
+    \item \textbf{DIF-SASRec (Pipeline B)}: the proposed Decoupled Information-Feature Self-Attentive Recommendation model with separate content and category attention streams.
     \item \textbf{Pipeline A (Cleora + BGE-M3)}: behavioural co-purchase graph embeddings (Cleora) for candidate retrieval, re-ranked by BGE-M3 semantic similarity.
 \end{enumerate}
 
@@ -90,7 +90,7 @@ Table~\ref{tab:model_config} summarises the key hyperparameters of the two propo
 \textbf{Parameter} & \textbf{Value} \\
 \hline
 \multicolumn{2}{l}{\textit{Pipeline B — DIF-SASRec}} \\
-Architecture     & Decoupled Intent-Feature SASRec \\
+Architecture     & Decoupled Information-Feature SASRec \\
 Transformer blocks & 4 \\
 Attention heads  & 8 \\
 Hidden dimension & 512 \\

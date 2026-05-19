@@ -76,7 +76,7 @@ Cross-domain genre shift         &   290  & 11.0\% & Profile and sequence reflec
 \end{tabular}
 \end{table}
 
-The dominant failure mode is the Cleora catalogue boundary: 45\% of unserved users have a target item that lies outside the 375{,}280-item co-purchase graph, making it unreachable by Pipeline~A entirely.
+The dominant failure mode is the Cleora catalogue boundary: 45\% of unserved users have a target item that lies outside the 375{,}439-item co-purchase graph, making it unreachable by Pipeline~A entirely.
 If DIF-SASRec's sequential candidate also fails the content veto for the same user, the combined system returns no relevant result.
 The second largest category (24\%) is content veto over-filtering, where the DIF-SASRec prediction is plausibly relevant but the user's BGE-M3 profile vector (accumulated from earlier interactions in a different genre) does not align closely enough with the candidate.
 Relaxing $\tau$ from 0.3 to 0.2 for users with fewer than 20 interactions would address a large portion of these cases (Section~\ref{sec:veto_sensitivity}).
