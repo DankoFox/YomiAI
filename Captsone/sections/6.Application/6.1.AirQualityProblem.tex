@@ -10,10 +10,10 @@ Third, adaptive personalisation: a cold-start user receives co-purchase-based su
 
 The full application stack is:
 \begin{itemize}
-    \item \textbf{Frontend}: React 19 + Vite 8 + Tailwind CSS, served at \texttt{http://localhost:5173}.
-    \item \textbf{Backend}: FastAPI + uvicorn, served at \texttt{http://localhost:8000}. Seven route groups: \texttt{/search}, \texttt{/recommend}, \texttt{/interact}, \texttt{/profile}, \texttt{/auth}, \texttt{/ask\_llm}, \texttt{/health}.
-    \item \textbf{Infrastructure}: MongoDB (\texttt{nba\_logs} database) and Redis (interaction write-queue), both provisioned via Docker Compose.
+    \item Frontend: React 19 + Vite 8 + Tailwind CSS, served at \texttt{http://localhost:5173}.
+    \item Backend: FastAPI + uvicorn, served at \texttt{http://localhost:8000}. Seven route groups: \texttt{/search}, \texttt{/recommend}, \texttt{/interact}, \texttt{/profile}, \texttt{/auth}, \texttt{/ask\_llm}, \texttt{/health}.
+    \item Infrastructure: MongoDB (\texttt{nba\_logs} database) and Redis (interaction write-queue), both provisioned via Docker Compose.
 \end{itemize}
 
-A \textit{Mock / Live} toggle in the application header allows the frontend to operate entirely with pre-defined mock data without requiring the backend to be running, which is useful for UI development and demonstrations when the ML models are not loaded.
+A Mock / Live toggle in the application header allows the frontend to operate entirely with pre-defined mock data without requiring the backend to be running, which is useful for UI development and demonstrations when the ML models are not loaded.
 User identity is persisted in \texttt{localStorage} so that returning users bypass the login gate automatically.

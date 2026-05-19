@@ -69,8 +69,8 @@ The FAISS flat index (3.2~GB RAM) is the largest RAM consumer; in a memory-const
 
 The server completes its startup sequence in three phases:
 \begin{enumerate}
-    \item \textbf{Critical path} (blocking, $\approx$8\,s): FAISS indices are memory-mapped, the Cleora NPZ is loaded, item metadata is read from Parquet, and the Tantivy index is opened. The \texttt{/health} endpoint returns \texttt{ready: false} until this phase completes.
-    \item \textbf{ML model loading} ($\approx$12\,s): BGE-M3 and the AgentPool (8 agents × DIF-SASRec) are loaded sequentially on the GPU.
-    \item \textbf{Lazy warmup}: NLLB and CLIP are warmed on first use; Qwen2.5 is loaded on the first \texttt{/ask\_llm\_stream} call. The \texttt{/health} endpoint returns \texttt{ready: true} after phase 2; the first cold Vietnamese query and the first LLM call each incur a one-time warm-up cost of 3--5\,s.
+    \item Critical path (blocking, $\approx$8\,s): FAISS indices are memory-mapped, the Cleora NPZ is loaded, item metadata is read from Parquet, and the Tantivy index is opened. The \texttt{/health} endpoint returns \texttt{ready: false} until this phase completes.
+    \item ML model loading ($\approx$12\,s): BGE-M3 and the AgentPool (8 agents × DIF-SASRec) are loaded sequentially on the GPU.
+    \item Lazy warmup: NLLB and CLIP are warmed on first use; Qwen2.5 is loaded on the first \texttt{/ask\_llm\_stream} call. The \texttt{/health} endpoint returns \texttt{ready: true} after phase 2; the first cold Vietnamese query and the first LLM call each incur a one-time warm-up cost of 3--5\,s.
 \end{enumerate}
 Total time from process start to \texttt{ready: true} is approximately 20 seconds, dominated by GPU memory allocation for the eight AgentPool instances.

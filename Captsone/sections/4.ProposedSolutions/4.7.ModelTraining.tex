@@ -93,23 +93,23 @@ At an average of 21 clicks, a large fraction of users had sequences shorter than
 \subsection{Training Run 3: Calibrated 100k Configuration}
 \label{sec:train_run3}
 
-The key insight from Run~2 was that \emph{interaction density matters more than user count} for this architecture.
+The key insight from Run~2 was that interaction density matters more than user count for this architecture.
 The data selection cap was adjusted to 100{,}000 users (the top-100k most active readers, sorted by number of rated items).
 At this cap, avg.\ train clicks = 33.5 — comfortably above the signal floor while still providing 5$\times$ more user diversity than Run~1.
 
 Three additional training improvements were applied:
 
 \begin{enumerate}
-    \item \textbf{Per-epoch negative resampling.}
+    \item Per-epoch negative resampling.
     Runs~1 and~2 used a fixed pool of 50{,}000 negative items sampled once before training.
     The model gradually memorised which items were easy negatives, causing the training signal to stagnate.
     In Run~3, a fresh 50{,}000-item pool is drawn from the embedding cache at the start of each epoch, continuously restoring the difficulty of the negative task.
 
-    \item \textbf{Batch size 2{,}048 with AMP.}
+    \item Batch size 2{,}048 with AMP.
     Automatic Mixed Precision (fp16 forward pass, fp32 gradient accumulation) halves activation memory, allowing batch size 2{,}048 — doubling GPU throughput compared to Run~2.
     AMP was present in Run~2 but a scheduler-ordering bug suppressed its benefit.
 
-    \item \textbf{AMP + LR scheduler ordering fix.}
+    \item AMP + LR scheduler ordering fix.
     PyTorch's \texttt{GradScaler.step()} silently skips the optimiser update when inf/nan gradients are detected.
     In Run~2, the LR scheduler was still advancing on skipped steps, decoupling the LR trajectory from the actual gradient update count.
     The fix compares the gradient scale before and after \texttt{scaler.step()}: the scheduler advances only when no skip occurred.

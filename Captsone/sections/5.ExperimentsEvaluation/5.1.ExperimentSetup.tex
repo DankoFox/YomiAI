@@ -38,7 +38,7 @@ Figure~\ref{fig:dataset_statistics} visualises the distribution of training sequ
 
 \subsection{Evaluation Protocol}
 
-A \textit{sampled negative} protocol is adopted, following the conventions of SASRec~\cite{kang2018self} and BERT4Rec~\cite{sun2019bert4rec}.
+A sampled negative protocol is adopted, following the conventions of SASRec~\cite{kang2018self} and BERT4Rec~\cite{sun2019bert4rec}.
 For each test user, the ground-truth item is ranked against $N$ uniformly sampled negative items that the user has not interacted with.
 Two values of $N$ are considered:
 
@@ -58,9 +58,9 @@ The evaluation seed is fixed to 42 for canonical runs; Section~\ref{sec:end_to_e
 Three complementary retrieval metrics are reported at cut-off $k = 10$:
 
 \begin{itemize}
-    \item \textbf{HR@$k$} (Hit Rate): 1 if the ground-truth item appears in the top-$k$ ranked candidates, 0 otherwise. Averaged over all test users.
-    \item \textbf{NDCG@$k$} (Normalised Discounted Cumulative Gain): position-sensitive ranking quality, rewarding earlier hits more strongly.
-    \item \textbf{MRR@$k$} (Mean Reciprocal Rank): the reciprocal of the rank of the first relevant item, averaged across users.
+    \item HR@$k$ (Hit Rate): 1 if the ground-truth item appears in the top-$k$ ranked candidates, 0 otherwise. Averaged over all test users.
+    \item NDCG@$k$ (Normalised Discounted Cumulative Gain): position-sensitive ranking quality, rewarding earlier hits more strongly.
+    \item MRR@$k$ (Mean Reciprocal Rank): the reciprocal of the rank of the first relevant item, averaged across users.
 \end{itemize}
 
 HR@10 is the primary metric because it directly reflects whether a user would encounter a relevant recommendation in a top-10 list, which corresponds to the typical number of items displayed on a single screen.
@@ -70,11 +70,11 @@ HR@10 is the primary metric because it directly reflects whether a user would en
 Five systems are compared to assess the contribution of each component:
 
 \begin{enumerate}
-    \item \textbf{Random Baseline}: uniform random ranking over the $N+1$ candidates. Provides a lower bound.
-    \item \textbf{Content Baseline}: mean pooling of BGE-M3 embeddings over the user's training sequence, followed by cosine similarity ranking. Represents a simple semantic profile without sequential modelling.
-    \item \textbf{GRU-SeqDQN}: a recurrent reinforcement-learning approach using a GRU-based policy network trained with Deep Q-Network objectives. Represents the prior recommendation module.
-    \item \textbf{DIF-SASRec (Pipeline B)}: the proposed Decoupled Information-Feature Self-Attentive Recommendation model with separate content and category attention streams.
-    \item \textbf{Pipeline A (Cleora + BGE-M3)}: behavioural co-purchase graph embeddings (Cleora) for candidate retrieval, re-ranked by BGE-M3 semantic similarity.
+    \item Random Baseline: uniform random ranking over the $N+1$ candidates. Provides a lower bound.
+    \item Content Baseline: mean pooling of BGE-M3 embeddings over the user's training sequence, followed by cosine similarity ranking. Represents a simple semantic profile without sequential modelling.
+    \item GRU-SeqDQN: a recurrent reinforcement-learning approach using a GRU-based policy network trained with Deep Q-Network objectives. Represents the prior recommendation module.
+    \item DIF-SASRec (Pipeline B): the proposed Decoupled Information-Feature Self-Attentive Recommendation model with separate content and category attention streams.
+    \item Pipeline A (Cleora + BGE-M3): behavioural co-purchase graph embeddings (Cleora) for candidate retrieval, re-ranked by BGE-M3 semantic similarity.
 \end{enumerate}
 
 \subsection{Model Configurations}

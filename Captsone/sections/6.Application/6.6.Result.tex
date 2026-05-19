@@ -5,7 +5,7 @@ This section walks through the three primary user flows as they appear in the de
 
 \subsection{Multimodal Search Flow}
 
-A user opens the application, enters their user ID on the login gate, and is placed in the \textit{Active Search} tab.
+A user opens the application, enters their user ID on the login gate, and is placed in the Active Search tab.
 They type the Vietnamese query \textit{``sách về trí tuệ nhân tạo''} (books about artificial intelligence) into the search box and submit.
 
 Internally, the NLLB-200 pipeline detects Vietnamese in under 1\,ms and translates the query to ``books about artificial intelligence''.
@@ -39,10 +39,10 @@ Figure~\ref{fig:search_demo} shows the result page for a representative search q
 \end{figure}
 
 Each result card provides four interaction controls.
-\textit{Interested} logs a click event (reward 1.0), updates the in-memory user profile, and triggers a DIF-SASRec gradient step.
-\textit{Skip} logs a skip event (reward 0.0) without a gradient step.
-\textit{Add to Cart} logs a cart event (reward 5.0), appends the item to the in-session cart, and triggers a gradient step.
-\textit{Ask AI} opens an inline streaming popover that calls \texttt{POST /ask\_llm\_stream}; the Qwen2.5 response is rendered progressively under \textbf{Genre}, \textbf{Plot Summary}, and \textbf{Pitch} headings as tokens arrive.
+Interested logs a click event (reward 1.0), updates the in-memory user profile, and triggers a DIF-SASRec gradient step.
+Skip logs a skip event (reward 0.0) without a gradient step.
+Add to Cart logs a cart event (reward 5.0), appends the item to the in-session cart, and triggers a gradient step.
+Ask AI opens an inline streaming popover that calls \texttt{POST /ask\_llm\_stream}; the Qwen2.5 response is rendered progressively under Genre, Plot Summary, and Pitch headings as tokens arrive.
 
 For image queries, the user drags a book cover onto the drop zone below the text field.
 The zone transitions to a thumbnail preview confirming that the CLIP encoder will process it.
@@ -50,8 +50,8 @@ If both text and image are supplied simultaneously, both encoders run in paralle
 
 \subsection{Personalised Recommendation Flow}
 
-After a user accumulates at least five interactions, the \textit{Recommendations} tab (Mode 2) switches from cold-start to personalised mode.
-The grey \textit{Discovery mode} status pill transitions to a green \textit{DIF-SASRec active} badge, and a toast notification confirms the transition.
+After a user accumulates at least five interactions, the Recommendations tab (Mode 2) switches from cold-start to personalised mode.
+The grey Discovery mode status pill transitions to a green DIF-SASRec active badge, and a toast notification confirms the transition.
 
 Figure~\ref{fig:rec_demo} shows the recommendation panel for a warm user.
 
@@ -74,7 +74,7 @@ Figure~\ref{fig:rec_demo} shows the recommendation panel for a warm user.
 \label{fig:rec_demo}
 \end{figure}
 
-The \textit{You Might Like} sub-tab renders an input-sequence strip above the recommendation cards when personalised mode is active.
+The You Might Like sub-tab renders an input-sequence strip above the recommendation cards when personalised mode is active.
 This strip shows the user's most recent click and cart interactions — up to eight items — in chronological order, representing the exact sequence that DIF-SASRec reads when generating the next-item prediction.
 The strip makes the sequential model's input visible to the user, providing an explanation for why specific items were recommended.
 
@@ -85,7 +85,7 @@ Items that are new since the previous refresh are highlighted for four seconds.
 \subsection{Online Learning Observation}
 
 Every click or cart event triggers a sampled softmax gradient step on the user's personal DIF-SASRec checkpoint.
-The \textit{SASRec Loss} sparkline in the right-side profile panel shows the full loss history as a filled area chart.
+The SASRec Loss sparkline in the right-side profile panel shows the full loss history as a filled area chart.
 A dashed divider marks the boundary between the pretraining phase (checkpoint-loaded, high loss scale) and the online fine-tuning phase (per-user gradient steps, lower scale).
 An information tooltip beside the chart title explains the expected scale difference, noting that pretraining uses 512 hard negatives whereas online training samples from the full 3-million-item catalogue, producing a structurally lower loss.
 When a gradient step fires, a transient loss-decrease badge is displayed beside the current loss value for 2.5 seconds, confirming that the model has updated.

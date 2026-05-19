@@ -19,12 +19,12 @@ An optional \texttt{debug=true} query parameter appends a \texttt{\_debug\_timin
 The internal pipeline executed by the \texttt{POST /search} handler is:
 
 \begin{enumerate}
-    \item \textbf{Language detection and translation}: the \texttt{lingua} detector identifies the input language in under 1\,ms. Non-English queries are translated to English by the NLLB-200 pipeline (Section~\ref{sec:nllb_pipeline}).
-    \item \textbf{Parallel encoding}: text and image are encoded concurrently via an \texttt{anyio} task group. Each encoder runs in a background thread to avoid blocking the async event loop.
-    \item \textbf{FAISS HNSW search}: the text vector is queried against \nolinkurl{bge_index_hnsw.faiss}; the image vector (if present) is queried against the CLIP HNSW index. Both retrieve 100 candidates.
-    \item \textbf{Tantivy BM25 re-ranking}: the original query string is searched against the Tantivy full-text index to retrieve a ranked keyword hit list.
-    \item \textbf{RRF fusion}: the HNSW and BM25 candidate lists are fused by Reciprocal Rank Fusion~\cite{cormack2009rrf} to produce a single ranked list.
-    \item \textbf{Metadata hydration}: each ASIN in the final list is resolved against the in-memory DataFrame to attach display metadata.
+    \item Language detection and translation: the \texttt{lingua} detector identifies the input language in under 1\,ms. Non-English queries are translated to English by the NLLB-200 pipeline (Section~\ref{sec:nllb_pipeline}).
+    \item Parallel encoding: text and image are encoded concurrently via an \texttt{anyio} task group. Each encoder runs in a background thread to avoid blocking the async event loop.
+    \item FAISS HNSW search: the text vector is queried against \nolinkurl{bge_index_hnsw.faiss}; the image vector (if present) is queried against the CLIP HNSW index. Both retrieve 100 candidates.
+    \item Tantivy BM25 re-ranking: the original query string is searched against the Tantivy full-text index to retrieve a ranked keyword hit list.
+    \item RRF fusion: the HNSW and BM25 candidate lists are fused by Reciprocal Rank Fusion~\cite{cormack2009rrf} to produce a single ranked list.
+    \item Metadata hydration: each ASIN in the final list is resolved against the in-memory DataFrame to attach display metadata.
 \end{enumerate}
 
 \subsection{Profile-Based Retrieval}

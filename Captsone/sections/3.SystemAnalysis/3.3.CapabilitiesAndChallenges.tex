@@ -7,19 +7,19 @@ Despite the limitations identified above, the current system provides a function
 The following capabilities are already present and require no redesign:
 
 \begin{itemize}
-    \item \textbf{Multi-modal search}: The system supports both text-based and image-based queries.
+    \item Multi-modal search: The system supports both text-based and image-based queries.
     Text queries are encoded by the BLaIR encoder and retrieved via the FAISS flat index, while image queries are encoded by CLIP and retrieved from a separate CLIP HNSW index.
     The two modalities share the same result presentation layer.
 
-    \item \textbf{Hybrid re-ranking}: BM25 results from Tantivy and dense results from FAISS are already fused via Reciprocal Rank Fusion ($k = 60$), providing complementary exact-match and semantic recall.
+    \item Hybrid re-ranking: BM25 results from Tantivy and dense results from FAISS are already fused via Reciprocal Rank Fusion ($k = 60$), providing complementary exact-match and semantic recall.
 
-    \item \textbf{User interaction tracking}: The \texttt{/interact} route records all click and rating events to MongoDB with millisecond-precision timestamps, building a complete and queryable interaction history for every authenticated user.
+    \item User interaction tracking: The \texttt{/interact} route records all click and rating events to MongoDB with millisecond-precision timestamps, building a complete and queryable interaction history for every authenticated user.
 
-    \item \textbf{Exact-recall vector search}: The flat FAISS index provides exact nearest-neighbour retrieval over the full 3-million-item catalogue, serving as a reliable evaluation baseline and as a fallback when latency is not a constraint.
+    \item Exact-recall vector search: The flat FAISS index provides exact nearest-neighbour retrieval over the full 3-million-item catalogue, serving as a reliable evaluation baseline and as a fallback when latency is not a constraint.
 
-    \item \textbf{Modular API structure}: The FastAPI router architecture cleanly separates search, recommendation, interaction, profile, and authentication concerns, making individual modules replaceable without disrupting others.
+    \item Modular API structure: The FastAPI router architecture cleanly separates search, recommendation, interaction, profile, and authentication concerns, making individual modules replaceable without disrupting others.
 
-    \item \textbf{Containerised infrastructure}: MongoDB and Redis are deployed as Docker containers, ensuring consistent behaviour across development and deployment environments.
+    \item Containerised infrastructure: MongoDB and Redis are deployed as Docker containers, ensuring consistent behaviour across development and deployment environments.
 \end{itemize}
 
 \subsection{Identified Challenges}

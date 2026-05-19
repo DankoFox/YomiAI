@@ -83,10 +83,10 @@ This project makes the following specific technical contributions:
     \item \textbf{Min-max normalised DIF-SASRec intent scores for UI transparency.}
     Raw DIF-SASRec dot-product scores are unbounded and vary by orders of magnitude across users.
     The backend applies per-request min-max normalisation so that the top-ranked candidate always receives score 1.0 and all remaining candidates are proportional to their dot-product gap.
-    This makes the per-card score badges on the \textit{You Might Like} panel directly interpretable by users.
+    This makes the per-card score badges on the You Might Like panel directly interpretable by users.
 
     \item \textbf{Dual-panel recommendation interface with per-pipeline attribution.}
-    The frontend exposes two recommendation panels that directly mirror the two backend pipelines, with per-card layer tags (\textit{Cleora\,+\,BGE-M3}, \textit{Cleora\,+\,CLIP}, \textit{DIF-SASRec}) and the DIF-SASRec input-sequence strip.
+    The frontend exposes two recommendation panels that directly mirror the two backend pipelines, with per-card layer tags (Cleora\,+\,BGE-M3, Cleora\,+\,CLIP, DIF-SASRec) and the DIF-SASRec input-sequence strip.
     This design makes the recommendation provenance visible to users and provides a basis for future A/B testing of pipeline variants.
 
     \item \textbf{training loss sparkline as training transparency.}

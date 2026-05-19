@@ -5,14 +5,14 @@
 
 Authentication is handled by a full-screen login gate rendered before the main application.
 The flow proceeds in three stages: the user enters a user ID and submits; the frontend calls \texttt{POST /auth/check}; if the ID is found in MongoDB the session begins immediately, and if not, a confirmation prompt offers account creation via \texttt{POST /auth/create} or the option to re-enter a different ID.
-A \textit{Continue as Guest} button on the login page generates a random \texttt{guest\_XXXXXX} identifier and bypasses both checks.
+A Continue as Guest button on the login page generates a random \texttt{guest\_XXXXXX} identifier and bypasses both checks.
 No password is stored or required at any point.
 The resolved user ID is persisted in \texttt{localStorage}; subsequent visits load it and bypass the gate automatically.
 
 \subsection{Shopping Cart}
 
 A cart button in the header tracks items added during the current session and displays the running item count.
-When a user selects \textit{Add to Cart} on any book card, the item is appended to the in-session cart array, the header count increments, and a success notification is shown.
+When a user selects Add to Cart on any book card, the item is appended to the in-session cart array, the header count increments, and a success notification is shown.
 The cart state is held in React component state only — it is not persisted to the backend — and resets on page reload.
 The cart interaction also dispatches a cart event to the \texttt{POST /interact} endpoint (reward 5.0), which triggers a DIF-SASRec gradient step identical to the click path.
 
@@ -25,15 +25,15 @@ The frontend appends this loss value to the sparkline immediately on response, p
 
 \subsection{Mock/Live Mode}
 
-A toggle switch in the header allows the frontend to operate in either \textit{Live} mode (calls the FastAPI backend) or \textit{Mock} mode (uses pre-defined in-memory data).
+A toggle switch in the header allows the frontend to operate in either Live mode (calls the FastAPI backend) or Mock mode (uses pre-defined in-memory data).
 In mock mode, search results return five fixed titles, recommendations return two co-purchase and two DIF-SASRec items, and interactions simulate a decreasing loss trajectory.
 This mode supports frontend development, demonstrations, and thesis presentations when the full machine-learning backend is not running.
 
 \subsection{Streaming LLM Book Assistant}
 \label{sec:llm_assistant}
 
-Each book card exposes an \textit{Ask AI} button that opens an inline popover and calls \texttt{POST /ask\_llm\_stream}.
-The Qwen2.5-1.5B-Instruct model~\cite{qwen2025} generates a structured response in three sections — \textbf{Genre}, \textbf{Plot Summary}, and \textbf{Pitch} — grounded by a retrieved external description that is semantically re-ranked by BGE-M3 before being passed to the model.
+Each book card exposes an Ask AI button that opens an inline popover and calls \texttt{POST /ask\_llm\_stream}.
+The Qwen2.5-1.5B-Instruct model~\cite{qwen2025} generates a structured response in three sections — Genre, Plot Summary, and Pitch — grounded by a retrieved external description that is semantically re-ranked by BGE-M3 before being passed to the model.
 The response streams token-by-token into the popover via \texttt{TextIteratorStreamer}; the first token dismisses the loading indicator and content builds progressively.
 
 \subsubsection{Grounding Pipeline}
@@ -41,9 +41,9 @@ The response streams token-by-token into the popover via \texttt{TextIteratorStr
 To reduce hallucination and produce content-specific descriptions rather than generic summaries from training knowledge, the assistant uses a two-stage grounding pipeline before LLM generation:
 
 \begin{enumerate}
-    \item \textbf{Context retrieval}: The system first queries the Google Books API using \texttt{intitle:} and \texttt{inauthor:} operators for precision, falling back to a Wikipedia search with progressively broader queries (volume-specific → series-level → title-only) if Google Books returns no description.
+    \item Context retrieval: The system first queries the Google Books API using \texttt{intitle:} and \texttt{inauthor:} operators for precision, falling back to a Wikipedia search with progressively broader queries (volume-specific → series-level → title-only) if Google Books returns no description.
     Rate-limiting logic backs off for 120 seconds after a 429 response, and an \texttt{@lru\_cache(maxsize=128)} stores results so repeated queries for the same title cost 0~ms.
-    \item \textbf{Semantic re-ranking}: The raw retrieved text is split into sentences and each sentence is scored by cosine similarity to a query embedding \texttt{``plot summary arc story characters events \{title\} volume \{vol\}''}.
+    \item Semantic re-ranking: The raw retrieved text is split into sentences and each sentence is scored by cosine similarity to a query embedding \texttt{``plot summary arc story characters events \{title\} volume \{vol\}''}.
     The top-5 highest-scoring sentences are selected and concatenated as the grounding context.
     This step, implemented using the same BGE-M3 encoder used throughout the system, suppresses author biography sentences and publisher marketing text in favour of plot-relevant content.
 \end{enumerate}

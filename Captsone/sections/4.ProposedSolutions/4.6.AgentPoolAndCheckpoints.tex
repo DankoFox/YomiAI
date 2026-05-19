@@ -34,13 +34,13 @@ Because agents are stateless between requests, user-specific weights are maintai
 The checkpoint lifecycle for a single interaction is:
 
 \begin{enumerate}
-    \item \textbf{Acquire}: The route borrows an idle agent from the pool.
-    \item \textbf{Load}: \texttt{agent.load\_user(user\_id, data\_dir)} reads the user's \texttt{.pt} file from disk into the agent's model and optimiser.
+    \item Acquire: The route borrows an idle agent from the pool.
+    \item Load: \texttt{agent.load\_user(user\_id, data\_dir)} reads the user's \texttt{.pt} file from disk into the agent's model and optimiser.
         If no checkpoint exists (first interaction), the agent retains the global pretrained weights.
-    \item \textbf{Infer or train}: For \texttt{/recommend}, the agent runs a forward pass over the user's click sequence and scores candidate items.
+    \item Infer or train: For \texttt{/recommend}, the agent runs a forward pass over the user's click sequence and scores candidate items.
         For \texttt{/interact}, the agent additionally runs one backward pass and updates the model weights.
-    \item \textbf{Save}: After a gradient step, the updated weights and optimiser state are serialised back to \texttt{data/user\_checkpoints/\{user\_id\}.pt}.
-    \item \textbf{Release}: The agent is returned to the pool in a clean state, ready for the next user.
+    \item Save: After a gradient step, the updated weights and optimiser state are serialised back to \texttt{data/user\_checkpoints/\{user\_id\}.pt}.
+    \item Release: The agent is returned to the pool in a clean state, ready for the next user.
 \end{enumerate}
 
 \subsection{Concurrency and Backpressure}

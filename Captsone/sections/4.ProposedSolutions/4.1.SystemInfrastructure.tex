@@ -171,10 +171,10 @@ A three-stage translation pipeline is inserted before the BGE-M3 encoding step i
 \end{figure}
 
 \begin{enumerate}
-    \item \textbf{Language detection}: The \texttt{lingua} library identifies the input language in under 1\,ms. If the detected language is English, the translation step is skipped entirely.
-    \item \textbf{NLLB-200 translation}: For the 19 supported non-English languages, the \texttt{facebook/nllb-200-distilled-600M} model translates the query to English. A fast greedy pass (\texttt{num\_beams=1}) is executed first.
-    \item \textbf{Quality gate}: A heuristic checks whether any source-language words survived into the translation output — a reliable indicator of partial decoding failure. If untranslated tokens are detected, the query is retried with \texttt{num\_beams=4}, trading \textasciitilde{}30 ms for a cleaner translation.
-    \item \textbf{LRU caching}: Translated queries are cached via \texttt{@lru\_cache(maxsize=2048)}, so repeated queries (e.g., common search terms) cost 0 ms after the first miss.
+    \item Language detection: The \texttt{lingua} library identifies the input language in under 1\,ms. If the detected language is English, the translation step is skipped entirely.
+    \item NLLB-200 translation: For the 19 supported non-English languages, the \texttt{facebook/nllb-200-distilled-600M} model translates the query to English. A fast greedy pass (\texttt{num\_beams=1}) is executed first.
+    \item Quality gate: A heuristic checks whether any source-language words survived into the translation output — a reliable indicator of partial decoding failure. If untranslated tokens are detected, the query is retried with \texttt{num\_beams=4}, trading \textasciitilde{}30 ms for a cleaner translation.
+    \item LRU caching: Translated queries are cached via \texttt{@lru\_cache(maxsize=2048)}, so repeated queries (e.g., common search terms) cost 0 ms after the first miss.
 \end{enumerate}
 
 Both the NLLB model and the lingua detector are lazy-loaded on first use and eagerly warmed up at server startup to eliminate the cold-start P95 latency spike.
