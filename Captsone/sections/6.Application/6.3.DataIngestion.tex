@@ -32,7 +32,7 @@ The background worker also maintains a counter; when the counter reaches \texttt
 Figure~\ref{fig:mongo_schema} presents the document schema for the two MongoDB collections maintained within the \texttt{nba\_logs} database.
 The \texttt{interactions} collection is append-only: one document is inserted per user event and no document is ever updated, preserving a complete immutable audit log suitable for offline retraining and Cleora graph augmentation.
 The \texttt{profiles} collection follows an upsert pattern: a single document per user is atomically updated after every interaction via \texttt{update\_one} with \texttt{upsert=True}.
-The three embedding fields---\texttt{text\_profile}, \texttt{visual\_profile}, and \texttt{cleora\_profile}---store temporally-decayed mean-pool vectors recomputed over the full click history at write time, with dimensions matching the respective encoder outputs (BGE-M3: $d = 1{,}024$; CLIP: $d = 512$).
+The three embedding fields (\texttt{text\_profile}, \texttt{visual\_profile}, and \texttt{cleora\_profile}) store temporally-decayed mean-pool vectors recomputed over the full click history at write time, with dimensions matching the respective encoder outputs (BGE-M3: $d = 1{,}024$; CLIP: $d = 512$).
 
 \begin{figure}[H]
 \centering

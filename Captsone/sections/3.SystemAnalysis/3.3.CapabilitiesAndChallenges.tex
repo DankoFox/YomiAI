@@ -39,7 +39,7 @@ Data Storage      & 612 ms P50 FAISS search latency; no programmatic indexes on 
 \hline
 Data Visualisation & Synchronous rendering causes UI freezes on slow queries; no filtering or sorting controls; no multilingual input support & Section~\ref{sec:viz_improvements} \\
 \hline
-Recommendation    & GRU-SeqDQN HR@10 = 0.1031 (near random); no content feature integration; no behavioural graph signal; large action-space convergence failure & Section~\ref{sec:infra_improvements} \\
+Recommendation    & GRU-SeqDQN produces near-random results at 3M-item scale; no content feature integration; no behavioural graph signal; DQN action space too large to converge & Section~\ref{sec:infra_improvements} \\
 \hline
 Search latency    & End-to-end warm-cache latency of 1{,}102 ms driven by slow FAISS search and unoptimised encoder & Section~\ref{sec:infra_improvements} \\
 \hline
@@ -50,16 +50,18 @@ Multilingual      & BLaIR encoder achieves Precision@10 $\leq 0.05$ on Vietnames
 
 Three challenges deserve particular emphasis because they have the largest impact on user-facing quality.
 
-\paragraph{Recommendation quality —}
-The GRU-SeqDQN model's near-random performance (HR@10 = 0.1031) renders the recommendation feature effectively unusable.
-A user who sees random recommendations quickly loses trust in the system and stops engaging with the personalisation features entirely.
-This is the highest-priority challenge and motivates the complete replacement of the recommendation backend with the dual-mode Pipeline A + Pipeline B architecture.
+\paragraph{Recommendation quality.}
+Testing showed that GRU-SeqDQN produced recommendations indistinguishable from random at this catalogue scale.
+A user who sees random recommendations quickly loses trust and stops engaging with personalisation features entirely.
+This is the highest-priority challenge and motivates replacing the recommendation backend with the dual-mode Pipeline A + Pipeline B architecture.
 
-\paragraph{Search latency —}
+\paragraph{Search latency.}
 A warm-cache end-to-end latency of 1{,}102 ms is above the 200 ms threshold at which users typically perceive a response as instantaneous.
 Reducing this to below 100 ms requires replacing the flat FAISS index with an HNSW approximate index and adding GPU-accelerated encoding.
 
-\paragraph{Multilingual gap —}
-The BLaIR encoder's failure on Vietnamese queries (Precision@10 $\leq 0.05$, compared to 0.55 for BGE-M3 on long queries) creates an inequitable search experience for Vietnamese-speaking users who represent a significant portion of the target audience.
-Addressing this challenge requires replacing BLaIR with a multilingual encoder and adding a query translation stage.
+\paragraph{Encoder mismatch.}
+BLaIR was trained with contrastive learning on (user review, item description and categories) pairs.
+This trains it to match semantically rich, descriptive text against item metadata — a task that differs from real-world product search, where users type short conversational queries such as ``dark fantasy books similar to Berserk.''
+BLaIR was not trained on this query style, and as an English-only model it produces near-zero precision on Vietnamese input regardless of query length.
+Addressing this requires a multilingual encoder trained on short query retrieval and a query translation stage for non-English languages.
 

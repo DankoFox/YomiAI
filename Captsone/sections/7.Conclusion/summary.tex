@@ -5,8 +5,8 @@ Chapter~2 reviewed the theoretical foundations underpinning the system: sequenti
 These methods were selected on the basis of empirical performance, latency characteristics, and compatibility with the existing data platform.
 
 Chapter~3 analysed the limitations of the prior system.
-The legacy GRU-SeqDQN recommendation module achieved HR@10 = 0.1031 — statistically indistinguishable from the random baseline of 0.1000 — due to the fixed-size GRU bottleneck and the intractable 3-million-item DQN action space.
-The BLaIR text encoder produced Precision@10 $\leq 0.05$ on Vietnamese queries, making the system functionally unusable for the target multilingual user base.
+The legacy GRU-SeqDQN recommendation module produced near-random results at this catalogue scale, due to the fixed-size GRU bottleneck and the intractable 3-million-item DQN action space.
+The BLaIR text encoder, trained on (user review, item description) pairs, was optimised for matching long descriptive text rather than the short conversational queries users actually type, and it is monolingual English, so Vietnamese queries returned near-zero precision.
 The FAISS flat index incurred a P50 search latency of 612.19\,ms and a 45-second startup loading penalty, precluding interactive use.
 
 Chapter~4 introduced four infrastructure changes to address these shortcomings.
@@ -23,7 +23,6 @@ Warm-cache end-to-end search latency was reduced from 1{,}102\,ms to 59\,ms.
 
 Chapter~6 presented the deployed book discovery application, demonstrating the end-to-end integration of all components: the login gate, the multimodal search interface (text, image, and fused), the dual-panel recommendation view with the DIF-SASRec input-sequence strip, the real-time profile panel with the training loss sparkline, and the streaming Qwen2.5 book assistant.
 
----
 
 \section{Evaluation of Objectives}
 \label{sec:conclusion_objectives}
@@ -62,9 +61,8 @@ Chapter~6 presents the deployed book discovery application combining multimodal 
 \end{table}
 
 All five objectives are met.
-The clearest improvement is in recommendation quality: the prior GRU-SeqDQN approach scored HR@10 = 0.1031, near random, while Pipeline~A reaches 0.9047 and Pipeline~B reaches 0.7745 on the same test set.
+The clearest improvement is in recommendation quality: the prior GRU-SeqDQN approach produced near-random results, while both proposed pipelines achieve substantially higher retrieval accuracy on the same 100{,}000-user test set (Chapter~5, Table~\ref{tab:main_results}).
 
----
 
 \section{Research Contributions}
 \label{sec:contributions}
@@ -98,7 +96,6 @@ This project makes the following specific technical contributions:
     This suppresses author biography sentences and marketing language without requiring a separate re-ranking model.
 \end{enumerate}
 
----
 
 \section{Generalisation to Other Domains}
 \label{sec:generalisation}
@@ -134,7 +131,6 @@ The retrieval infrastructure (HNSW, RRF, NLLB, Tantivy, Redis, MongoDB) requires
 The encoder and model layers (BGE-M3, CLIP, DIF-SASRec) require re-embedding and retraining on domain-specific data, but the training code and serving infrastructure are reusable.
 Only the Cleora graph is tightly coupled to the co-purchase interaction pattern; an analogous collaborative signal (e.g., co-view, co-play, co-purchase in another product domain) would enable direct reuse.
 
----
 
 \section{Limitations}
 \label{sec:conclusion_limitations}
@@ -163,7 +159,6 @@ Several limitations of the proposed system are identified.
     Cart contents are lost on page reload, preventing recovery of abandoned carts and limiting the cart signal from influencing Cleora graph updates across sessions.
 \end{itemize}
 
----
 
 \section{Future Work}
 \label{sec:conclusion_future}

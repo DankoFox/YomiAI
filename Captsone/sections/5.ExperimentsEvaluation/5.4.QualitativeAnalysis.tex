@@ -39,16 +39,16 @@ Together the two pipelines cover 97.4\% of test users, with only 2.6\% unreachab
 
 Three qualitative user archetypes are identified to explain the complementarity patterns:
 
-\paragraph{Type A — Dense Readers ($A \cap B$, 70.6\%)}
+\paragraph{Type A: Dense Readers ($A \cap B$, 70.6\%).}
 These are high-activity users with hundreds of interactions spanning consistent reading genres.
 Both the Cleora co-purchase graph (which clusters densely interacted items) and DIF-SASRec (which captures the repeated sequential pattern) agree on the relevant candidates.
 The dense interaction history provides strong signal to both modalities.
 
-\paragraph{Type B — Graph-Prominent (A only, 19.9\%)}
+\paragraph{Type B: Graph-Prominent (A only, 19.9\%).}
 These users have eclectic or burst-driven purchasing patterns (e.g., gift buyers, cross-genre readers) whose co-purchase communities in the Cleora graph are informative, but whose interaction sequences are too noisy or irregular for DIF-SASRec to identify the intent.
 Pipeline A correctly retrieves the item while Pipeline B misses it.
 
-\paragraph{Type C — Sequential Intent (B only, 6.9\%)}
+\paragraph{Type C: Sequential Intent (B only, 6.9\%).}
 These users recently shifted their reading interest.
 The most recent interactions form a coherent sub-sequence that DIF-SASRec's self-attention successfully captures, but the shift is too recent to be reflected in the global co-purchase graph.
 Pipeline B recovers these users while Pipeline A misses them.

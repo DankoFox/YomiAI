@@ -319,12 +319,12 @@ Figure~\ref{fig:rrf_fusion} illustrates how the two ranked lists are merged.
 \subsection{Multimodal and Multilingual Extensions}
 \label{sec:multimodal}
 
-\paragraph{Visual Search (CLIP) —}
+\paragraph{Visual Search (CLIP).}
 CLIP~\cite{radford2021clip} is a vision-language model pre-trained via contrastive learning on 400 million image–text pairs.
 It maps both images and text descriptions into a shared embedding space, enabling zero-shot image search: a query image can be encoded and matched against text-based item embeddings without domain-specific fine-tuning.
 In the system, a CLIP HNSW index over 3 million item cover images enables cover-image-based book search.
 
-\paragraph{Multilingual Query Handling (NLLB) —}
+\paragraph{Multilingual Query Handling (NLLB).}
 When a query arrives in Vietnamese, the NLLB-200 model~\cite{nllb2022} translates it to English before the BGE-M3 encoding step.
 NLLB-200 is a model family supporting 202 languages, trained specifically to improve translation quality for low-resource languages; this system uses the distilled 600M-parameter variant (\texttt{facebook/nllb-200-distilled-600M}) for its latency characteristics.
 Query-time translation enables the system to leverage the full semantic richness of the BGE-M3 English-dominant training distribution while still accepting Vietnamese input natively.

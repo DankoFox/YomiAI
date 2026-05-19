@@ -208,7 +208,7 @@ Figure~\ref{fig:rec_funnel} illustrates the recommendation funnel.
 \label{fig:rec_funnel}
 \end{figure}
 
-\paragraph{Pipeline A — Cleora + BGE-M3 (People Also Buy) —}
+\paragraph{Pipeline A: Cleora + BGE-M3 (People Also Buy).}
 Candidate generation uses two complementary Cleora lookups.
 First, a mean-pool of the user's Cleora-space item embeddings forms a behavioural profile vector, which is used to query the Cleora co-purchase index (375{,}439 items) for up to 50 nearest neighbours.
 Second, per-item Cleora neighbours are retrieved for each of the user's 5 most recent interactions, adding locally relevant co-purchase candidates.
@@ -216,14 +216,14 @@ The union of both sets is then filtered by a content veto: candidates whose cosi
 Surviving candidates are ranked by BGE-M3 semantic similarity to the profile vector, and the top items are returned.
 (The BGE-M3 profile used here for veto and re-ranking is a separate mean-pool of BGE-M3 text embeddings, distinct from the Cleora-space profile used for the initial index query.)
 
-\paragraph{Pipeline B — DIF-SASRec (You Might Like) —}
+\paragraph{Pipeline B: DIF-SASRec (You Might Like).}
 An \texttt{AgentPool} of 8 isolated DIF-SASRec agents handles concurrent personalisation requests.
 For each request, the user's BGE-M3 profile vector is used to retrieve 200 candidate items from the HNSW index.
 Those candidates pass through the same content veto filter ($\tau = 0.3$) as Pipeline~A.
 The surviving candidates are then scored by DIF-SASRec: an agent loads the user's personal checkpoint, runs a forward pass over the recent click sequence to produce an intent vector, and ranks candidates by dot product against that vector.
 Per-user fine-tuning is triggered at every click or cart event, updating the personal checkpoint via a sampled softmax gradient step.
 
-\paragraph{Cold-start handling —}
+\paragraph{Cold-start handling.}
 Users with fewer than \texttt{COLD\_START\_THRESHOLD} = 5 interactions bypass both pipelines.
 The fallback samples items uniformly from the intersection of the Cleora ASIN set and the FAISS index, providing a diverse starting point until enough signal accumulates.
 

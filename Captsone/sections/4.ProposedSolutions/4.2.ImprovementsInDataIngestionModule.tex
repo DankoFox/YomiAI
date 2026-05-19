@@ -18,7 +18,7 @@ The replacement is a three-stage pipeline, illustrated in Figure~\ref{fig:ingest
 \label{fig:ingestion_pipeline_v2}
 \end{figure}
 
-\paragraph{Stage 1 — Delta export —}
+\paragraph{Stage 1: Delta export.}
 The \texttt{export\_delta\_hyperedges.py} script queries the MongoDB \texttt{interactions} collection for all click and cart events recorded after the timestamp stored in \texttt{data/delta\_last\_run.txt}, defaulting to seven days prior if the file is absent.
 Guest sessions (\texttt{is\_guest: true}) are excluded so that transient, unauthenticated activity does not corrupt the co-purchase graph.
 For each qualifying user, the collected ASINs are accumulated into a Python \texttt{set}, which inherently deduplicates repeated clicks on the same item.
@@ -27,11 +27,11 @@ Each user's deduplicated item set is written as a single space-separated hypered
 On completion, the current timestamp is persisted to \texttt{delta\_last\_run.txt}; subsequent runs therefore query only new events, avoiding double-counting.
 If no qualifying events are found, no delta file is written and the pipeline halts gracefully.
 
-\paragraph{Stage 2 — Cleora augmentation —}
+\paragraph{Stage 2: Cleora augmentation.}
 When a non-empty delta file is present, \texttt{run\_cleora.py --augment} is invoked as an asynchronous subprocess.
 It ingests the delta hyperedges into the existing co-purchase graph and applies Markov-chain propagation to produce updated entity embeddings, writing the result to \texttt{data/cleora\_embeddings.npz}.
 
-\paragraph{Stage 3 — Hot-reload —}
+\paragraph{Stage 3: Hot-reload.}
 After the augmentation subprocess exits successfully, the updated NPZ file is loaded and passed to \texttt{Retriever.reload\_cleora()}.
 This method atomically replaces the in-memory Cleora FAISS index and ASIN lookup table in a single Python assignment with no \texttt{await} points, so concurrent in-flight recommendation requests observe either the old index or the new one in full — never a partial state.
 

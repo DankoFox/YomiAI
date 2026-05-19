@@ -4,7 +4,10 @@ This chapter described the architecture and current state of the system across i
 
 The system already has a working end-to-end pipeline: multimodal search (text and image), hybrid BM25 and dense re-ranking, user interaction tracking, and a recommendation endpoint. The containerised infrastructure and modular API design mean individual modules can be replaced without disrupting the rest.
 
-Three weaknesses, however, make the system inadequate in its current form. The GRU-SeqDQN recommendation module scores HR@10 = 0.1031, near the random baseline, so the recommendation feature produces results no better than guessing. The flat FAISS index has a warm-cache search latency of 1{,}102\,ms, well above what feels interactive. The BLaIR encoder returns Precision@10 $\leq 0.05$ on Vietnamese queries, effectively failing for Vietnamese-speaking users.
+Three weaknesses, however, make the system inadequate in its current form.
+Testing GRU-SeqDQN on the 3-million-item catalogue showed it produced near-random recommendations, making the personalisation feature effectively useless at this scale.
+The flat FAISS index has a warm-cache search latency of 1{,}102\,ms, well above what feels interactive.
+The BLaIR encoder, trained on (review, description) pairs rather than short search queries, cannot handle the conversational query style users employ, and fails completely on Vietnamese input.
 
 Secondary issues, including shallow MongoDB indexing and an unresponsive visualisation layer, are also addressed in Chapter~4. Chapter~5 reports the measured improvements.
 
