@@ -102,15 +102,15 @@ export function SearchResultCard({ book, onInteract, onAskAIStream }) {
             {showAI ? "✕ AI" : "✦ Ask AI"}
           </button>
           <button
-            onClick={e => { e.stopPropagation(); onInteract(book, "cart"); }}
-            title="Add to cart"
+            onClick={e => { e.stopPropagation(); onInteract(book, "not_interested"); }}
+            title="Not interested — hide from recommendations"
             className="px-3 py-1 rounded-full text-[12px] font-medium transition-all duration-150
-                       bg-emerald-50 dark:bg-emerald-900/20
-                       border border-emerald-300 dark:border-emerald-700/60
-                       text-emerald-700 dark:text-emerald-400
-                       hover:bg-emerald-100 dark:hover:bg-emerald-900/40"
+                       bg-rose-50 dark:bg-rose-900/20
+                       border border-rose-200 dark:border-rose-800/60
+                       text-rose-500 dark:text-rose-400
+                       hover:bg-rose-100 dark:hover:bg-rose-900/40"
           >
-            🛒 Cart
+            Not interested
           </button>
 
           {/* AI popover */}

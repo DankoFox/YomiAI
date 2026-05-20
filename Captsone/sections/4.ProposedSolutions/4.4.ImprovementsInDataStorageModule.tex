@@ -30,11 +30,11 @@ The index loader follows a priority chain: the BGE-M3 HNSW file is loaded as the
 This fallback chain allows the system to operate on machines where only a subset of index files has been built, and provides a safe migration path when re-embedding with a new encoder.
 
 At search time, all user queries are routed exclusively through \texttt{text\_index} (the HNSW file).
-Vector reconstruction calls — used by the DIF-SASRec pipeline to retrieve item embeddings by ASIN for content-veto scoring — are routed through \texttt{text\_flat}, which supports the \texttt{reconstruct(i)} operation that HNSW indices do not provide.
+Vector reconstruction calls (used by the DIF-SASRec pipeline to retrieve item embeddings by ASIN for content-veto scoring) are routed through \texttt{text\_flat}, which supports the \texttt{reconstruct(i)} operation that HNSW indices do not provide.
 The separation of responsibilities means that neither index is burdened with a use case it is not optimised for.
 
 The latency and recall trade-off of this strategy is evaluated experimentally in Section~\ref{sec:hnsw} and summarised in Table~\ref{tab:hnsw_comparison}.
-The HNSW index reduces P50 search latency from 612.19 ms to 119.56 ms — a 5.12$\times$ speedup — at a recall of 0.521.
+The HNSW index reduces P50 search latency from 612.19 ms to 119.56 ms (a 5.12$\times$ speedup) at a recall of 0.521.
 The 47.9\% of candidates not returned by HNSW are partially compensated by the Tantivy BM25 stage, which captures exact-match hits that the approximate retriever misses.
 
 \subsection{Memory-Mapped Index Loading}
@@ -42,7 +42,7 @@ The 47.9\% of candidates not returned by HNSW are partially compensated by the T
 
 Both HNSW and flat indices are loaded with the \texttt{faiss.IO\_FLAG\_MMAP} flag, which maps the index file directly into the process address space rather than reading the entire matrix into RAM.
 Pages are brought into physical memory on demand by the operating system's virtual memory subsystem.
-For the 3M-vector flat index — which occupies approximately 12 GB on disk — this change eliminates the 45-second full-load pause at startup and reduces peak memory usage to the working set actually accessed during inference, which is substantially smaller than the full index for typical query traffic.
+For the 3M-vector flat index, which occupies approximately 12 GB on disk, this change eliminates the 45-second full-load pause at startup and reduces peak memory usage to the working set actually accessed during inference, which is substantially smaller than the full index for typical query traffic.
 The HNSW index benefits similarly: graph traversal during search accesses only the nodes visited by the beam, so most of the index file remains un-paged under steady-state load.
 
 \subsection{Cleora Behavioural Embedding Store}
@@ -53,4 +53,4 @@ At startup, the archive is loaded and passed to the \texttt{Retriever} construct
 This in-memory construction takes under one second and produces an index that supports both nearest-neighbour search (for Pipeline~A candidate retrieval) and vector reconstruction (for cosine re-ranking).
 
 The \texttt{reload\_cleora()} method, described in Section~\ref{sec:cleora_incremental}, enables the archive to be hot-swapped at runtime without an API restart.
-Because the Cleora index covers only 375{,}280 items — a subset of the 3M text and CLIP catalogues — the ASIN lookup table is maintained separately (\texttt{asin\_to\_cleora\_idx}) and the retriever always validates membership before issuing a search, returning an empty candidate list gracefully for items not yet in the co-purchase graph.
+Because the Cleora index covers only 375{,}280 items, a subset of the 3M text and CLIP catalogues, the ASIN lookup table is maintained separately (\texttt{asin\_to\_cleora\_idx}) and the retriever always validates membership before issuing a search, returning an empty candidate list gracefully for items not yet in the co-purchase graph.

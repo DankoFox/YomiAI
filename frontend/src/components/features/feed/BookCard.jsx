@@ -31,12 +31,12 @@ export function BookCard({ book, onAction }) {
       </div>
 
       <div className="flex gap-3 mt-auto pt-6 border-t border-zinc-100 dark:border-zinc-800">
-        <Button 
-          variant="primary" 
+        <Button
+          variant="primary"
           className="flex-1 text-base"
-          onClick={() => onAction(book.parent_asin, "cart")}
+          onClick={() => onAction(book.parent_asin, "click")}
         >
-          Add to Cart
+          Interested
         </Button>
         <Button 
           variant="secondary" 

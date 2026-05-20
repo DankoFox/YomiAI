@@ -2,11 +2,11 @@
 \label{sec:conclusion_summary}
 
 Chapter~2 reviewed the theoretical foundations underpinning the system: sequential recommendation via self-attention~\cite{kang2018self,sun2019bert4rec}, co-purchase graph embedding via Cleora~\cite{rychalska2021cleora}, approximate nearest-neighbour search via HNSW~\cite{malkov2018hnsw}, large-scale similarity indexing via FAISS~\cite{johnson2021faiss}, multilingual encoding via BGE-M3~\cite{chen2024bge}, and Reciprocal Rank Fusion for retrieval combination~\cite{cormack2009rrf}.
-These methods were selected on the basis of empirical performance, latency characteristics, and compatibility with the existing data platform.
+These methods were selected for their empirical performance, latency characteristics, and compatibility with the existing data platform.
 
 Chapter~3 analysed the limitations of the prior system.
 The legacy GRU-SeqDQN recommendation module produced near-random results at this catalogue scale, due to the fixed-size GRU bottleneck and the intractable 3-million-item DQN action space.
-The BLaIR text encoder, trained on (user review, item description) pairs, was optimised for matching long descriptive text rather than the short conversational queries users actually type, and it is monolingual English, so Vietnamese queries returned near-zero precision.
+The BLaIR text encoder was trained on (user review, item description) pairs, making it suited to matching long descriptive text rather than the short conversational queries users actually type. Being monolingual English, it also returned near-zero precision on Vietnamese queries.
 The FAISS flat index incurred a P50 search latency of 612.19\,ms and a 45-second startup loading penalty, precluding interactive use.
 
 Chapter~4 introduced four infrastructure changes to address these shortcomings.
@@ -87,9 +87,9 @@ This project makes the following specific technical contributions:
     The frontend exposes two recommendation panels that directly mirror the two backend pipelines, with per-card layer tags (Cleora\,+\,BGE-M3, Cleora\,+\,CLIP, DIF-SASRec) and the DIF-SASRec input-sequence strip.
     This design makes the recommendation provenance visible to users and provides a basis for future A/B testing of pipeline variants.
 
-    \item \textbf{training loss sparkline as training transparency.}
+    \item \textbf{Training loss sparkline for training transparency.}
     A live SVG sparkline in the right-panel profile view plots the full per-user training loss history with an annotated phase boundary between pretraining and online fine-tuning.
-    This provides immediate, per-interaction visual confirmation that the DIF-SASRec model has updated — a transparency mechanism with no equivalent in existing open-source recommendation systems.
+    This provides immediate, per-interaction visual confirmation that the DIF-SASRec model has updated, a transparency mechanism with no equivalent in existing open-source recommendation systems.
 
     \item \textbf{BGE-M3-based semantic re-ranking for LLM grounding.}
     Rather than passing raw Wikipedia or Google Books extracts to the Qwen2.5 assistant, the grounding pipeline uses the same BGE-M3 encoder deployed throughout the system to select the top-5 plot-relevant sentences from the retrieved text.
@@ -139,7 +139,7 @@ Several limitations of the proposed system are identified.
 
 \begin{itemize}
     \item \textbf{Incomplete catalogue coverage in Pipeline~A.}
-    The Cleora co-purchase graph covers 375{,}280 items — 12.5\% of the full 3-million-item catalogue.
+    The Cleora co-purchase graph covers 375{,}280 items, 12.5\% of the full 3-million-item catalogue.
     Items outside the graph cannot be retrieved by Pipeline~A, contributing to the 2.6\% of test users (2{,}641) that neither pipeline serves (Section~\ref{sec:qualitative}).
 
     \item \textbf{Content veto over-filtering.}
@@ -154,9 +154,6 @@ Several limitations of the proposed system are identified.
     The DIF-SASRec gradient step executes synchronously in the \texttt{POST /interact} request handler.
     For users with long interaction histories the checkpoint serialisation and deserialisation from disk introduces latency that grows proportionally with checkpoint size.
 
-    \item \textbf{In-session cart state.}
-    The shopping cart is held in React component state only and is not persisted to the backend.
-    Cart contents are lost on page reload, preventing recovery of abandoned carts and limiting the cart signal from influencing Cleora graph updates across sessions.
 \end{itemize}
 
 
@@ -177,10 +174,11 @@ Several concrete directions for future improvement follow from the identified li
     \item \textbf{Asynchronous online fine-tuning.}
     Moving the DIF-SASRec gradient step from the synchronous \texttt{POST /interact} response path to a background task queue would decouple interaction logging latency from model update latency, allowing the training step to be batched and accelerated without impacting the user-facing response time.
 
-    \item \textbf{Persistent cart and cross-session interaction signals.}
-    Persisting cart events to MongoDB in the same manner as click and skip events would allow cart additions to contribute to Cleora graph updates across sessions, providing a higher-reward signal that currently disappears on page reload.
+    \item \textbf{Leveraging negative feedback for Cleora graph updates.}
+    The current not-interested signal is stored as a per-user Redis blacklist and filters items from future recommendations, but is not yet propagated to the Cleora co-purchase graph.
+    Incorporating not-interested events as negative edges in the hyperedge representation could improve candidate diversity by down-weighting co-purchase links that lead to items users have explicitly rejected.
 
     \item \textbf{Extension to additional retrieval modalities.}
     The current retrieval pipeline combines text (BGE-M3) and visual (CLIP) signals.
-    Incorporating structured metadata signals — genre taxonomy, publication year, reading-level classification — as additional FAISS or Tantivy filter axes would improve precision for queries that express constraints rather than pure semantic similarity (e.g., ``beginner-level machine learning books published after 2020'').
+    Incorporating structured metadata signals (genre taxonomy, publication year, reading-level classification) as additional FAISS or Tantivy filter axes would improve precision for queries that express constraints rather than pure semantic similarity (e.g., ``beginner-level machine learning books published after 2020'').
 \end{itemize}

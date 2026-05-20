@@ -4,7 +4,7 @@
 \subsection{Motivation}
 
 The DIF-SASRec model performs per-user online fine-tuning, meaning each user's gradient history must be maintained in isolation.
-A naive implementation would load a single model into GPU memory and serialise updates sequentially — a design that serialises all recommendation and training requests across concurrent users.
+A naive implementation would load a single model into GPU memory and serialise updates sequentially, which serialises all recommendation and training requests across concurrent users.
 The \texttt{AgentPool} architecture solves this by maintaining a fixed set of independent model instances, each capable of serving a distinct user request without shared mutable state.
 
 \subsection{Pool Architecture}

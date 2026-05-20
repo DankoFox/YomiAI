@@ -3,8 +3,8 @@ import { InfoTooltip } from "../../ui/InfoTooltip";
 const BAR_META = [
   {
     label:   "CTR",
-    tip:     "Ratio of positive interactions (clicks + carts) out of all session interactions.",
-    formula: "(clicks + carts) / total",
+    tip:     "Ratio of interested clicks out of all session interactions.",
+    formula: "clicks / total",
     value: ({ clicks, total }) => total > 0 ? clicks / total : 0,
   },
   {
@@ -29,7 +29,7 @@ const BAR_META = [
 
 export function ProfileRadar({ interactions }) {
   const total     = interactions.length;
-  const clicks    = interactions.filter(i => i.action === "click" || i.action === "cart").length;
+  const clicks    = interactions.filter(i => i.action === "click").length;
   const uniqueIds = new Set(interactions.map(i => i.id)).size;
 
   const ctx = { total, clicks, uniqueIds };

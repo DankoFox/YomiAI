@@ -23,12 +23,6 @@ The backend assigns the corresponding reward, updates the in-memory user profile
 For click and cart actions, the endpoint borrows a DIF-SASRec agent from the pool, loads the user's personal checkpoint, runs one sampled softmax gradient step, saves the updated checkpoint, and returns the resulting \texttt{sasrec\_loss} value.
 The frontend appends this loss value to the sparkline immediately on response, providing sub-second visual feedback that the model has updated.
 
-\subsection{Mock/Live Mode}
-
-A toggle switch in the header allows the frontend to operate in either Live mode (calls the FastAPI backend) or Mock mode (uses pre-defined in-memory data).
-In mock mode, search results return five fixed titles, recommendations return two co-purchase and two DIF-SASRec items, and interactions simulate a decreasing loss trajectory.
-This mode supports frontend development, demonstrations, and thesis presentations when the full machine-learning backend is not running.
-
 \subsection{Streaming LLM Book Assistant}
 \label{sec:llm_assistant}
 
@@ -74,9 +68,9 @@ If no grounding context is available (e.g., the item has no Google Books or Wiki
 \subsection{User Profile Endpoint}
 
 \texttt{GET /profile?user\_id=\{id\}} returns aggregated engagement statistics: total interaction count, total search count, click-through rate, and a hydrated list of the ten most recent interactions with full item metadata.
-The frontend uses this response to populate the \texttt{ProfileRadar} chart, the Train Feed widget, and the Recently Viewed header strip.
+The frontend uses this response to populate the \texttt{ProfileRadar} chart and the Activity History tab.
 
 \subsection{Health Check}
 
-\texttt{GET /health} reports the readiness status of each loaded component.
-The frontend polls this endpoint at startup and withholds the search interface until all required components are confirmed ready, preventing queries from being submitted before the FAISS indices and encoders are fully initialised.
+\texttt{GET /health} reports the readiness status of each loaded component, including FAISS indices, encoders, and the AgentPool.
+It is intended for infrastructure monitoring and can be queried by external health-check probes to determine when the server is ready to serve traffic.

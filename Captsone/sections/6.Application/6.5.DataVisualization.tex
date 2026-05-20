@@ -7,7 +7,7 @@ Figure~\ref{fig:app_interface} shows the full interface.
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.92\textwidth]{images/chapter6/fig_app_interface}
-\caption{Main application interface. The header contains user controls, the Mock/Live toggle, session statistics (Train Steps, CTR, Interactions), and the Recently Viewed strip. The left panel (42\% width) holds the Active Search and Recommendations tabs. The right panel holds the User Profile and Activity History tabs.}
+\caption{Main application interface. The header contains the brand logotype, user badge with logout control, and utility controls (dark/light mode toggle, cart, and right-panel toggle). The left panel holds the Active Search and Recommendations tabs. The right panel holds the User Profile and Activity History tabs.}
 \label{fig:app_interface}
 \end{figure}
 
@@ -22,34 +22,31 @@ The resolved user ID is written to \texttt{localStorage} so that returning users
 
 \subsection{Header}
 
-The header contains five areas.
+The header contains three areas.
 The brand area displays the application logotype and subtitle.
-The user badge shows the active user ID and a sign-out button.
-The controls area provides a dark/light mode toggle and a shopping cart button displaying the current item count.
-The Mock/Live toggle switches the frontend between the live FastAPI backend and built-in mock data; a toast notification confirms every mode change.
-The stats counters display three live session metrics: Train Steps (number of DIF-SASRec gradient steps), CTR (click-through rate), and Interactions (total event count).
-Below the main row, a Recently Viewed strip shows cover thumbnails and titles for the user's most recent interactions, sourced from the \texttt{GET /profile} response in live mode.
+The user badge shows the active user ID and a borderless sign-out icon button grouped tightly beside it; clicking the icon clears the session and returns the user to the login gate.
+The controls area provides a dark/light mode toggle, a shopping cart button displaying the current in-session item count, and a toggle button that collapses or expands the right panel.
 
 \subsection{Left Panel — Active Search (Mode 1)}
 \label{sec:app_search_panel}
 
 The left panel (42\% of viewport width) has two tabs: Active Search and Recommendations.
 
-The Active Search tab contains a text input field, a search button, and an image drop zone.
-When an image file is loaded, the drop zone transitions from a dashed placeholder to a thumbnail preview confirming that the CLIP encoder will process it; the image can be cleared via a dismiss button.
+The Active Search tab contains a text input field with an embedded camera icon button, and a search button.
+Clicking the camera icon opens a popover containing a drag-and-drop zone; once an image is selected the popover displays a thumbnail preview confirming that the CLIP encoder will process it, and the image can be removed via a dismiss button within the popover.
 An encoder legend below the input shows the three retrieval signals: BGE-M3 (text semantics), CLIP (visual features), and RRF (fusion score).
 While a search request is in flight, four animated skeleton placeholder cards occupy the result area.
 On response arrival, each result is rendered as a card containing the cover image, title, author, genre tag(s), and relevance score badges.
 An RRF badge is present on every card; a BGE-M3 badge appears when a text query is active and a CLIP badge appears when an image is active, so that up to three badges are shown for a combined text-and-image query.
-Each card provides four interaction controls: Interested (logs a click), Skip (logs a skip), Ask AI (opens a streaming book-description popover), and Add to Cart (logs a cart event).
+Each card provides three interaction controls: Interested (logs a click), Ask AI (opens a streaming book-description popover), and Add to Cart (logs a cart event).
 
 \subsection{Left Panel — Recommendations (Mode 2)}
 \label{sec:app_rec_panel}
 
-The Recommendations tab displays a mode status pill, a manual refresh button with a last-updated timestamp, and two sub-tabs.
-The People Also Buy sub-tab renders Pipeline~A output (Cleora co-purchase neighbours re-ranked by the user's BGE-M3 profile vector).
-The You Might Like sub-tab renders Pipeline~B output (DIF-SASRec sequential recommendations).
-When You Might Like is active and the user is in personalised mode, a horizontal input-sequence strip is displayed above the recommendation cards.
+The Recommendations tab displays static pipeline label badges, a manual refresh button with a last-updated timestamp, and two side-by-side columns.
+The People Also Buy column renders Pipeline~A output (Cleora co-purchase neighbours re-ranked by the user's BGE-M3 profile vector).
+The You Might Like column renders Pipeline~B output (DIF-SASRec sequential recommendations).
+When the user is in personalised mode, a horizontal input-sequence strip is displayed above both columns.
 This strip shows the user's most recent click and cart interactions — up to eight items — in chronological order, representing the exact sequence that DIF-SASRec reads when generating the next-item prediction.
 Each recommendation card carries a coloured pipeline layer tag and score badges.
 People Also Buy cards (Pipeline~A) display BGE-M3 and CLIP cosine-similarity badges reflecting the alignment between the user's profile vector and the candidate item; the layer tag reads Cleora~+~BGE-M3 or Cleora~+~CLIP depending on which signal was dominant.
@@ -61,10 +58,9 @@ Items that are new since the previous refresh are highlighted for four seconds.
 
 The right panel contains two tabs: User Profile and Activity History.
 
-The User Profile tab is arranged as a grid of three cards.
+The User Profile tab is arranged as a grid of two cards.
 The Engagement Signals card (full width) renders a \texttt{ProfileRadar} radar chart visualising five dimensions derived from the session's interaction history: click rate, cart rate, skip rate, interaction count, and recency.
-The Train Feed card lists the six most recent interactions with per-event outcome labels (trained for clicks and carts, skipped for skips) alongside a gradient-step counter.
-The SASRec Loss card renders an SVG sparkline of the full training loss history as a filled area chart.
+The SASRec Loss card (full width) renders an SVG sparkline of the full training loss history as a filled area chart.
 A dashed divider marks the boundary between the pretraining phase and the online fine-tuning phase; an information tooltip beside the chart title explains the expected loss-scale drop between the two phases.
 When a gradient step fires, a transient loss-decrease badge is displayed for 2.5 seconds beside the current loss value, providing immediate confirmation that the model has updated.
 

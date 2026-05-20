@@ -1,4 +1,4 @@
-"""POST /interact — log user click/skip/cart, train RL agent."""
+"""POST /interact — log user click/not_interested, train DIF-SASRec."""
 import json
 import logging
 from datetime import datetime
@@ -14,6 +14,8 @@ from app.infrastructure.database import db
 router = APIRouter()
 log    = logging.getLogger("nba_api")
 
+BLOCKED_KEY = "user:{user_id}:blocked"
+
 
 @router.post("/interact")
 async def interact(req: InteractRequest,
@@ -21,19 +23,24 @@ async def interact(req: InteractRequest,
     profile_manager  = container.profile_manager
     recommend_engine = container.recommend_engine
 
+    if req.action == "not_interested":
+        # Add item to per-user Redis blacklist so it won't appear in future recs
+        try:
+            if db.redis:
+                key = BLOCKED_KEY.format(user_id=req.user_id)
+                await db.redis.sadd(key, req.item_id)
+        except Exception as e:
+            log.error(f"Redis blocked-set write failed: {e}")
+        return {"status": "ok", "sasrec_loss": None}
+
     # Capture s_t BEFORE profile update
     click_seq_before = await profile_manager.get_click_sequence(req.user_id)
 
-    if req.action == "cart":
-        reward = 5.0
-        await profile_manager.log_click(req.user_id, req.item_id,
-                                         source="web_ui", action="cart")
-    elif req.action == "click":
-        reward = 1.0
+    if req.action == "click":
         await profile_manager.log_click(req.user_id, req.item_id,
                                          source="web_ui", action="click")
     else:
-        reward  = 0.0
+        # "skip" or unknown — log as skip, no training
         profile = await profile_manager.get_profile(req.user_id)
         profile.purchases.append({
             "timestamp": datetime.now().isoformat(),
@@ -58,9 +65,9 @@ async def interact(req: InteractRequest,
     except Exception as e:
         log.error(f"Redis queue push failed: {e}")
 
-    # ── Train the DIF-SASRec personal model ──────────────────────────────────
+    # Train the DIF-SASRec personal model on click interactions
     loss = None
-    if click_seq_before and req.action in ("click", "cart"):
+    if click_seq_before and req.action == "click":
         async with container.agent_pool.borrow() as agent:
             agent.load_user(req.user_id, settings.DATA_DIR)
             loss = recommend_engine.train_personal(
@@ -69,4 +76,4 @@ async def interact(req: InteractRequest,
             )
             agent.save_user(req.user_id, settings.DATA_DIR)
 
-    return {"status": "ok", "reward": reward, "sasrec_loss": loss}
+    return {"status": "ok", "sasrec_loss": loss}

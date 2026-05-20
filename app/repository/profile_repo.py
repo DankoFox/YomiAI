@@ -74,13 +74,13 @@ class UserProfileManager:
 
             return profile
 
-    # ── Click sequence for GRU-Sequential DQN ────────────────────────────────
+    # ── Click sequence for DIF-SASRec ────────────────────────────────────────
 
     async def get_click_sequence(self, user_id: str,
                                   max_len: int = settings.MAX_RECENT_INTERACTIONS) -> list:
         profile = await self.get_profile(user_id)
         asins = [c["item_id"] for c in profile.clicks
-                 if c.get("action", "click") in ("click", "cart")]
+                 if c.get("action", "click") == "click"]
         return asins[-max_len:]
 
     async def get_click_sequence_with_categories(
@@ -96,7 +96,7 @@ class UserProfileManager:
         """
         profile = await self.get_profile(user_id)
         asins = [c["item_id"] for c in profile.clicks
-                 if c.get("action", "click") in ("click", "cart")]
+                 if c.get("action", "click") == "click"]
         asins = asins[-max_len:]
 
         if self._category_encoder:
@@ -219,7 +219,7 @@ class UserProfileManager:
         history = data.get("recent_history", [])
         profile.clicks, profile.purchases = [], []
         for h in reversed(history):
-            if h["action"] in ("click", "cart"):
+            if h["action"] == "click":
                 profile.clicks.append({**h, "source": "web_ui", "position": 0})
             else:
                 profile.purchases.append(h)
@@ -251,7 +251,7 @@ class UserProfileManager:
     def _old_load_logic(self, profile: UserBehaviorProfile, payload: dict):
         for h in payload.get("history", []):
             action = h.get("action", "click")
-            if action in ("click", "cart"):
+            if action == "click":
                 profile.clicks.append({
                     "timestamp": h.get("timestamp"), "item_id": h.get("item_id"),
                     "source": "web_ui", "position": 0, "action": action,

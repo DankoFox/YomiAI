@@ -1,0 +1,1049 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Codebase Architecture Guide — YomiAI</title>
+<style>
+  :root {
+    --navy: #2e3257; --steel: #627d9a; --mist: #babbbd;
+    --cream: #fffef7; --gold: #dfc5a4; --emerald: #10b981;
+    --rose: #f43f5e; --bg: #f4f4f0; --card: #ffffff;
+    --border: #e2e2dc; --tag-bg: #eeeef0;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--navy); font-size: 13px; line-height: 1.5; }
+
+  /* ── Layout ── */
+  .page { max-width: 1280px; margin: 0 auto; padding: 24px 20px 60px; }
+  h1 { font-size: 22px; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 4px; }
+  .subtitle { color: var(--steel); font-size: 12px; margin-bottom: 28px; }
+
+  /* ── Section headings ── */
+  .section-title {
+    font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase;
+    color: var(--steel); margin: 32px 0 12px; padding-bottom: 6px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  /* ── Cards ── */
+  .card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 12px; padding: 16px; margin-bottom: 10px;
+  }
+  .card-title { font-weight: 700; font-size: 13px; margin-bottom: 4px; }
+  .card-sub { color: var(--steel); font-size: 11px; }
+
+  /* ── Grid layouts ── */
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+  .grid-startup { display: grid; grid-template-columns: repeat(8, 1fr); gap: 8px; }
+
+  /* ── Tags / badges ── */
+  .tag {
+    display: inline-block; padding: 2px 8px; border-radius: 999px;
+    font-size: 10px; font-weight: 600; border: 1px solid transparent;
+  }
+  .tag-get    { background: #dcfce7; color: #16a34a; border-color: #86efac; }
+  .tag-post   { background: #dbeafe; color: #1d4ed8; border-color: #93c5fd; }
+  .tag-stream { background: #fef9c3; color: #a16207; border-color: #fde047; }
+  .tag-ml     { background: #f3e8ff; color: #7e22ce; border-color: #d8b4fe; }
+  .tag-db     { background: #ffedd5; color: #c2410c; border-color: #fdba74; }
+  .tag-redis  { background: #fee2e2; color: #b91c1c; border-color: #fca5a5; }
+  .tag-file   { background: #e0f2fe; color: #0369a1; border-color: #7dd3fc; }
+
+  /* ── Code / path ── */
+  code {
+    font-family: 'Cascadia Code', 'Fira Code', monospace;
+    background: var(--tag-bg); padding: 1px 5px; border-radius: 4px;
+    font-size: 11px; color: var(--navy);
+  }
+  .filepath { color: var(--steel); font-style: italic; font-size: 10px; margin-bottom: 6px; display: block; }
+
+  /* ── Route block ── */
+  .route {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 12px; padding: 14px 16px; margin-bottom: 12px;
+  }
+  .route-header { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+  .route-method { font-size: 11px; font-weight: 700; font-family: monospace; }
+  .route-path { font-family: monospace; font-size: 13px; font-weight: 600; }
+  .route-desc { color: var(--steel); font-size: 11px; margin-bottom: 8px; }
+
+  .flow-steps { list-style: none; padding: 0; }
+  .flow-steps li {
+    display: flex; gap: 10px; align-items: flex-start;
+    padding: 5px 0; border-bottom: 1px dashed var(--border);
+    font-size: 12px;
+  }
+  .flow-steps li:last-child { border-bottom: none; }
+  .step-num {
+    width: 20px; height: 20px; border-radius: 50%; background: var(--navy);
+    color: white; font-size: 10px; font-weight: 700; display: flex;
+    align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px;
+  }
+
+  /* ── Startup timeline ── */
+  .startup-item {
+    background: var(--card); border: 1px solid var(--border); border-radius: 10px;
+    padding: 10px; text-align: center; position: relative;
+  }
+  .startup-item .step-n {
+    font-size: 18px; font-weight: 800; color: var(--navy); margin-bottom: 2px;
+  }
+  .startup-item .step-name { font-size: 10px; font-weight: 700; margin-bottom: 2px; }
+  .startup-item .step-detail { font-size: 9px; color: var(--steel); }
+  .startup-arrow {
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; color: var(--mist); padding-top: 18px;
+  }
+
+  /* ── Container fields ── */
+  .container-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;
+  }
+  .container-field {
+    background: var(--tag-bg); border-radius: 8px; padding: 8px 10px;
+    font-size: 11px; border-left: 3px solid var(--navy);
+  }
+  .container-field .fname { font-weight: 700; color: var(--navy); }
+  .container-field .ftype { color: var(--steel); font-size: 10px; font-family: monospace; }
+
+  /* ── Community boxes ── */
+  .community {
+    border-radius: 10px; border: 1px solid var(--border);
+    overflow: hidden; margin-bottom: 10px;
+  }
+  .community-header {
+    padding: 8px 12px; font-weight: 700; font-size: 11px;
+    display: flex; align-items: center; gap-6px;
+  }
+  .community-body { padding: 8px 12px; font-size: 11px; color: var(--steel); }
+
+  /* ── Pipeline diagram ── */
+  .pipeline { display: flex; gap: 0; align-items: stretch; margin: 12px 0; }
+  .pipe-box {
+    flex: 1; background: var(--card); border: 1px solid var(--border);
+    padding: 10px; font-size: 11px; position: relative;
+  }
+  .pipe-box:first-child { border-radius: 10px 0 0 10px; }
+  .pipe-box:last-child  { border-radius: 0 10px 10px 0; }
+  .pipe-box .pb-title { font-weight: 700; font-size: 11px; margin-bottom: 3px; color: var(--navy); }
+  .pipe-box .pb-detail { color: var(--steel); font-size: 10px; }
+  .pipe-arrow {
+    width: 24px; display: flex; align-items: center; justify-content: center;
+    font-size: 16px; color: var(--steel); flex-shrink: 0;
+    background: var(--bg);
+  }
+
+  /* ── Frontend component map ── */
+  .fe-component {
+    background: var(--card); border: 1px solid var(--border); border-radius: 8px;
+    padding: 10px 12px; margin-bottom: 8px;
+  }
+  .fe-component .fc-name { font-weight: 700; font-family: monospace; font-size: 12px; }
+  .fe-component .fc-calls { margin-top: 6px; display: flex; flex-wrap: wrap; gap: 4px; }
+
+  /* ── Data store row ── */
+  .data-store { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 8px; background: var(--tag-bg); margin-bottom: 6px; }
+  .data-store .ds-icon { font-size: 18px; }
+  .data-store .ds-name { font-weight: 700; font-size: 12px; }
+  .data-store .ds-detail { font-size: 10px; color: var(--steel); }
+
+  /* ── Two-col route layout ── */
+  .routes-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+  .highlight { background: #fef9c3; padding: 1px 4px; border-radius: 3px; }
+
+  hr { border: none; border-top: 1px solid var(--border); margin: 24px 0; }
+
+  /* ── Scrollable code block ── */
+  .code-block {
+    background: #1e1b2e; color: #c9d1d9; border-radius: 8px;
+    padding: 12px 14px; font-size: 11px; font-family: monospace;
+    overflow-x: auto; margin: 8px 0;
+  }
+  .code-block .kw { color: #ff7b72; }
+  .code-block .fn { color: #d2a8ff; }
+  .code-block .str { color: #a5d6ff; }
+  .code-block .cm { color: #8b949e; }
+
+  /* ── Narrow info list ── */
+  .info-list { list-style: none; }
+  .info-list li { padding: 3px 0; border-bottom: 1px dashed var(--border); font-size: 12px; }
+  .info-list li:last-child { border-bottom: none; }
+  .info-label { color: var(--steel); font-size: 10px; display: block; }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <h1>YomiAI — Codebase Architecture Guide</h1>
+  <p class="subtitle">Routing · Data Flow · Component Relationships · Service Map · Startup Sequence</p>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!-- 1. STARTUP SEQUENCE -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <div class="section-title">1 · Startup Sequence — <code>app/core/lifespan.py</code></div>
+  <p style="font-size:11px;color:var(--steel);margin-bottom:10px;">
+    Called once by FastAPI at boot via <code>lifespan=lifespan</code> in <code>app/main.py</code>.
+    All services are placed into a single <code>AppContainer</code> on <code>app.state.container</code>.
+  </p>
+
+  <div style="display:grid;grid-template-columns:repeat(9,1fr);gap:0;align-items:center;margin-bottom:16px;">
+    <div class="startup-item">
+      <div class="step-n">1</div>
+      <div class="step-name">FAISS Indices</div>
+      <div class="step-detail">Cleora NPZ · HNSW · flat · CLIP indexes loaded into <code>Retriever</code></div>
+    </div>
+    <div class="startup-arrow">→</div>
+    <div class="startup-item">
+      <div class="step-n">2</div>
+      <div class="step-name">Metadata Repo</div>
+      <div class="step-detail"><code>item_metadata.parquet</code> → 3M item lookup table</div>
+    </div>
+    <div class="startup-arrow">→</div>
+    <div class="startup-item">
+      <div class="step-n">3</div>
+      <div class="step-name">Category Encoder</div>
+      <div class="step-detail"><code>category_vocab.json</code> or build from parquet; powers DIF-SASRec</div>
+    </div>
+    <div class="startup-arrow">→</div>
+    <div class="startup-item">
+      <div class="step-n">4</div>
+      <div class="step-name">Agent Pool</div>
+      <div class="step-detail">8 × <code>DIFSASRecAgent</code> each ~148 MB; pretrained weights loaded</div>
+    </div>
+    <div class="startup-arrow">→</div>
+    <div class="startup-item">
+      <div class="step-n">5</div>
+      <div class="step-name">BGE-M3 Encoder</div>
+      <div class="step-detail">Text encoder + warmup run</div>
+    </div>
+    <div class="startup-arrow">→</div>
+    <div class="startup-item">
+      <div class="step-n">6</div>
+      <div class="step-name">CLIP Model</div>
+      <div class="step-detail"><code>openai/clip-vit-base-patch32</code> image encoder</div>
+    </div>
+    <div class="startup-arrow">→</div>
+    <div class="startup-item">
+      <div class="step-n">7</div>
+      <div class="step-name">Search Engine</div>
+      <div class="step-detail">Tantivy BM25 + NLLB translation warmup</div>
+    </div>
+    <div class="startup-arrow">→</div>
+    <div class="startup-item">
+      <div class="step-n">8</div>
+      <div class="step-name">Qwen LLM + MongoDB</div>
+      <div class="step-detail">Qwen2.5-1.5B preloaded; Redis log-worker task started</div>
+    </div>
+  </div>
+
+  <div class="card" style="border-left:3px solid var(--gold);">
+    <span class="card-title">Background worker: <code>_log_worker</code></span>
+    <p class="card-sub" style="margin-top:4px;">
+      Runs as an <code>asyncio.Task</code> for the entire server lifetime. Drains the Redis list
+      <code>"nba_interactions"</code> into MongoDB one event at a time. When interaction count
+      reaches <code>CLEORA_REFIT_THRESHOLD</code>, triggers <code>_run_cleora_refit()</code>
+      asynchronously: re-trains Cleora Markov propagation → hot-reloads the FAISS Cleora index
+      in memory without restarting the server.
+    </p>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!-- 2. APP CONTAINER -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <div class="section-title">2 · AppContainer — <code>app/core/container.py</code></div>
+  <p style="font-size:11px;color:var(--steel);margin-bottom:10px;">
+    Single dataclass. Injected into every route via <code>Depends(require_ready)</code>.
+    <code>require_ready</code> returns a 503 until <code>container.ready = True</code> after startup completes.
+  </p>
+  <div class="container-grid">
+    <div class="container-field">
+      <div class="fname">retriever</div>
+      <div class="ftype">faiss_repo.Retriever</div>
+      <div style="font-size:10px;color:var(--steel);margin-top:3px;">HNSW · flat · Cleora FAISS indexes; BGE-M3/CLIP/Cleora vectors</div>
+    </div>
+    <div class="container-field">
+      <div class="fname">metadata_repo</div>
+      <div class="ftype">metadata_repo.MetadataRepository</div>
+      <div style="font-size:10px;color:var(--steel);margin-top:3px;">Parquet-backed item lookup: title, author, genre, image URL</div>
+    </div>
+    <div class="container-field">
+      <div class="fname">profile_manager</div>
+      <div class="ftype">profile_repo.UserProfileManager</div>
+      <div style="font-size:10px;color:var(--steel);margin-top:3px;">User click history, aggregated embeddings, MongoDB persistence</div>
+    </div>
+    <div class="container-field">
+      <div class="fname">search_engine</div>
+      <div class="ftype">active_search.ActiveSearchEngine</div>
+      <div style="font-size:10px;color:var(--steel);margin-top:3px;">HNSW text + CLIP FAISS → Tantivy BM25 → RRF fusion</div>
+    </div>
+    <div class="container-field">
+      <div class="fname">recommend_engine</div>
+      <div class="ftype">passive_recommend.PassiveRecommendationEngine</div>
+      <div style="font-size:10px;color:var(--steel);margin-top:3px;">Pipeline A (Cleora) + Pipeline B (DIF-SASRec) orchestrator</div>
+    </div>
+    <div class="container-field">
+      <div class="fname">agent_pool</div>
+      <div class="ftype">agent_pool.AgentPool</div>
+      <div style="font-size:10px;color:var(--steel);margin-top:3px;">8 isolated DIFSASRecAgent instances; borrow/return via asyncio.Queue</div>
+    </div>
+    <div class="container-field">
+      <div class="fname">category_encoder</div>
+      <div class="ftype">category_encoder.CategoryEncoder</div>
+      <div style="font-size:10px;color:var(--steel);margin-top:3px;">leaf-category → integer ID lookup for DIF-SASRec</div>
+    </div>
+    <div class="container-field">
+      <div class="fname">text_encoder</div>
+      <div class="ftype">SentenceTransformer (BGE-M3)</div>
+      <div style="font-size:10px;color:var(--steel);margin-top:3px;">1024-dim text encoder used in /search and /ask_llm</div>
+    </div>
+    <div class="container-field">
+      <div class="fname">clip_model / clip_processor</div>
+      <div class="ftype">CLIPModel + CLIPProcessor</div>
+      <div style="font-size:10px;color:var(--steel);margin-top:3px;">512-dim image encoder for visual search</div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!-- 3. API ROUTES -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <div class="section-title">3 · API Routes — <code>app/main.py</code> registers 7 routers</div>
+
+  <div class="routes-grid">
+
+    <!-- /health -->
+    <div class="route">
+      <div class="route-header">
+        <span class="tag tag-get">GET</span>
+        <span class="route-path">/health</span>
+        <span class="filepath" style="margin:0;">app/api/routes/health.py</span>
+      </div>
+      <div class="route-desc">Liveness probe. Returns <code>{"status": "ok"}</code>. No auth, no container needed.</div>
+      <ul class="flow-steps">
+        <li><div class="step-num">1</div><span>Returns static JSON immediately — no service calls.</span></li>
+      </ul>
+    </div>
+
+    <!-- /auth -->
+    <div class="route">
+      <div class="route-header">
+        <span class="tag tag-post">POST</span>
+        <span class="route-path">/auth/check</span>
+        <span class="filepath" style="margin:0;">app/api/routes/auth.py</span>
+      </div>
+      <div class="route-desc">Check if username exists. Body: <code>{"username": str}</code></div>
+      <ul class="flow-steps">
+        <li><div class="step-num">1</div><span>Calls <code>db.fetch_profile(user_id)</code> → MongoDB lookup.</span></li>
+        <li><div class="step-num">2</div><span>Returns <code>{"found": bool, "user_id": str}</code>.</span></li>
+      </ul>
+    </div>
+
+    <div class="route">
+      <div class="route-header">
+        <span class="tag tag-post">POST</span>
+        <span class="route-path">/auth/create</span>
+        <span class="filepath" style="margin:0;">app/api/routes/auth.py</span>
+      </div>
+      <div class="route-desc">Create new user profile. Body: <code>{"username": str}</code></div>
+      <ul class="flow-steps">
+        <li><div class="step-num">1</div><span><code>profile_manager.get_profile(user_id)</code> — initialises empty profile in memory.</span></li>
+        <li><div class="step-num">2</div><span><code>profile_manager.save_profile(user_id)</code> — persists to MongoDB.</span></li>
+        <li><div class="step-num">3</div><span>Returns <code>{"user_id": str}</code>.</span></li>
+      </ul>
+    </div>
+
+    <!-- /profile -->
+    <div class="route">
+      <div class="route-header">
+        <span class="tag tag-get">GET</span>
+        <span class="route-path">/profile?user_id=</span>
+        <span class="filepath" style="margin:0;">app/api/routes/profile.py</span>
+      </div>
+      <div class="route-desc">Returns aggregated user stats and hydrated recent interaction history.</div>
+      <ul class="flow-steps">
+        <li><div class="step-num">1</div><span><code>profile_manager.get_profile(user_id)</code> — loads from MongoDB (cached in memory).</span></li>
+        <li><div class="step-num">2</div><span>Merges <code>profile.clicks</code> and <code>profile.purchases</code>, sorts by timestamp, takes last 10.</span></li>
+        <li><div class="step-num">3</div><span>For each: <code>metadata_repo.get_item(asin)</code> → enriches with title/author/image.</span></li>
+        <li><div class="step-num">4</div><span>Returns <code>interaction_count, searches_count, ctr, recent_items, has_profile</code>.</span></li>
+      </ul>
+    </div>
+
+  </div><!-- end routes-grid first block -->
+
+  <!-- /search — full width -->
+  <div class="route">
+    <div class="route-header">
+      <span class="tag tag-post">POST</span>
+      <span class="route-path">/search</span>
+      <span class="filepath" style="margin:0;">app/api/routes/search.py</span>
+      <span class="tag tag-ml">Multimodal</span>
+    </div>
+    <div class="route-desc">
+      Mode 1: Active search. Body: <code>{"query": str, "image_base64": str|null, "top_k": int}</code>
+    </div>
+
+    <div class="pipeline" style="margin:10px 0;">
+      <div class="pipe-box" style="border-radius:10px 0 0 10px;border-color:#93c5fd;">
+        <div class="pb-title">① NLLB Translation</div>
+        <div class="pb-detail">VI → EN if Vietnamese detected via Lingua. Adds ~5ms cached, ~274ms cold.</div>
+      </div>
+      <div class="pipe-arrow">→</div>
+      <div class="pipe-box" style="border-color:#d8b4fe;">
+        <div class="pb-title">② Parallel Encoding</div>
+        <div class="pb-detail">BGE-M3 text → [1024] and CLIP image → [512] run concurrently via <code>anyio.TaskGroup</code>.</div>
+      </div>
+      <div class="pipe-arrow">→</div>
+      <div class="pipe-box" style="border-color:#86efac;">
+        <div class="pb-title">③ Dual FAISS Search</div>
+        <div class="pb-detail">HNSW text index + CLIP HNSW index searched in parallel. BM25 Tantivy rerank via RRF fusion.</div>
+      </div>
+      <div class="pipe-arrow">→</div>
+      <div class="pipe-box" style="border-radius:0 10px 10px 0;border-color:#fde047;">
+        <div class="pb-title">④ Metadata Hydration</div>
+        <div class="pb-detail">Each ASIN → <code>metadata_repo.get_item()</code>: title, author, genre, image URL, score.</div>
+      </div>
+    </div>
+
+    <ul class="flow-steps">
+      <li><div class="step-num">1</div><span><code>translate_to_en(query)</code> — NLLB-600M (thread executor). Skips if EN.</span></li>
+      <li><div class="step-num">2</div><span>Parallel: <code>encode_text(query, text_encoder)</code> → [1024] float32 / <code>encode_image_b64(image_b64, clip_model)</code> → [512].</span></li>
+      <li><div class="step-num">3</div><span><code>search_engine.search(user_id, text_vec, image_vec, query, top_k)</code> → HNSW FAISS + Tantivy BM25 + RRF.</span></li>
+      <li><div class="step-num">4</div><span><code>metadata_repo.get_item(asin)</code> for each result → adds title, author, genre, cover_color, image_url.</span></li>
+      <li><div class="step-num">5</div><span>Returns <code>{"results": [...], "total": int, "live_encoding": bool, "query": str}</code>.</span></li>
+    </ul>
+    <div style="margin-top:8px;">
+      <span class="tag tag-ml">BGE-M3</span>
+      <span class="tag tag-ml" style="margin-left:4px;">CLIP</span>
+      <span class="tag tag-file" style="margin-left:4px;">FAISS HNSW</span>
+      <span class="tag tag-db" style="margin-left:4px;">Tantivy BM25</span>
+      <span class="tag tag-post" style="margin-left:4px;">NLLB translate</span>
+    </div>
+  </div>
+
+  <!-- /recommend — full width -->
+  <div class="route">
+    <div class="route-header">
+      <span class="tag tag-get">GET</span>
+      <span class="route-path">/recommend?user_id=</span>
+      <span class="filepath" style="margin:0;">app/api/routes/recommend.py</span>
+      <span class="tag tag-ml">Dual Pipeline</span>
+    </div>
+    <div class="route-desc">
+      Mode 2: Personalised recommendations. Returns <code>people_also_buy</code> (Pipeline A) and
+      <code>you_might_like</code> (Pipeline B). Cold-start users (&lt;5 clicks) get 20 random catalogue items.
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:10px 0;">
+      <div style="background:#f0fdf4;border:1px solid #86efac;border-radius:8px;padding:12px;">
+        <div style="font-weight:700;font-size:11px;color:#16a34a;margin-bottom:6px;">Pipeline A — People Also Buy · Cleora + BGE-M3</div>
+        <ol style="font-size:11px;padding-left:16px;color:var(--navy);">
+          <li style="margin-bottom:3px;"><strong>Cleora FAISS</strong>: <code>cleora_profile</code> [1024] → <code>IndexFlatIP</code> search → behavioral candidates</li>
+          <li style="margin-bottom:3px;"><strong>Seed expansion</strong>: last 5 recent_interactions → <code>get_behavioral_candidates()</code> co-purchase neighbors</li>
+          <li style="margin-bottom:3px;"><strong>Content veto</strong>: <code>text_profile @ item_text ≥ 0.3</code> OR <code>visual_profile @ item_clip ≥ 0.3</code></li>
+          <li><strong>Rank</strong>: sort survivors by text_score desc → top 10</li>
+        </ol>
+      </div>
+      <div style="background:#faf5ff;border:1px solid #d8b4fe;border-radius:8px;padding:12px;">
+        <div style="font-weight:700;font-size:11px;color:#7e22ce;margin-bottom:6px;">Pipeline B — You Might Like · DIF-SASRec</div>
+        <ol style="font-size:11px;padding-left:16px;color:var(--navy);">
+          <li style="margin-bottom:3px;"><strong>HNSW KNN</strong>: <code>text_profile</code> [1024] → 200 content candidates (unseen only)</li>
+          <li style="margin-bottom:3px;"><strong>Content veto</strong>: same τ=0.3 threshold, filters both text and visual similarity</li>
+          <li style="margin-bottom:3px;"><strong>DIF-SASRec score</strong>: <code>agent.get_candidate_scores(click_seq, cat_ids, candidates)</code> → dot products intent @ cand_proj</li>
+          <li><strong>Normalise & return</strong>: min-max scale → top 10</li>
+        </ol>
+      </div>
+    </div>
+
+    <ul class="flow-steps">
+      <li><div class="step-num">1</div><span><code>profile_manager.get_profile(user_id)</code>. If <code>len(clicks) &lt; 5</code>: cold-start random sample.</span></li>
+      <li><div class="step-num">2</div><span><code>agent_pool.borrow()</code> → <code>agent.load_user(user_id)</code>: load per-user <code>.pt</code> checkpoint from disk.</span></li>
+      <li><div class="step-num">3</div><span><code>recommend_engine.recommend_for_user(user_id, agent, top_k=10)</code> → runs both pipelines.</span></li>
+      <li><div class="step-num">4</div><span>Redis blocked-set filter: removes any ASIN the user marked "not_interested".</span></li>
+      <li><div class="step-num">5</div><span><code>profile_manager.log_recommendation(user_id, all_rec_ids)</code> → persists to MongoDB.</span></li>
+      <li><div class="step-num">6</div><span><code>metadata_repo.get_item(asin)</code> for every rec → enriches with title/author/genre/image/score.</span></li>
+      <li><div class="step-num">7</div><span>Returns <code>{"people_also_buy": [...], "you_might_like": [...], "combined": [...], "mode": "personalized"|"cold_start"}</code>.</span></li>
+    </ul>
+    <div style="margin-top:8px;">
+      <span class="tag tag-ml">DIF-SASRec</span>
+      <span class="tag tag-file" style="margin-left:4px;">FAISS HNSW + Flat</span>
+      <span class="tag tag-db" style="margin-left:4px;">MongoDB</span>
+      <span class="tag tag-redis" style="margin-left:4px;">Redis blocked-set</span>
+    </div>
+  </div>
+
+  <!-- /interact — full width -->
+  <div class="route">
+    <div class="route-header">
+      <span class="tag tag-post">POST</span>
+      <span class="route-path">/interact</span>
+      <span class="filepath" style="margin:0;">app/api/routes/interact.py</span>
+      <span class="tag tag-ml">Online Training</span>
+    </div>
+    <div class="route-desc">
+      Log a user action and trigger one DIF-SASRec gradient step.
+      Body: <code>{"user_id", "item_id", "action": "click"|"skip"|"not_interested", "session_id", "source"}</code>
+    </div>
+    <ul class="flow-steps">
+      <li><div class="step-num">1</div>
+        <span>
+          <strong>not_interested</strong>: writes <code>item_id</code> to Redis set <code>user:{uid}:blocked</code>.
+          Returns immediately — no training.
+        </span>
+      </li>
+      <li><div class="step-num">2</div>
+        <span>
+          Capture <code>click_seq_before = profile_manager.get_click_sequence(user_id)</code>
+          <strong>before</strong> profile update (this is the training input sequence s<sub>t</sub>).
+        </span>
+      </li>
+      <li><div class="step-num">3</div>
+        <span>
+          <strong>click</strong>: <code>profile_manager.log_click(user_id, item_id)</code> →
+          appends to clicks deque, recomputes <code>text_profile / visual_profile / cleora_profile</code>
+          (exponential decay weighted average), persists to MongoDB.
+          <strong>skip</strong>: appends to purchases list only, no embedding update.
+        </span>
+      </li>
+      <li><div class="step-num">4</div>
+        <span>Push raw interaction to Redis list <code>"nba_interactions"</code> → background worker drains to MongoDB.</span>
+      </li>
+      <li><div class="step-num">5</div>
+        <span>
+          If action == "click" AND <code>click_seq_before</code> non-empty:
+          <code>agent_pool.borrow()</code> → <code>agent.load_user()</code> →
+          <code>recommend_engine.train_personal(user_id, item_id, agent, click_seq_before)</code>
+          → one gradient step (sampled softmax + category auxiliary loss) →
+          <code>agent.save_user()</code> persists <code>.pt</code> checkpoint to disk.
+        </span>
+      </li>
+      <li><div class="step-num">6</div>
+        <span>Returns <code>{"status": "ok", "sasrec_loss": float|null}</code>.</span>
+      </li>
+    </ul>
+    <div style="margin-top:8px;">
+      <span class="tag tag-ml">DIF-SASRec online train</span>
+      <span class="tag tag-db" style="margin-left:4px;">MongoDB profile update</span>
+      <span class="tag tag-redis" style="margin-left:4px;">Redis queue + blocked-set</span>
+      <span class="tag tag-file" style="margin-left:4px;">disk .pt checkpoint</span>
+    </div>
+  </div>
+
+  <div class="routes-grid">
+    <!-- /rl_metrics -->
+    <div class="route">
+      <div class="route-header">
+        <span class="tag tag-get">GET</span>
+        <span class="route-path">/rl_metrics?user_id=</span>
+        <span class="filepath" style="margin:0;">app/api/routes/recommend.py</span>
+      </div>
+      <div class="route-desc">Returns DIF-SASRec model metrics for a user.</div>
+      <ul class="flow-steps">
+        <li><div class="step-num">1</div><span><code>agent_pool.borrow()</code> → <code>agent.load_user(user_id)</code>.</span></li>
+        <li><div class="step-num">2</div><span>Returns <code>loss_history</code> (last 200 values), <code>step</code> count, <code>arch: "DIF-SASRec"</code>.</span></li>
+      </ul>
+    </div>
+
+    <!-- /ask_llm -->
+    <div class="route">
+      <div class="route-header">
+        <span class="tag tag-post">POST</span>
+        <span class="route-path">/ask_llm</span>
+        <span class="filepath" style="margin:0;">app/api/routes/llm.py</span>
+        <span class="tag tag-ml">Qwen2.5</span>
+      </div>
+      <div class="route-desc">
+        Non-streaming book Q&amp;A. Body: <code>{"item_id", "title", "author", "user_prompt"}</code>
+      </div>
+      <ul class="flow-steps">
+        <li><div class="step-num">1</div><span><code>metadata_repo.get_item(item_id)</code> → local description + genre.</span></li>
+        <li><div class="step-num">2</div><span><code>llm_service.generate(title, author, prompt, local_desc, text_encoder, genre)</code> → Qwen2.5-1.5B inference in thread executor.</span></li>
+        <li><div class="step-num">3</div><span>Returns <code>{"response": str}</code>.</span></li>
+      </ul>
+    </div>
+
+    <!-- /ask_llm_stream -->
+    <div class="route" style="grid-column:1/-1;">
+      <div class="route-header">
+        <span class="tag tag-post">POST</span>
+        <span class="route-path">/ask_llm_stream</span>
+        <span class="filepath" style="margin:0;">app/api/routes/llm.py</span>
+        <span class="tag tag-stream">SSE Stream</span>
+      </div>
+      <div class="route-desc">Streaming book Q&amp;A. Same body as /ask_llm. Returns <code>StreamingResponse</code> (text/event-stream).</div>
+      <ul class="flow-steps">
+        <li><div class="step-num">1</div><span><code>metadata_repo.get_item(item_id)</code> → description + genre.</span></li>
+        <li><div class="step-num">2</div><span><code>llm_service.generate_stream()</code> → async generator, yields text chunks from Qwen2.5 token-by-token via <code>loop.run_in_executor</code>.</span></li>
+        <li><div class="step-num">3</div><span>Client reads chunks via <code>ReadableStream</code> in the browser.</span></li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!-- 4. SERVICE LAYER MAP -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <div class="section-title">4 · Service Layer Map</div>
+
+  <div class="grid3">
+
+    <div class="community">
+      <div class="community-header" style="background:#dbeafe;color:#1d4ed8;">
+        active_search.py — <code>ActiveSearchEngine</code>
+      </div>
+      <div class="community-body">
+        <b>Used by:</b> <code>POST /search</code><br/>
+        <b>Inputs:</b> text_vec [1024], image_vec [512], raw query string<br/>
+        <b>Steps:</b>
+        <ol style="padding-left:14px;margin-top:4px;">
+          <li>HNSW BGE-M3 search + HNSW CLIP search in parallel</li>
+          <li>Tantivy BM25 keyword search on raw query</li>
+          <li>RRF fusion of all three ranked lists</li>
+        </ol>
+        <b>Returns:</b> ranked <code>(asin, score_dict)</code> list
+      </div>
+    </div>
+
+    <div class="community">
+      <div class="community-header" style="background:#f0fdf4;color:#16a34a;">
+        passive_recommend.py — <code>PassiveRecommendationEngine</code>
+      </div>
+      <div class="community-body">
+        <b>Used by:</b> <code>GET /recommend</code>, <code>POST /interact</code><br/>
+        <b>Key methods:</b>
+        <ul style="padding-left:14px;margin-top:4px;">
+          <li><code>recommend_for_user()</code> — orchestrates both pipelines</li>
+          <li><code>collaborative_filter()</code> — Cleora FAISS + seed expansion</li>
+          <li><code>content_verify()</code> — τ=0.3 dot product veto (shared)</li>
+          <li><code>_personal_recommend()</code> — Pipeline B DIF-SASRec scoring</li>
+          <li><code>train_personal()</code> — one online gradient step</li>
+        </ul>
+        <b>Note:</b> Engine holds no model state; agent is always borrowed from AgentPool.
+      </div>
+    </div>
+
+    <div class="community">
+      <div class="community-header" style="background:#faf5ff;color:#7e22ce;">
+        dif_sasrec.py — Model Stack
+      </div>
+      <div class="community-body">
+        <b>Classes (bottom → top):</b>
+        <ul style="padding-left:14px;margin-top:4px;">
+          <li><code>ContentProjector</code>: Linear(1024→512) + LayerNorm + Dropout</li>
+          <li><code>DIFAttentionLayer</code>: Dual-stream Q/K (content + category), fused attention score, content V</li>
+          <li><code>DIFSASRecBlock</code>: pre-norm attention + FFN (512→1024→512) with residuals</li>
+          <li><code>DIFSASRecModel</code>: 4 blocks + position emb + category emb + category_head (aux task)</li>
+          <li><code>DIFSASRecAgent</code>: model + AdamW optimizer + load/save/train_step/get_candidate_scores</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="community">
+      <div class="community-header" style="background:#fff7ed;color:#c2410c;">
+        agent_pool.py — <code>AgentPool</code>
+      </div>
+      <div class="community-body">
+        <b>Purpose:</b> Prevents race conditions for concurrent requests.<br/>
+        <b>Pool size:</b> 8 agents × ~148 MB ≈ 1.18 GB VRAM<br/>
+        <b>Pattern:</b> <code>async with pool.borrow() as agent:</code><br/>
+        <b>New user:</b> resets to <code>_pretrained_state</code> (CPU snapshot, never mutated)<br/>
+        <b>Returning user:</b> loads personal <code>{user_id}_dif_sasrec.pt</code>
+      </div>
+    </div>
+
+    <div class="community">
+      <div class="community-header" style="background:#fef9c3;color:#a16207;">
+        llm.py — Qwen2.5 Assistant
+      </div>
+      <div class="community-body">
+        <b>Used by:</b> <code>POST /ask_llm</code>, <code>POST /ask_llm_stream</code><br/>
+        <b>Model:</b> Qwen2.5-1.5B-Instruct (local, preloaded at startup)<br/>
+        <b>Context sources:</b>
+        <ul style="padding-left:14px;margin-top:4px;">
+          <li>Local parquet description + genre</li>
+          <li>Wikipedia summary (fetched via API)</li>
+          <li>Google Books API snippet</li>
+        </ul>
+        <b>Functions:</b> <code>generate()</code> (sync) / <code>generate_stream()</code> (async generator)
+      </div>
+    </div>
+
+    <div class="community">
+      <div class="community-header" style="background:#f0f9ff;color:#0369a1;">
+        category_encoder.py — <code>CategoryEncoder</code>
+      </div>
+      <div class="community-body">
+        <b>Purpose:</b> Maps book ASINs → leaf category integer ID<br/>
+        <b>Source:</b> <code>categories</code> column of <code>item_metadata.parquet</code><br/>
+        <b>ID 0:</b> PAD · <b>ID 1:</b> UNK · <b>ID 2+:</b> sorted leaf names<br/>
+        <b>Lookups:</b>
+        <ul style="padding-left:14px;margin-top:4px;">
+          <li><code>get_category_id(asin)</code> → int O(1)</li>
+          <li><code>encode_sequence(asin_list)</code> → [int, ...]</li>
+        </ul>
+        <b>Saved as:</b> <code>data/category_vocab.json</code>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!-- 5. REPOSITORY LAYER -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <div class="section-title">5 · Repository / Infrastructure Layer</div>
+  <div class="grid2">
+
+    <div>
+      <div class="card">
+        <div class="card-title"><code>faiss_repo.py — Retriever</code></div>
+        <span class="filepath">app/repository/faiss_repo.py</span>
+        <ul class="info-list">
+          <li><span class="info-label">text_index (HNSW)</span><code>bge_index_hnsw.faiss</code> · 1.7M vecs · for /search and Pipeline B retrieval</li>
+          <li><span class="info-label">text_flat</span><code>bge_index_flat.faiss</code> · 3M vecs · exact reconstruction for training and scoring</li>
+          <li><span class="info-label">clip_index (HNSW)</span><code>clip_index_hnsw.faiss</code> · visual search + content veto</li>
+          <li><span class="info-label">cleora_index (IndexFlatIP)</span>375k co-purchase graph embeddings · Pipeline A</li>
+          <li><span class="info-label">get_content_candidates()</span>HNSW search → top-N semantically similar unseen ASINs</li>
+          <li><span class="info-label">get_behavioral_candidates()</span>Cleora KNN for seed expansion</li>
+          <li><span class="info-label">reload_cleora()</span>Hot-swap Cleora index after Markov refit without restart</li>
+        </ul>
+      </div>
+
+      <div class="card" style="margin-top:10px;">
+        <div class="card-title"><code>metadata_repo.py — MetadataRepository</code></div>
+        <span class="filepath">app/repository/metadata_repo.py</span>
+        <ul class="info-list">
+          <li><span class="info-label">Source</span><code>item_metadata.parquet</code> · 3M items · indexed by ASIN</li>
+          <li><span class="info-label">get_item(asin)</span>Returns title, author, genre, description, image_url, cover_color dict</li>
+          <li><span class="info-label">df property</span>Lazy-loaded Pandas DataFrame; used by search engine for metadata join</li>
+        </ul>
+      </div>
+    </div>
+
+    <div>
+      <div class="card">
+        <div class="card-title"><code>profile_repo.py — UserProfileManager</code></div>
+        <span class="filepath">app/repository/profile_repo.py</span>
+        <ul class="info-list">
+          <li><span class="info-label">get_profile(user_id)</span>Load from MongoDB via <code>db.fetch_profile()</code>; initialise empty if new</li>
+          <li><span class="info-label">log_click(user_id, item_id)</span>Append to clicks deque → recompute text/visual/cleora profiles (exponential decay) → MongoDB upsert</li>
+          <li><span class="info-label">get_click_sequence(user_id)</span>Ordered ASINs from click/cart history (max 50)</li>
+          <li><span class="info-label">get_click_sequence_with_categories(user_id)</span>Same + category IDs via CategoryEncoder; used by Pipeline B and training</li>
+          <li><span class="info-label">log_recommendation(user_id, asins)</span>Appends to <code>recent_recs</code> for analytics</li>
+          <li><span class="info-label">save_profile(user_id)</span>Persists current in-memory profile to MongoDB</li>
+        </ul>
+      </div>
+
+      <div class="card" style="margin-top:10px;">
+        <div class="card-title"><code>database.py — Database</code> · <code>translation.py</code></div>
+        <span class="filepath">app/infrastructure/</span>
+        <ul class="info-list">
+          <li><span class="info-label">db.connect()</span>Opens Motor (async MongoDB) + Redis connections at startup</li>
+          <li><span class="info-label">db.upsert_profile(user_id, payload)</span>MongoDB upsert of aggregated profile fields</li>
+          <li><span class="info-label">db.log_interaction(entry)</span>Inserts one interaction record into MongoDB collection</li>
+          <li><span class="info-label">db.redis.rpush("nba_interactions")</span>Enqueues raw event; background worker drains it</li>
+          <li><span class="info-label">translate_to_en(text)</span>NLLB-600M: VI/other → EN. Cached via LRU. Used in /search only.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!-- 6. DATA STORES -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <div class="section-title">6 · Data Stores</div>
+  <div class="grid3">
+    <div>
+      <div class="data-store">
+        <div class="ds-icon">🗄️</div>
+        <div>
+          <div class="ds-name">MongoDB</div>
+          <div class="ds-detail">User profiles: text_profile [1024], visual_profile [512], cleora_profile [1024], recent_history, recent_interactions, recent_recs, recent_searches. Updated on every click event.</div>
+        </div>
+      </div>
+      <div class="data-store">
+        <div class="ds-icon">⚡</div>
+        <div>
+          <div class="ds-name">Redis</div>
+          <div class="ds-detail"><code>"nba_interactions"</code> list: raw event queue drained by background worker. <code>"user:{uid}:blocked"</code> set: not-interested items filtered at /recommend time.</div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="data-store">
+        <div class="ds-icon">💾</div>
+        <div>
+          <div class="ds-name">Disk — .pt checkpoints</div>
+          <div class="ds-detail"><code>data/profiles/{user_id}_dif_sasrec.pt</code>: model_state + optimizer_state (AdamW m/v) + step + loss_history. Loaded per-request, saved after each training step.</div>
+        </div>
+      </div>
+      <div class="data-store">
+        <div class="ds-icon">📦</div>
+        <div>
+          <div class="ds-name">FAISS Indexes (disk + RAM)</div>
+          <div class="ds-detail"><code>bge_index_hnsw.faiss</code>, <code>bge_index_flat.faiss</code>, <code>clip_index_hnsw.faiss</code>, <code>cleora_embeddings.npz</code>. All memory-mapped at startup.</div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="data-store">
+        <div class="ds-icon">📋</div>
+        <div>
+          <div class="ds-name">Parquet Files</div>
+          <div class="ds-detail"><code>item_metadata.parquet</code>: 3M items — title, author, genre, description, image_url, categories. Loaded once into memory at startup.</div>
+        </div>
+      </div>
+      <div class="data-store">
+        <div class="ds-icon">🔤</div>
+        <div>
+          <div class="ds-name">Tantivy Index</div>
+          <div class="ds-detail">Rust BM25 full-text index over item titles/descriptions. Loaded by <code>ActiveSearchEngine._load_tantivy_index()</code>. Used in /search RRF fusion.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!-- 7. FRONTEND COMPONENT MAP -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <div class="section-title">7 · Frontend Component Map — <code>frontend/src/</code></div>
+  <p style="font-size:11px;color:var(--steel);margin-bottom:10px;">
+    All API calls centralised in <code>frontend/src/services/api.js</code> (<code>API_BASE = http://localhost:8000</code>).
+    State management is in <code>App.jsx</code>. No routing library — single-page app with tab-switching.
+  </p>
+
+  <div class="grid2">
+
+    <div>
+      <div class="fe-component">
+        <div class="fc-name">App.jsx — Root</div>
+        <div style="font-size:11px;color:var(--steel);margin-top:3px;">Owns all state. Two main panels: Left (Search/Recs tabs) + Right (Profile/History).</div>
+        <div class="fc-calls">
+          <span class="tag tag-get">api.recommend() → GET /recommend</span>
+          <span class="tag tag-post" style="margin-top:4px;">api.interact() → POST /interact</span>
+          <span class="tag tag-get" style="margin-top:4px;">api.profile() → GET /profile</span>
+          <span class="tag tag-get" style="margin-top:4px;">api.rlMetrics() → GET /rl_metrics</span>
+          <span class="tag tag-post" style="margin-top:4px;">api.search() → POST /search</span>
+          <span class="tag tag-stream" style="margin-top:4px;">api.askLLMStream() → POST /ask_llm_stream</span>
+        </div>
+      </div>
+
+      <div class="fe-component" style="margin-top:8px;">
+        <div class="fc-name">LoginPage.jsx</div>
+        <div style="font-size:11px;color:var(--steel);margin-top:3px;">Shown until userId is set. Handles user creation and guest login.</div>
+        <div class="fc-calls">
+          <span class="tag tag-post">api.authCheck() → POST /auth/check</span>
+          <span class="tag tag-post" style="margin-top:4px;">api.authCreate() → POST /auth/create</span>
+        </div>
+      </div>
+
+      <div class="fe-component" style="margin-top:8px;">
+        <div class="fc-name">SearchResultCard.jsx</div>
+        <div style="font-size:11px;color:var(--steel);margin-top:3px;">Displayed in Search tab. Shows BGE-M3, CLIP, RRF scores.</div>
+        <div class="fc-calls">
+          <span class="tag tag-post">onInteract → api.interact()</span>
+          <span class="tag tag-stream" style="margin-top:4px;">onAskAIStream → api.askLLMStream()</span>
+        </div>
+      </div>
+
+      <div class="fe-component" style="margin-top:8px;">
+        <div class="fc-name">RecommendCard.jsx</div>
+        <div style="font-size:11px;color:var(--steel);margin-top:3px;">Used in Recommendations tab for both Pipeline A and Pipeline B cards.</div>
+        <div class="fc-calls">
+          <span class="tag tag-post">onInteract → api.interact()</span>
+          <span class="tag tag-stream" style="margin-top:4px;">onAskAIStream → api.askLLMStream()</span>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="fe-component">
+        <div class="fc-name">ProfileRadar.jsx</div>
+        <div style="font-size:11px;color:var(--steel);margin-top:3px;">Radar chart in right panel "Profile" tab. Renders engagement signals from <code>interactions</code> state (action, genre, timing).</div>
+        <div class="fc-calls">
+          <em style="font-size:10px;">No API calls — driven by in-memory <code>interactions</code> state.</em>
+        </div>
+      </div>
+
+      <div class="fe-component" style="margin-top:8px;">
+        <div class="fc-name">SASRec Loss Sparkline (inline in App.jsx)</div>
+        <div style="font-size:11px;color:var(--steel);margin-top:3px;">SVG sparkline showing <code>rlMetrics.loss_history</code>. Phase split between "Pretrain" and "Online" sections. Refreshed after each <code>api.interact()</code> call.</div>
+        <div class="fc-calls">
+          <em style="font-size:10px;">Data from <code>api.rlMetrics()</code> or from <code>sasrec_loss</code> returned inline in <code>api.interact()</code> response.</em>
+        </div>
+      </div>
+
+      <div class="fe-component" style="margin-top:8px;">
+        <div class="fc-name">DIF-SASRec Input Sequence Strip (inline in App.jsx)</div>
+        <div style="font-size:11px;color:var(--steel);margin-top:3px;">Visible in Recs tab when <code>recMode === "personalized"</code>. Shows last 8 clicked books as small covers — visualises what the transformer is reading.</div>
+        <div class="fc-calls">
+          <em style="font-size:10px;">Reads from <code>interactions</code> state, no API call.</em>
+        </div>
+      </div>
+
+      <div class="fe-component" style="margin-top:8px;">
+        <div class="fc-name">BookCover.jsx · Button.jsx · SkeletonCard.jsx · InfoTooltip.jsx</div>
+        <div style="font-size:11px;color:var(--steel);margin-top:3px;">Pure presentational UI components. No API calls. Shared across Search and Recs tabs.</div>
+        <div class="fc-calls"><em style="font-size:10px;">No API calls.</em></div>
+      </div>
+
+      <div style="background:#f0fdf4;border:1px solid #86efac;border-radius:8px;padding:10px;margin-top:8px;font-size:11px;">
+        <strong style="font-size:11px;">Auto-refresh cadence:</strong>
+        <ul style="padding-left:14px;margin-top:4px;">
+          <li>On mount + userId change: <code>loadRecs()</code> + <code>loadProfile()</code></li>
+          <li>Every 3 clicks (rlStep % 3 === 0): <code>loadRecs()</code> after 800ms delay</li>
+          <li>After each interact with <code>sasrec_loss</code> in response: loss sparkline updated inline (no separate /rl_metrics call)</li>
+          <li>Manual: "↺ Refresh" button in Recs tab header</li>
+        </ul>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!-- 8. END-TO-END CLICK FLOW -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <div class="section-title">8 · End-to-End: User Clicks a Book</div>
+  <p style="font-size:11px;color:var(--steel);margin-bottom:10px;">Complete trace from user action to model update.</p>
+
+  <div class="pipeline" style="flex-direction:column;gap:0;">
+
+    <div style="display:flex;gap:0;align-items:stretch;">
+      <div class="pipe-box" style="border-radius:10px 0 0 0;background:#f0f9ff;border-color:#7dd3fc;flex:2;">
+        <div class="pb-title">① Browser — <code>handleInteract(book, "click")</code></div>
+        <div class="pb-detail">Optimistic update: prepend to <code>interactions</code> state immediately. Call <code>api.interact(userId, book.id, "click")</code>.</div>
+      </div>
+      <div class="pipe-arrow">→</div>
+      <div class="pipe-box" style="border-radius:0 10px 0 0;background:#f0f9ff;border-color:#7dd3fc;flex:3;">
+        <div class="pb-title">② POST /interact — <code>interact.py</code></div>
+        <div class="pb-detail">Capture <code>click_seq_before</code>. Update profile. Push to Redis queue. Trigger training.</div>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:0;align-items:stretch;">
+      <div class="pipe-box" style="background:#fff7ed;border-color:#fdba74;flex:2;">
+        <div class="pb-title">③ profile_manager.log_click()</div>
+        <div class="pb-detail">Append to clicks. Recompute text/visual/cleora profile with exponential decay. Upsert MongoDB.</div>
+      </div>
+      <div class="pipe-arrow">→</div>
+      <div class="pipe-box" style="background:#fff7ed;border-color:#fdba74;flex:3;">
+        <div class="pb-title">④ Redis queue push</div>
+        <div class="pb-detail">Raw event → <code>"nba_interactions"</code> list. Background <code>_log_worker</code> drains to MongoDB analytics collection asynchronously.</div>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:0;align-items:stretch;">
+      <div class="pipe-box" style="background:#faf5ff;border-color:#d8b4fe;flex:2;">
+        <div class="pb-title">⑤ agent_pool.borrow() → agent.load_user()</div>
+        <div class="pb-detail">Load per-user <code>.pt</code> checkpoint (or pretrained snapshot for new users). Agent isolated from all other concurrent requests.</div>
+      </div>
+      <div class="pipe-arrow">→</div>
+      <div class="pipe-box" style="background:#faf5ff;border-color:#d8b4fe;flex:3;">
+        <div class="pb-title">⑥ agent.train_step(click_seq_before, item_asin)</div>
+        <div class="pb-detail">Build tensors → forward pass → intent [512] → score 1 pos + 512 neg → sampled softmax + category aux loss → backprop → AdamW step.</div>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:0;align-items:stretch;">
+      <div class="pipe-box" style="background:#dcfce7;border-color:#86efac;flex:2;border-radius:0 0 0 10px;">
+        <div class="pb-title">⑦ agent.save_user()</div>
+        <div class="pb-detail">Write updated model_state + optimizer_state + loss_history to <code>data/profiles/{user_id}_dif_sasrec.pt</code>.</div>
+      </div>
+      <div class="pipe-arrow">→</div>
+      <div class="pipe-box" style="background:#dcfce7;border-color:#86efac;flex:3;border-radius:0 0 10px 0;">
+        <div class="pb-title">⑧ Response → Browser updates</div>
+        <div class="pb-detail"><code>{"status":"ok","sasrec_loss":float}</code>. Browser appends loss to sparkline. Every 3rd click triggers <code>loadRecs()</code> after 800ms to refresh recommendations.</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!-- 9. DEPENDENCY INJECTION -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <div class="section-title">9 · Dependency Injection Pattern</div>
+  <div class="code-block">
+<span class="cm"># app/api/dependencies.py</span>
+<span class="kw">def</span> <span class="fn">get_container</span>(request: Request) → AppContainer:
+    <span class="kw">return</span> request.app.state.container
+
+<span class="kw">def</span> <span class="fn">require_ready</span>(container: AppContainer = Depends(get_container)):
+    <span class="kw">if not</span> container.ready:
+        <span class="kw">raise</span> HTTPException(<span class="str">503</span>, detail=<span class="str">"Service not ready"</span>)
+    <span class="kw">return</span> container
+
+<span class="cm"># Usage in any route:</span>
+<span class="kw">async def</span> <span class="fn">recommend</span>(user_id: str, container: AppContainer = Depends(require_ready)):
+    retriever = container.retriever        <span class="cm"># FAISS indexes</span>
+    agent_pool = container.agent_pool     <span class="cm"># DIF-SASRec pool</span>
+    ...
+  </div>
+  <p style="font-size:11px;color:var(--steel);margin-top:6px;">
+    All routes are stateless — they read from the shared container but never mutate it.
+    Per-user state lives in MongoDB (profile) and on disk (.pt files). The container fields are write-once at startup.
+  </p>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!-- 10. QUICK REFERENCE -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <div class="section-title">10 · Quick Reference — File → Route/Purpose</div>
+
+  <div class="grid2">
+    <table style="border-collapse:collapse;font-size:11px;width:100%;">
+      <thead>
+        <tr style="background:var(--tag-bg);">
+          <th style="text-align:left;padding:6px 8px;border:1px solid var(--border);">File</th>
+          <th style="text-align:left;padding:6px 8px;border:1px solid var(--border);">Route / Purpose</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td style="padding:5px 8px;border:1px solid var(--border);font-family:monospace;">app/main.py</td><td style="padding:5px 8px;border:1px solid var(--border);">FastAPI app factory, router registration, CORS</td></tr>
+        <tr><td style="padding:5px 8px;border:1px solid var(--border);font-family:monospace;">app/core/lifespan.py</td><td style="padding:5px 8px;border:1px solid var(--border);">Startup/shutdown, builds AppContainer, background log-worker</td></tr>
+        <tr><td style="padding:5px 8px;border:1px solid var(--border);font-family:monospace;">app/core/container.py</td><td style="padding:5px 8px;border:1px solid var(--border);">Typed dependency container dataclass</td></tr>
+        <tr><td style="padding:5px 8px;border:1px solid var(--border);font-family:monospace;">app/api/routes/health.py</td><td style="padding:5px 8px;border:1px solid var(--border);">GET /health</td></tr>
+        <tr><td style="padding:5px 8px;border:1px solid var(--border);font-family:monospace;">app/api/routes/auth.py</td><td style="padding:5px 8px;border:1px solid var(--border);">POST /auth/check · POST /auth/create</td></tr>
+        <tr><td style="padding:5px 8px;border:1px solid var(--border);font-family:monospace;">app/api/routes/search.py</td><td style="padding:5px 8px;border:1px solid var(--border);">POST /search — multimodal active search</td></tr>
+        <tr><td style="padding:5px 8px;border:1px solid var(--border);font-family:monospace;">app/api/routes/recommend.py</td><td style="padding:5px 8px;border:1px solid var(--border);">GET /recommend · GET /rl_metrics</td></tr>
+        <tr><td style="padding:5px 8px;border:1px solid var(--border);font-family:monospace;">app/api/routes/interact.py</td><td style="padding:5px 8px;border:1px solid var(--border);">POST /interact — click/skip/not_interested + online training</td></tr>
+        <tr><td style="padding:5px 8px;border:1px solid var(--border);font-family:monospace;">app/api/routes/profile.py</td><td style="padding:5px 8px;border:1px solid var(--border);">GET /profile</td></tr>
+        <tr><td style="padding:5px 8px;border:1px solid var(--border);font-family:monospace;">app/api/routes/llm.py</td><td style="padding:5px 8px;border:1px solid var(--border);">POST /ask_llm · POST /ask_llm_stream</td></tr>
+        <tr><td style="padding:5px 8px;border:1px solid var(--border);font-family:monospace;">app/api/schemas.py</td><td style="padding:5px 8px;border:1px solid var(--border);">SearchRequest · InteractRequest · AskLLMRequest (Pydantic)</td></tr>
+        <tr><td style="padding:5px 8px;border:1px solid var(--border);font-family:monospace;">app/api/dependencies.py</td><td style="padding:5px 8px;border:1px solid var(--border);">get_container · require_ready (503 guard)</td></tr>
+      </tbody>
+    </table>
+
+    <table style="border-collapse:collapse;font-size:11px;width:100%;">
+      <thead>
+        <tr style="background:var(--tag-bg);">
+          <th style="text-align:left;padding:6px 8px;border:1px solid var(--border);">File</th>
+          <th style="text-align:left;padding:6px 8px;border:1px solid var(--border);">Purpose</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td style="padding:5px 8px;border:1px solid var(--border);font-family:monospace;">app/services/active_search.py</td><td style="padding:5px 8px;border:1px solid var(--border);">FAISS HNSW + Tantivy BM25 + RRF fusion</td></tr>
+        <tr><td style="padding:5px 8px;border:1px solid var(--border);font-family:monospace;">app/services/passive_recommend.py</td><td style="padding:5px 8px;border:1px solid var(--border);">Pipeline A (Cleora) + Pipeline B (DIF-SASRec)</td></tr>
+        <tr><td style="padding:5px 8px;border:1px solid var(--border);font-family:monospace;">app/services/dif_sasrec.py</td><td style="padding:5px 8px;border:1px solid var(--border);">Model classes + DIFSASRecAgent (train/infer/checkpoint)</td></tr>
+        <tr><td style="padding:5px 8px;border:1px solid var(--border);font-family:monospace;">app/services/agent_pool.py</td><td style="padding:5px 8px;border:1px solid var(--border);">8-agent pool, borrow/return concurrency safety</td></tr>
+        <tr><td style="padding:5px 8px;border:1px solid var(--border);font-family:monospace;">app/services/category_encoder.py</td><td style="padding:5px 8px;border:1px solid var(--border);">ASIN → leaf category integer ID</td></tr>
+        <tr><td style="padding:5px 8px;border:1px solid var(--border);font-family:monospace;">app/services/llm.py</td><td style="padding:5px 8px;border:1px solid var(--border);">Qwen2.5-1.5B inference + Wikipedia/Google Books context</td></tr>
+        <tr><td style="padding:5px 8px;border:1px solid var(--border);font-family:monospace;">app/repository/faiss_repo.py</td><td style="padding:5px 8px;border:1px solid var(--border);">FAISS index wrappers: HNSW, flat, Cleora, CLIP</td></tr>
+        <tr><td style="padding:5px 8px;border:1px solid var(--border);font-family:monospace;">app/repository/metadata_repo.py</td><td style="padding:5px 8px;border:1px solid var(--border);">Parquet-backed item lookup (title, author, genre…)</td></tr>
+        <tr><td style="padding:5px 8px;border:1px solid var(--border);font-family:monospace;">app/repository/profile_repo.py</td><td style="padding:5px 8px;border:1px solid var(--border);">User profile CRUD + aggregated embedding recompute</td></tr>
+        <tr><td style="padding:5px 8px;border:1px solid var(--border);font-family:monospace;">app/infrastructure/database.py</td><td style="padding:5px 8px;border:1px solid var(--border);">Motor (MongoDB) + Redis async clients</td></tr>
+        <tr><td style="padding:5px 8px;border:1px solid var(--border);font-family:monospace;">app/infrastructure/translation.py</td><td style="padding:5px 8px;border:1px solid var(--border);">NLLB-600M VI→EN translation + Lingua language detection</td></tr>
+        <tr><td style="padding:5px 8px;border:1px solid var(--border);font-family:monospace;">app/core/models.py</td><td style="padding:5px 8px;border:1px solid var(--border);">BGE-M3 + CLIP model loaders and encode helpers</td></tr>
+        <tr><td style="padding:5px 8px;border:1px solid var(--border);font-family:monospace;">frontend/src/services/api.js</td><td style="padding:5px 8px;border:1px solid var(--border);">All frontend HTTP calls centralised here</td></tr>
+        <tr><td style="padding:5px 8px;border:1px solid var(--border);font-family:monospace;">frontend/src/App.jsx</td><td style="padding:5px 8px;border:1px solid var(--border);">Root component: all state, auth gate, tab routing</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div style="margin-top:32px;padding:12px 16px;background:var(--tag-bg);border-radius:8px;font-size:11px;color:var(--steel);">
+    Generated from direct code inspection of <code>app/main.py</code>, <code>app/core/</code>, <code>app/api/routes/*</code>,
+    <code>app/services/*</code>, <code>app/repository/*</code>, <code>app/infrastructure/*</code>,
+    <code>frontend/src/App.jsx</code>, <code>frontend/src/services/api.js</code>. — 2026-05-20
+  </div>
+
+</div>
+</body>
+</html>

@@ -1,6 +1,6 @@
 \section{Chapter Conclusion}
 
-This chapter has presented the theoretical foundations and prior work underlying the proposed system.
+This chapter covered the theoretical foundations and prior work underlying the proposed system.
 
 The recommendation pipeline builds on two well-established paradigms.
 Sequential modelling with DIF-SASRec~\cite{xie2022difsasrec} extends the SASRec Transformer by decoupling content and category attention streams, directly addressing the known limitation of early-fusion side information approaches.
@@ -10,6 +10,6 @@ The search pipeline couples dense retrieval via BGE-M3~\cite{chen2024bge} and HN
 Multilingual capability is provided by the NLLB-200~\cite{nllb2022} translation model, which enables Vietnamese queries to be processed without additional encoder fine-tuning.
 Visual search over cover images is supported by a CLIP~\cite{radford2021clip} HNSW index.
 
-The survey of existing solutions establishes a clear evolutionary line from GRU4Rec through SASRec and BERT4Rec to DIF-SASRec, and grounds the decision to replace the prior GRU-SeqDQN system with the proposed dual-mode architecture.
+The survey of existing solutions traces the line from GRU4Rec through SASRec and BERT4Rec to DIF-SASRec, grounding the decision to replace the prior GRU-SeqDQN system with the proposed dual-mode architecture.
 The technologies described in Section~\ref{sec:technology} form the implementation substrate on which the proposed solutions in Chapter~4 are built.
 

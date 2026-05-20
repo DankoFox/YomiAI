@@ -27,11 +27,11 @@ New cards appearing after a refresh are highlighted for four seconds to make it 
 \label{sec:training_viz}
 
 A profile panel on the right side of the interface shows the online learning state in real time.
-A radar chart (Engagement Signals) summarises five dimensions from the user's interaction history: click rate, cart rate, skip rate, interaction count, and recency.
+A radar chart (Engagement Signals) summarises four dimensions from the user's interaction history: click rate, skip rate, interaction count, and recency.
 
 Below the radar chart, a SASRec Loss sparkline plots the training loss history as a filled area chart.
 A dashed divider marks the boundary between the pretraining phase and the online fine-tuning phase, since the two phases use different negative pool sizes and the loss scales differ.
-When a click or cart event triggers a gradient step, the latest loss value appears briefly as a badge for 2.5 seconds, confirming that the model updated.
+When a click event triggers a gradient step, the latest loss value appears briefly as a badge for 2.5 seconds, confirming that the model updated.
 
 \subsection{Multimodal Search Interface}
 \label{sec:multimodal_ui}
@@ -43,4 +43,4 @@ Results replace the skeleton placeholders in place, with no page reload.
 
 A dark mode toggle in the header applies a site-wide colour scheme switch using Tailwind CSS dark-mode variants, with no page reload required.
 A Recently Viewed strip in the header shows book cover thumbnails from the user's interaction history.
-Toast notifications confirm significant actions (search completion, cart addition, model update) using a 3-second auto-dismiss overlay in the top-right corner.
+Toast notifications confirm significant actions (search completion, model update, not-interested dismissal) using a 3-second auto-dismiss overlay in the top-right corner.

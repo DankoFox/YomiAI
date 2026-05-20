@@ -16,7 +16,7 @@ No indexes are defined programmatically in the application code: neither collect
 
 \paragraph{Redis.}
 Redis serves as an asynchronous interaction write-queue rather than a cache.
-When a user performs an action (click, cart, or skip), the \texttt{/interact} route serialises the event as a JSON document and appends it to the \texttt{nba\_interactions} list via \texttt{RPUSH}, returning immediately to the caller without waiting for a MongoDB write.
+When a user performs an action (click, skip, or not\_interested), the \texttt{/interact} route serialises the event as a JSON document and appends it to the \texttt{nba\_interactions} list via \texttt{RPUSH}, returning immediately to the caller without waiting for a MongoDB write.
 A background coroutine started at application startup drains the list using \texttt{BLPOP} with a 5-second timeout, writing each drained entry to MongoDB via \texttt{db.log\_interaction()}.
 When the number of drained entries since the last refit reaches a configurable threshold, the worker initiates an asynchronous Cleora graph refit to refresh the behavioural embeddings with the accumulated interaction data.
 This decoupling ensures that the high-frequency interaction write path is not blocked by slower MongoDB write latency.
@@ -47,7 +47,7 @@ The index also resides entirely in CPU RAM, which consumes a large portion of av
 
 \paragraph{Tantivy BM25 index.}
 The Tantivy index covers item titles and author fields and is served as a read-only index built offline.
-Its query performance is satisfactory (sub-10 ms for most queries), but it is not updated incrementally — adding new items requires a full index rebuild.
+Its query performance is satisfactory (sub-10 ms for most queries), but it is not updated incrementally; adding new items requires a full index rebuild.
 
 \subsection{Data Visualisation Module}
 \label{sec:viz_analysis}
@@ -56,7 +56,7 @@ The data visualisation module is the React frontend described in Section~\ref{se
 
 The current frontend exhibits three principal limitations.
 First, the search view renders all results synchronously on the main thread: if the API response is slow (as is common given the flat FAISS latency), the entire page is unresponsive during the request.
-Second, there are no filtering or sorting controls — the user cannot restrict results by genre, publication year, or relevance score, and must scroll through the full returned list.
+Second, there are no filtering or sorting controls, so the user cannot restrict results by genre, publication year, or relevance score and must scroll through the full returned list.
 Third, the visualisation layer has no support for multilingual input: the search bar provides no language indicator, no transliteration support, and no feedback when a Vietnamese query yields poor results due to encoder limitations.
 The recommendation panel displays a static list that is refreshed only on full page reload, with no indication of which pipeline generated each recommendation.
 

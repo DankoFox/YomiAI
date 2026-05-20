@@ -54,7 +54,7 @@ Long (VI)     & 0.5500 & 0.0500 \\
 
 The results reflect a fundamental training distribution mismatch.
 BLaIR was trained with contrastive learning on (user review, item description and categories) pairs, optimising it to match long descriptive text against item metadata.
-Real search queries are short and conversational — something like ``dark fantasy books similar to Berserk'' — and BLaIR was never exposed to this query style during training.
+Real search queries are short and conversational, something like ``dark fantasy books similar to Berserk'', and BLaIR was never exposed to this query style during training.
 The data confirms this: BLaIR achieves competitive precision on very short English queries where surface token overlap compensates for the distribution gap, but underperforms on anything requiring semantic generalisation beyond its training domain.
 On Vietnamese queries it fails entirely, as it is an English-only model.
 BGE-M3, trained on diverse multilingual query-passage pairs including short conversational queries, handles both the real-world query style and non-English languages.

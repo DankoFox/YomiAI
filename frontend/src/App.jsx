@@ -36,7 +36,7 @@ export default function App() {
     setRecommendations({ people_also_buy: [], you_might_like: [], combined: [] });
     setNewRecAsins(new Set());
     setSearchResults([]);
-    setCart([]);
+    setBlockedIds(new Set());
     prevRecMode.current  = null;
     prevYmlAsins.current = new Set();
     setUserId(uid);
@@ -80,7 +80,7 @@ export default function App() {
   const [toasts, setToasts]           = useState([]);
   const [activeTab, setActiveTab]     = useState("search");
   const [activeRight, setActiveRight] = useState("profile");
-  const [cart, setCart]               = useState([]);
+  const [blockedIds, setBlockedIds]    = useState(new Set());
   const [rightPanelOpen, setRightPanelOpen] = useState(true);
 
   const [showImagePopover, setShowImagePopover] = useState(false);
@@ -169,11 +169,22 @@ export default function App() {
 
   // ── Interact handler ────────────────────────────────────────────────────────
   const handleInteract = async (book, action) => {
+    if (action === "not_interested") {
+      setBlockedIds(prev => new Set([...prev, book.id]));
+      setRecommendations(prev => ({
+        people_also_buy: prev.people_also_buy.filter(b => b.id !== book.id),
+        you_might_like:  prev.you_might_like.filter(b => b.id !== book.id),
+        combined:        prev.combined.filter(b => b.id !== book.id),
+      }));
+      toast(`"${book.title}" hidden from recommendations`, "info");
+      try { await api.interact(userId, book.id, action, sessionId); } catch (_) {}
+      return;
+    }
+
     setInteractions(p => [{ ...book, action, ts: Date.now() }, ...p]);
     setRlStep(s => s + 1);
-    if (action === "cart")       { toast(`"${book.title}" — Added to Cart`, "success"); setCart(p => [...p, book]); }
-    else if (action === "click") { toast(`Clicked "${book.title}" — profile updated`, "success"); }
-    else                         { toast(`✕ Skipped "${book.title}" — RL penalized`, "info"); }
+    if (action === "click") { toast(`"${book.title}" — profile updated`, "success"); }
+    else                    { toast(`Skipped "${book.title}"`, "info"); }
     try {
       const res  = await api.interact(userId, book.id, action, sessionId);
       const loss = res?.sasrec_loss;
@@ -214,7 +225,7 @@ export default function App() {
   };
 
   const ctr = interactions.length
-    ? (interactions.filter(i => i.action === "click" || i.action === "cart").length / interactions.length * 100).toFixed(1)
+    ? (interactions.filter(i => i.action === "click").length / interactions.length * 100).toFixed(1)
     : "—";
 
   // Pre-compute sparkline points + phase split index once per loss_history change
@@ -291,7 +302,6 @@ export default function App() {
                   ? "bg-[#627d9a]/10 border-[#627d9a]/30 text-[#627d9a] dark:text-[#babbbd]"
                   : "bg-[#2e3257]/8 dark:bg-[#fffef7]/8 border-[#2e3257]/20 dark:border-[#fffef7]/20 text-[#2e3257] dark:text-[#fffef7]"}`}
               >
-                <span style={{ fontSize: 14 }}>{isGuest ? "👤" : "🔖"}</span>
                 {userId}
               </span>
               <button
@@ -310,7 +320,7 @@ export default function App() {
               </button>
             </div>
 
-            {/* Theme + Cart */}
+            {/* Theme */}
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setIsDark(d => !d)}
@@ -319,16 +329,7 @@ export default function App() {
                   bg-transparent border-[#babbbd] dark:border-[#627d9a]/70
                   text-[#627d9a] dark:text-[#babbbd]`}
               >
-                {isDark ? "☀ Light" : "◐ Dark"}
-              </button>
-              <button className="px-3 py-1.5 rounded-lg text-[12px] font-semibold flex items-center gap-1.5 border
-                                 bg-transparent border-[#babbbd] dark:border-[#627d9a]/70
-                                 text-[#2e3257] dark:text-[#fffef7]
-                                 hover:bg-[#dfc5a4]/20 hover:border-[#dfc5a4] transition-all duration-200">
-                🛒
-                <span className="px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-[#2e3257] dark:bg-[#fffef7] text-[#fffef7] dark:text-[#2e3257]">
-                  {cart.length}
-                </span>
+                {isDark ? "Light" : "Dark"}
               </button>
             </div>
 
@@ -460,7 +461,6 @@ export default function App() {
                           </>
                         ) : (
                           <>
-                            <span className="text-[#babbbd] dark:text-[#627d9a] flex-shrink-0" style={{ fontSize: 22, opacity: 0.6 }}>🖼</span>
                             <div>
                               <p className="text-[12px] text-[#627d9a] dark:text-[#babbbd]">Drop a cover image here, or click to browse</p>
                               <p className="text-[10px] text-[#babbbd] dark:text-[#627d9a]/70 mt-0.5">CLIP image encoder · visual similarity search</p>
@@ -519,7 +519,6 @@ export default function App() {
                   ))
                 ) : (
                   <div className="flex flex-col items-center justify-center h-48 gap-3 text-center">
-                    <div className="text-[#babbbd] dark:text-[#627d9a]" style={{ fontSize: 48, opacity: 0.4 }}>📖</div>
                     <div>
                       <p className="text-[16px] font-medium text-[#627d9a] dark:text-[#babbbd]">Search for a book to begin</p>
                       <p className="text-[13px] text-[#babbbd] dark:text-[#627d9a]/70 mt-1">BGE-M3 + CLIP · 3M book catalog</p>
@@ -579,7 +578,7 @@ export default function App() {
               {/* B: DIF-SASRec input sequence strip */}
               {recMode === "personalized" && (() => {
                 const seq = interactions
-                  .filter(i => i.action === "click" || i.action === "cart")
+                  .filter(i => i.action === "click")
                   .slice(0, 8)
                   .reverse();
                 if (seq.length < 2) return null;
@@ -591,7 +590,6 @@ export default function App() {
                     <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-hide">
                       {seq.map((item, idx) => {
                         const bg = item.cover_color || "#1e1b4b";
-                        const isCart = item.action === "cart";
                         return (
                           <div key={idx} className="relative shrink-0 flex flex-col items-center gap-0.5" style={{ width: 40 }}>
                             <div
@@ -606,13 +604,9 @@ export default function App() {
                                 </span>
                               )}
                             </div>
-                            <span
-                              className={`text-[7px] font-mono px-1 py-0.5 rounded-full border leading-none
-                                ${isCart
-                                  ? "bg-emerald-50 dark:bg-emerald-900/20 border-emerald-300 dark:border-emerald-700/60 text-emerald-700 dark:text-emerald-400"
-                                  : "bg-[#dfc5a4]/20 border-[#dfc5a4]/50 text-[#627d9a] dark:text-[#babbbd]"}`}
-                            >
-                              {isCart ? "cart" : "✓"}
+                            <span className="text-[7px] font-mono px-1 py-0.5 rounded-full border leading-none
+                                             bg-[#dfc5a4]/20 border-[#dfc5a4]/50 text-[#627d9a] dark:text-[#babbbd]">
+                              ✓
                             </span>
                           </div>
                         );
@@ -879,7 +873,7 @@ export default function App() {
                       </div>
                       <div className="flex flex-col items-end gap-1 flex-shrink-0">
                         <span className={`text-[9px] px-2 py-0.5 rounded-full font-medium border
-                          ${(item.action === "click" || item.action === "cart")
+                          ${item.action === "click"
                             ? "bg-emerald-50 dark:bg-emerald-900/20 border-emerald-300 dark:border-emerald-700/60 text-emerald-700 dark:text-emerald-400"
                             : "bg-red-50 dark:bg-red-900/20 border-red-300 dark:border-red-700/60 text-red-600 dark:text-red-400"}`}>
                           {item.action}

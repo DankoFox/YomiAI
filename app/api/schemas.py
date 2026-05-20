@@ -17,7 +17,7 @@ class SearchRequest(BaseModel):
 class InteractRequest(BaseModel):
     user_id: str
     item_id: str
-    action: str          # "click" | "skip" | "cart"
+    action: str          # "click" | "skip" | "not_interested"
     session_id: Optional[str] = None
     source: Optional[str] = "web_ui"
 

@@ -38,8 +38,8 @@ At startup, the application loads the FAISS index, Tantivy index, and the text e
 The data tier consists of four storage components:
 
 \begin{itemize}
-    \item MongoDB: Persists data in two collections under the \texttt{nba\_logs} database. The \texttt{interactions} collection stores raw user–item event documents (click, cart, skip) as they are drained from the Redis queue. The \texttt{profiles} collection stores the latest aggregated profile summary for each user, maintained via upsert operations.
-    \item Redis: Acts as an asynchronous interaction write-queue. Every user action (click, cart, skip) is pushed onto the \texttt{nba\_interactions} list via \texttt{RPUSH}; a background worker drains the queue into MongoDB via \texttt{BLPOP} and triggers a Cleora graph refit when a configurable interaction threshold is reached.
+    \item MongoDB: Persists data in two collections under the \texttt{nba\_logs} database. The \texttt{interactions} collection stores raw user–item event documents (click, skip, not\_interested) as they are drained from the Redis queue. The \texttt{profiles} collection stores the latest aggregated profile summary for each user, maintained via upsert operations.
+    \item Redis: Acts as an asynchronous interaction write-queue. Every user action (click, skip, not\_interested) is pushed onto the \texttt{nba\_interactions} list via \texttt{RPUSH}; a background worker drains the queue into MongoDB via \texttt{BLPOP} and triggers a Cleora graph refit when a configurable interaction threshold is reached.
     \item FAISS flat index: An exact inner-product search index over 3{,}080{,}829 item embeddings encoded with the BLaIR text encoder, stored as a contiguous float32 matrix on disk and loaded into CPU RAM at startup.
     \item Tantivy index: A BM25 full-text index over item titles and descriptions, built offline and served via a Python binding at query time.
 \end{itemize}

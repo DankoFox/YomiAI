@@ -8,7 +8,7 @@ This section describes the incremental update pipeline added to address that gap
 \label{sec:cleora_incremental}
 
 In the prior system, Cleora co-purchase graph embeddings were generated once from the full Amazon Books dataset and never updated at runtime.
-Any new user interactions accumulated in MongoDB were invisible to the recommendation engine until a full manual re-run — a process taking several hours.
+Any new user interactions accumulated in MongoDB were invisible to the recommendation engine until a full manual re-run that took several hours.
 The replacement is a three-stage pipeline, illustrated in Figure~\ref{fig:ingestion_pipeline_v2}, that exports only new interactions, augments the existing graph with them, and hot-reloads the updated embeddings without restarting the server.
 
 \begin{figure}[H]
@@ -19,7 +19,7 @@ The replacement is a three-stage pipeline, illustrated in Figure~\ref{fig:ingest
 \end{figure}
 
 \paragraph{Stage 1: Delta export.}
-The \texttt{export\_delta\_hyperedges.py} script queries the MongoDB \texttt{interactions} collection for all click and cart events recorded after the timestamp stored in \texttt{data/delta\_last\_run.txt}, defaulting to seven days prior if the file is absent.
+The \texttt{export\_delta\_hyperedges.py} script queries the MongoDB \texttt{interactions} collection for all click events recorded after the timestamp stored in \texttt{data/delta\_last\_run.txt}, defaulting to seven days prior if the file is absent.
 Guest sessions (\texttt{is\_guest: true}) are excluded so that transient, unauthenticated activity does not corrupt the co-purchase graph.
 For each qualifying user, the collected ASINs are accumulated into a Python \texttt{set}, which inherently deduplicates repeated clicks on the same item.
 An ASIN whitelist loaded from \texttt{data/asins.csv} is applied as a catalogue boundary filter, ensuring consistency with the FAISS and metadata layers.
@@ -33,7 +33,7 @@ It ingests the delta hyperedges into the existing co-purchase graph and applies 
 
 \paragraph{Stage 3: Hot-reload.}
 After the augmentation subprocess exits successfully, the updated NPZ file is loaded and passed to \texttt{Retriever.reload\_cleora()}.
-This method atomically replaces the in-memory Cleora FAISS index and ASIN lookup table in a single Python assignment with no \texttt{await} points, so concurrent in-flight recommendation requests observe either the old index or the new one in full — never a partial state.
+This method atomically replaces the in-memory Cleora FAISS index and ASIN lookup table in a single Python assignment with no \texttt{await} points, so concurrent in-flight recommendation requests observe either the old index or the new one in full, never a partial state.
 
 \subsection{Automated Triggering and Error Recovery}
 \label{sec:cleora_trigger}

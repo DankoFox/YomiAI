@@ -3,7 +3,7 @@
 
 \subsection{System Capabilities}
 
-Despite the limitations identified above, the current system provides a functional end-to-end pipeline that serves as the foundation for the proposed improvements.
+Despite the limitations identified above, the current system provides a functional end-to-end pipeline that is the foundation for the proposed improvements.
 The following capabilities are already present and require no redesign:
 
 \begin{itemize}
@@ -61,7 +61,7 @@ Reducing this to below 100 ms requires replacing the flat FAISS index with an HN
 
 \paragraph{Encoder mismatch.}
 BLaIR was trained with contrastive learning on (user review, item description and categories) pairs.
-This trains it to match semantically rich, descriptive text against item metadata — a task that differs from real-world product search, where users type short conversational queries such as ``dark fantasy books similar to Berserk.''
+This trains it to match semantically rich, descriptive text against item metadata, a task that differs from real-world product search where users type short conversational queries such as ``dark fantasy books similar to Berserk.''
 BLaIR was not trained on this query style, and as an English-only model it produces near-zero precision on Vietnamese input regardless of query length.
 Addressing this requires a multilingual encoder trained on short query retrieval and a query translation stage for non-English languages.
 

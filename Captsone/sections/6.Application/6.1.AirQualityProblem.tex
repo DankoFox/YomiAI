@@ -15,5 +15,5 @@ The full application stack is:
     \item Infrastructure: MongoDB (\texttt{nba\_logs} database) and Redis (interaction write-queue), both provisioned via Docker Compose.
 \end{itemize}
 
-A Mock / Live toggle in the application header allows the frontend to operate entirely with pre-defined mock data without requiring the backend to be running, which is useful for UI development and demonstrations when the ML models are not loaded.
+If the backend is unreachable, a dismissible error notification is displayed and the interface continues to present the most recently loaded data without breaking the user experience.
 User identity is persisted in \texttt{localStorage} so that returning users bypass the login gate automatically.

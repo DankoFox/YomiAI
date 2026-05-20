@@ -138,7 +138,7 @@ Figure~\ref{fig:causal_attn} illustrates the causal masking pattern for a four-i
 \label{fig:causal_attn}
 \end{figure}
 
-DIF-SASRec~\cite{xie2022difsasrec} extends SASRec by incorporating \textit{side information} — item attributes such as textual content and categorical metadata — through decoupled attention streams.
+DIF-SASRec~\cite{xie2022difsasrec} extends SASRec by incorporating \textit{side information} (item attributes such as textual content and categorical metadata) through decoupled attention streams.
 Rather than fusing attribute embeddings into item ID embeddings before attention (which conflates the two signals), DIF-SASRec maintains separate attention modules for content and category features and combines them at the output layer.
 This decoupling preserves the ability to attend to content-relevant history and category-relevant history independently, improving performance on items with rich metadata.
 
@@ -149,13 +149,13 @@ This decoupling preserves the ability to attend to content-relevant history and 
 
 Although SASRec and BERT4Rec significantly advanced sequential recommendation performance compared with recurrent architectures such as GRU4Rec, both models retain limitations that reduce their suitability for large-scale real-time recommendation systems with rich side information.
 
-SASRec replaces recurrent sequence modelling with a causal self attention Transformer architecture, enabling parallel training.However, the original SASRec design represents each item primarily through an item ID embedding. Consequently, semantic information such as textual descriptions, categories, or visual features is not explicitly modelled within the attention mechanism.
+SASRec replaces recurrent sequence modelling with a causal self-attention Transformer architecture, enabling parallel training. However, the original SASRec design represents each item primarily through an item ID embedding. Consequently, semantic information such as textual descriptions, categories, or visual features is not explicitly modelled within the attention mechanism.
 
-BERT4Rec addresses some sequence modelling limitations by introducing bidirectional self attention with a Cloze style prediction. Unlike SASRec, which predicts the next item autoregressively, BERT4Rec learns contextual representations using both left and right sequence context. Despite these advantages, BERT4Rec has several practical limitations for recommendation systems. First, the training objective is inconsistent with real time  recommendation. Second, BERT4Rec does not explicitly separate collaborative and content based signals within the attention architecture
+BERT4Rec addresses some sequence modelling limitations by introducing bidirectional self attention with a Cloze style prediction. Unlike SASRec, which predicts the next item autoregressively, BERT4Rec learns contextual representations using both left and right sequence context. Despite these advantages, BERT4Rec has several practical limitations for recommendation systems. First, the training objective is inconsistent with real-time recommendation. Second, BERT4Rec does not explicitly separate collaborative and content based signals within the attention architecture
 
 Finally, both SASRec and BERT4Rec exhibit limited robustness in multilingual and multimodal recommendation environments. Their original formula rely primarily on item identifiers and do not natively incorporate multilingual semantic encoders or visual representations. These limitations motivate the adoption of DIF-SASRec, which introduces decoupled attention mechanisms for different feature modalities. By separating item, content, and category attention streams, DIF-SASRec enables more specialised modelling of heterogeneous recommendation signals.
 
-The below figure compares the item representation learning process used in SASRecF, NOVA-SR, and DIF-SR. Unlike early-fusion approaches that combine all side information into a single representation before attention computation, DIF-SR decouples the attention generation process for different feature modalities and fuses the resulting attention matrices afterwards. This design improves representation flexibility and reduces interference between heterogeneous features.
+Figure~\ref{fig:compare_item_pres_learning} compares the item representation learning process used in SASRecF, NOVA-SR, and DIF-SR. Unlike early-fusion approaches that combine all side information into a single representation before attention computation, DIF-SR decouples the attention generation process for different feature modalities and fuses the resulting attention matrices afterwards. This design improves representation flexibility and reduces interference between heterogeneous features.
 
 \begin{figure}[H]
 \centering
@@ -169,7 +169,7 @@ The below figure compares the item representation learning process used in SASRe
 
 \subsection{DIF-SASRec Architecture}
 \label{sec:difsasrec_arch}
-DIF-SASRec extends the SASRec sequential recommendation architecture by explicitly decoupling different side information modalities within the self attention mechanism. Instead of combining all item attributes into a single embedding representation before attention computation, DIF-SASRec maintains independent attention streams for content and category information. This design enables the model to capture heterogeneous behavioural patterns more effectively while preserving the parallel training advantages of Transformer based recommendation models.The below figure illustrates the overall architecture of the proposed DIF-SASRec network.
+DIF-SASRec extends the SASRec sequential recommendation architecture by explicitly decoupling different side information modalities within the self attention mechanism. Instead of combining all item attributes into a single embedding representation before attention computation, DIF-SASRec maintains independent attention streams for content and category information. This design enables the model to capture heterogeneous behavioural patterns more effectively while preserving the parallel training advantages of Transformer based recommendation models.Figure~\ref{fig:dif_sasrec_architecture} illustrates the overall architecture of the proposed DIF-SASRec network.
 
 \begin{figure}[H]
 \centering
@@ -202,7 +202,7 @@ At inference time, each user click triggers one additional gradient step on the 
 
 Graph-based embedding methods represent items as nodes in a graph and learn dense vector representations that encode the graph's structural proximity.
 In a co-purchase graph, items are connected by an edge if they are frequently bought together; the edge weight reflects the strength of that co-occurrence.
-Dense items in tightly connected communities — such as books in the same series or by the same author — receive similar embeddings, enabling efficient candidate retrieval by nearest-neighbour search.
+Dense items in tightly connected communities, such as books in the same series or by the same author, receive similar embeddings, enabling efficient candidate retrieval by nearest-neighbour search.
 
 Cleora~\cite{rychalska2021cleora} is an unsupervised graph embedding scheme based on iterative feature propagation.
 Starting from random node features, each iteration replaces every node's embedding with the weighted average of its neighbours' embeddings, followed by row-wise $\ell_2$ normalisation.
@@ -220,7 +220,7 @@ After a fixed number of iterations (typically two to three), the resulting embed
 \subsubsection{Bi-Encoder Dense Retrieval}
 
 Dense retrieval represents both queries and documents as fixed-length vectors and retrieves candidates by computing the inner product (or cosine similarity) between query and document embeddings.
-A \textit{bi-encoder} architecture uses two independent encoders — one for queries and one for items — allowing item vectors to be pre-computed and indexed offline.
+A \textit{bi-encoder} architecture uses two independent encoders, one for queries and one for items, allowing item vectors to be pre-computed and indexed offline.
 At query time, only the query encoding and a vector lookup are needed, making dense retrieval highly efficient.
 
 BGE-M3~\cite{chen2024bge} (\texttt{BAAI/bge-m3}) is the encoder used in this system.
@@ -245,7 +245,7 @@ BM25 is a probabilistic sparse retrieval model that scores a document $d$ for qu
 where $f(t, d)$ is the term frequency of token $t$ in document $d$, $|d|$ is document length, $\text{avgdl}$ is the corpus average document length, and $k_1 = 1.2$, $b = 0.75$ are standard hyperparameters.
 Tantivy, a Rust-native full-text search library, provides BM25 indexing and retrieval over the item catalogue.
 
-Dense and sparse rankings capture complementary signals — dense retrieval finds semantically similar items even when the query shares no tokens with the document, while BM25 excels at exact-match term recall.
+Dense and sparse rankings capture complementary signals: dense retrieval finds semantically similar items even when the query shares no tokens with the document, while BM25 excels at exact-match term recall.
 Reciprocal Rank Fusion (RRF)~\cite{cormack2009rrf} combines two ranked lists without score normalisation:
 \begin{equation}
   \text{RRF}(d) = \sum_{r \in \mathcal{R}} \frac{1}{k + r_i(d)}

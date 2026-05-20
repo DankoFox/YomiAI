@@ -6,7 +6,7 @@
 Large-scale commercial platforms have driven much of the practical advancement in recommendation system design.
 
 Amazon's recommendation engine~\cite{linden2003amazon} pioneered item-to-item collaborative filtering at scale, generating ``customers who bought X also bought Y'' associations from co-purchase logs.
-The central insight — that item-to-item similarity is far more scalable to compute offline than user-to-user similarity — directly motivates the Cleora co-purchase graph used in Pipeline~A of the proposed system.
+The central insight, that item-to-item similarity is far more scalable to compute offline than user-to-user similarity, directly motivates the Cleora co-purchase graph used in Pipeline~A of the proposed system.
 Subsequent iterations of Amazon's system incorporate session-based signals, click-through prediction models, and contextual bandit approaches for online exploration, but the co-purchase neighbourhood structure remains a core retrieval mechanism.
 
 Spotify's music recommendation system~\cite{van2013deep} combined collaborative filtering with audio content features derived from a convolutional neural network, demonstrating that modality-specific feature extraction could improve cold-start performance for new tracks with no interaction history.
@@ -21,7 +21,7 @@ These domain characteristics favour the content-anchored retrieval strategy of P
 
 \subsection{Multimodal Recommendation in the Literature}
 
-The incorporation of multiple content modalities — text, image, and structured attributes — into recommendation systems has received substantial attention following the success of vision-language models.
+The incorporation of multiple content modalities (text, image, and structured attributes) into recommendation systems has received substantial attention following the success of vision-language models.
 
 \paragraph{Vision-language embedding for items.}
 Radford et al.~\cite{radford2021clip} demonstrated that contrastive pre-training on image-text pairs produces aligned visual and textual embedding spaces, enabling zero-shot image-to-text retrieval.

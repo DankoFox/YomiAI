@@ -31,7 +31,7 @@ POST & \texttt{/search}           & Multimodal query (text and/or image); return
 GET  & \texttt{/recommend}        & Dual-pipeline recommendations; returns \texttt{people\_also\_buy} (Pipeline~A) and \texttt{you\_might\_like} (Pipeline~B) with per-item score and layer fields \\
 \hline
 \multicolumn{3}{l}{\textit{Interaction logging}} \\
-POST & \texttt{/interact}         & Log a click, skip, or cart event; triggers a DIF-SASRec gradient step for click and cart; returns updated loss \\
+POST & \texttt{/interact}         & Log a click, skip, or not\_interested event; triggers a DIF-SASRec gradient step for click events only; not\_interested items are added to a per-user Redis blacklist \\
 \hline
 \multicolumn{3}{l}{\textit{User profile}} \\
 GET  & \texttt{/profile}          & Return click sequence, session statistics (CTR, train steps, interactions), and training loss history \\
@@ -83,7 +83,7 @@ Weight decay            & 0.01 \\
 Hard negatives per step & 512 \\
 \hline
 \multicolumn{2}{l}{\textit{DIF-SASRec — Online fine-tuning}} \\
-Trigger events          & click, cart (skip events are not used for training) \\
+Trigger events          & click (skip and not\_interested events are not used for training) \\
 Gradient steps per event & 1 \\
 Learning rate           & $10^{-3}$ (same AdamW optimizer as pretraining) \\
 Negative sample pool    & full 3M-item catalogue \\

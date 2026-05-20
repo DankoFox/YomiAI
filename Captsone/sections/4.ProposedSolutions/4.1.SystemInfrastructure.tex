@@ -155,7 +155,7 @@ Frontend         & React 19 + Vite & Vue 3 / Svelte   & Largest ecosystem for st
 \label{sec:encoder_upgrade}
 
 The BLaIR encoder is replaced by \texttt{BAAI/bge-m3}~\cite{chen2024bge}, a multilingual model producing 1{,}024-dimensional embeddings.
-BGE-M3 is set as the single source of truth for all text embeddings in the system: user profile vectors, item embeddings in the FAISS text index, and query encodings at search time all use the same model, ensuring consistency across the retrieval pipeline.
+BGE-M3 is the single source of truth for all text embeddings in the system: user profile vectors, item embeddings in the FAISS text index, and query encodings at search time all use the same model, keeping the retrieval pipeline consistent.
 The \texttt{TEXT\_EMBED\_DIM} constant in \texttt{app/config.py} is the sole location that needs updating if a future encoder is adopted.
 
 \subsection{NLLB-200 Multilingual Translation Pipeline}
@@ -173,7 +173,7 @@ A three-stage translation pipeline is inserted before the BGE-M3 encoding step i
 \begin{enumerate}
     \item Language detection: The \texttt{lingua} library identifies the input language in under 1\,ms. If the detected language is English, the translation step is skipped entirely.
     \item NLLB-200 translation: For the 19 supported non-English languages, the \texttt{facebook/nllb-200-distilled-600M} model translates the query to English. A fast greedy pass (\texttt{num\_beams=1}) is executed first.
-    \item Quality gate: A heuristic checks whether any source-language words survived into the translation output — a reliable indicator of partial decoding failure. If untranslated tokens are detected, the query is retried with \texttt{num\_beams=4}, trading \textasciitilde{}30 ms for a cleaner translation.
+    \item Quality gate: A heuristic checks whether any source-language words survived into the translation output, a reliable indicator of partial decoding failure. If untranslated tokens are detected, the query is retried with \texttt{num\_beams=4}, trading \textasciitilde{}30 ms for a cleaner translation.
     \item LRU caching: Translated queries are cached via \texttt{@lru\_cache(maxsize=2048)}, so repeated queries (e.g., common search terms) cost 0 ms after the first miss.
 \end{enumerate}
 
@@ -221,7 +221,7 @@ An \texttt{AgentPool} of 8 isolated DIF-SASRec agents handles concurrent persona
 For each request, the user's BGE-M3 profile vector is used to retrieve 200 candidate items from the HNSW index.
 Those candidates pass through the same content veto filter ($\tau = 0.3$) as Pipeline~A.
 The surviving candidates are then scored by DIF-SASRec: an agent loads the user's personal checkpoint, runs a forward pass over the recent click sequence to produce an intent vector, and ranks candidates by dot product against that vector.
-Per-user fine-tuning is triggered at every click or cart event, updating the personal checkpoint via a sampled softmax gradient step.
+Per-user fine-tuning is triggered at every click event, updating the personal checkpoint via a sampled softmax gradient step.
 
 \paragraph{Cold-start handling.}
 Users with fewer than \texttt{COLD\_START\_THRESHOLD} = 5 interactions bypass both pipelines.

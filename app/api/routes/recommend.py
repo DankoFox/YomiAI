@@ -6,6 +6,7 @@ from fastapi import APIRouter, Depends
 from app.api.dependencies import require_ready
 from app.config import settings
 from app.core.container import AppContainer
+from app.infrastructure.database import db
 
 router = APIRouter()
 
@@ -35,6 +36,20 @@ async def recommend(user_id: str, container: AppContainer = Depends(require_read
             rec_dict, mode = _cold_start(retriever)
         else:
             rec_dict, mode = res, "personalized"
+
+    # Fetch per-user blocked set from Redis and filter before enrichment
+    blocked: set[str] = set()
+    try:
+        if db.redis:
+            raw = await db.redis.smembers(f"user:{user_id}:blocked")
+            blocked = {m.decode() if isinstance(m, bytes) else m for m in (raw or [])}
+    except Exception:
+        pass
+
+    if blocked:
+        rec_dict["people_also_buy"] = [r for r in rec_dict["people_also_buy"] if r[0] not in blocked]
+        rec_dict["you_might_like"]  = [r for r in rec_dict["you_might_like"]  if r[0] not in blocked]
+        rec_dict["combined"]        = [r for r in rec_dict.get("combined", []) if r[0] not in blocked]
 
     all_rec_ids = (
         [rec[0] for rec in rec_dict["people_also_buy"]]
