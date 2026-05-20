@@ -7,7 +7,7 @@ Figure~\ref{fig:app_interface} shows the full interface.
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.92\textwidth]{images/chapter6/fig_app_interface}
-\caption{Main application interface. The header contains the brand logotype, user badge with logout control, and utility controls (dark/light mode toggle, cart, and right-panel toggle). The left panel holds the Active Search and Recommendations tabs. The right panel holds the User Profile and Activity History tabs.}
+\caption{Main application interface. The header contains the brand logotype, user badge with logout control, and utility controls (dark/light mode toggle and right-panel toggle). The left panel holds the Active Search and Recommendations tabs. The right panel holds the User Profile and Activity History tabs.}
 \label{fig:app_interface}
 \end{figure}
 
@@ -25,12 +25,12 @@ The resolved user ID is written to \texttt{localStorage} so that returning users
 The header contains three areas.
 The brand area displays the application logotype and subtitle.
 The user badge shows the active user ID and a borderless sign-out icon button grouped tightly beside it; clicking the icon clears the session and returns the user to the login gate.
-The controls area provides a dark/light mode toggle, a shopping cart button displaying the current in-session item count, and a toggle button that collapses or expands the right panel.
+The controls area provides a dark/light mode toggle and a toggle button that collapses or expands the right panel.
 
 \subsection{Left Panel — Active Search (Mode 1)}
 \label{sec:app_search_panel}
 
-The left panel (42\% of viewport width) has two tabs: Active Search and Recommendations.
+The left panel is a flex-grow region that fills all remaining viewport width after the fixed-width right panel (384\,px); it contains two tabs: Active Search and Recommendations.
 
 The Active Search tab contains a text input field with an embedded camera icon button, and a search button.
 Clicking the camera icon opens a popover containing a drag-and-drop zone; once an image is selected the popover displays a thumbnail preview confirming that the CLIP encoder will process it, and the image can be removed via a dismiss button within the popover.
@@ -38,7 +38,7 @@ An encoder legend below the input shows the three retrieval signals: BGE-M3 (tex
 While a search request is in flight, four animated skeleton placeholder cards occupy the result area.
 On response arrival, each result is rendered as a card containing the cover image, title, author, genre tag(s), and relevance score badges.
 An RRF badge is present on every card; a BGE-M3 badge appears when a text query is active and a CLIP badge appears when an image is active, so that up to three badges are shown for a combined text-and-image query.
-Each card provides three interaction controls: Interested (logs a click), Ask AI (opens a streaming book-description popover), and Add to Cart (logs a cart event).
+Each card provides three interaction controls: Interested (logs a click and triggers a DIF-SASRec gradient step), Ask AI (opens a streaming book-description popover), and Not Interested (hides the book from future recommendations).
 
 \subsection{Left Panel — Recommendations (Mode 2)}
 \label{sec:app_rec_panel}
@@ -47,8 +47,8 @@ The Recommendations tab displays static pipeline label badges, a manual refresh 
 The People Also Buy column renders Pipeline~A output (Cleora co-purchase neighbours re-ranked by the user's BGE-M3 profile vector).
 The You Might Like column renders Pipeline~B output (DIF-SASRec sequential recommendations).
 When the user is in personalised mode, a horizontal input-sequence strip is displayed above both columns.
-This strip shows the user's most recent click and cart interactions — up to eight items — in chronological order, representing the exact sequence that DIF-SASRec reads when generating the next-item prediction.
-Each recommendation card carries a coloured pipeline layer tag and score badges.
+This strip shows the user's most recent click interactions, up to eight items, in chronological order, representing the exact sequence that DIF-SASRec reads when generating the next-item prediction.
+Each recommendation card carries a coloured pipeline layer tag, score badges, and three icon-only action buttons: a checkmark (\texttt{✓}) for Interested, a star (\texttt{✦}) for Ask AI, and a cross (\texttt{✕}) for Not Interested.
 People Also Buy cards (Pipeline~A) display BGE-M3 and CLIP cosine-similarity badges reflecting the alignment between the user's profile vector and the candidate item; the layer tag reads Cleora~+~BGE-M3 or Cleora~+~CLIP depending on which signal was dominant.
 You Might Like cards (Pipeline~B) display a normalised SASRec intent score, scaled so that the top-ranked candidate receives 1.0 and the remaining candidates are proportional to their actual dot-product gap; the layer tag reads DIF-SASRec.
 Items that are new since the previous refresh are highlighted for four seconds.
@@ -59,7 +59,7 @@ Items that are new since the previous refresh are highlighted for four seconds.
 The right panel contains two tabs: User Profile and Activity History.
 
 The User Profile tab is arranged as a grid of two cards.
-The Engagement Signals card (full width) renders a \texttt{ProfileRadar} radar chart visualising five dimensions derived from the session's interaction history: click rate, cart rate, skip rate, interaction count, and recency.
+The Engagement Signals card (full width) renders a \texttt{ProfileRadar} bar chart with four engagement dimensions derived from the session's interaction history: CTR (clicks divided by total interactions), Depth (session progress capped at 20 interactions), Model Fit (a proxy for accumulated training signal from clicks), and Diversity (fraction of interactions involving unique items).
 The SASRec Loss card (full width) renders an SVG sparkline of the full training loss history as a filled area chart.
 A dashed divider marks the boundary between the pretraining phase and the online fine-tuning phase; an information tooltip beside the chart title explains the expected loss-scale drop between the two phases.
 When a gradient step fires, a transient loss-decrease badge is displayed for 2.5 seconds beside the current loss value, providing immediate confirmation that the model has updated.

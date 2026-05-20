@@ -9,19 +9,19 @@ A Continue as Guest button on the login page generates a random \texttt{guest\_X
 No password is stored or required at any point.
 The resolved user ID is persisted in \texttt{localStorage}; subsequent visits load it and bypass the gate automatically.
 
-\subsection{Shopping Cart}
+\subsection{Not Interested}
 
-A cart button in the header tracks items added during the current session and displays the running item count.
-When a user selects Add to Cart on any book card, the item is appended to the in-session cart array, the header count increments, and a success notification is shown.
-The cart state is held in React component state only — it is not persisted to the backend — and resets on page reload.
-The cart interaction also dispatches a cart event to the \texttt{POST /interact} endpoint (reward 5.0), which triggers a DIF-SASRec gradient step identical to the click path.
+Each book card provides a Not Interested button.
+Clicking it immediately removes the item from the current recommendation panels on the frontend and sends a \texttt{POST /interact} request with \texttt{action = "not\_interested"}.
+The backend stores the item identifier in a per-user Redis set (\texttt{user:\{id\}:blocked}); subsequent calls to \texttt{GET /recommend} filter out any blocked items before enriching the candidate lists, so the dismissed book will not reappear across sessions.
+No gradient step is triggered for not-interested events.
 
 \subsection{Interaction Logging and Online Training}
 
-The \texttt{POST /interact} endpoint accepts \texttt{user\_id}, \texttt{item\_id}, and \texttt{action} (\texttt{click}, \texttt{skip}, or \texttt{cart}).
-The backend assigns the corresponding reward, updates the in-memory user profile, and pushes the event to the Redis queue for asynchronous MongoDB persistence.
-For click and cart actions, the endpoint borrows a DIF-SASRec agent from the pool, loads the user's personal checkpoint, runs one sampled softmax gradient step, saves the updated checkpoint, and returns the resulting \texttt{sasrec\_loss} value.
-The frontend appends this loss value to the sparkline immediately on response, providing sub-second visual feedback that the model has updated.
+The \texttt{POST /interact} endpoint accepts \texttt{user\_id}, \texttt{item\_id}, and \texttt{action} (\texttt{click} or \texttt{not\_interested}).
+For click actions, the endpoint borrows a DIF-SASRec agent from the pool, loads the user's personal checkpoint, runs one sampled softmax gradient step, saves the updated checkpoint, and returns the resulting \texttt{sasrec\_loss} value.
+Not-interested actions are written to a per-user Redis blocked set with no training step.
+The frontend appends the returned loss value to the sparkline on response, providing sub-second visual confirmation that the model has updated.
 
 \subsection{Streaming LLM Book Assistant}
 \label{sec:llm_assistant}

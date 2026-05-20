@@ -21,7 +21,7 @@ The internal pipeline executed by the \texttt{POST /search} handler is:
 \begin{enumerate}
     \item Language detection and translation: the \texttt{lingua} detector identifies the input language in under 1\,ms. Non-English queries are translated to English by the NLLB-200 pipeline (Section~\ref{sec:nllb_pipeline}).
     \item Parallel encoding: text and image are encoded concurrently via an \texttt{anyio} task group. Each encoder runs in a background thread to avoid blocking the async event loop.
-    \item FAISS HNSW search: the text vector is queried against \nolinkurl{bge_index_hnsw.faiss}; the image vector (if present) is queried against the CLIP HNSW index. Both retrieve 100 candidates.
+    \item FAISS HNSW search: the text vector is queried against \nolinkurl{bge_index_hnsw.faiss}; the image vector (if present) is queried against the CLIP HNSW index. Both retrieve 50 candidates.
     \item Tantivy BM25 re-ranking: the original query string is searched against the Tantivy full-text index to retrieve a ranked keyword hit list.
     \item RRF fusion: the HNSW and BM25 candidate lists are fused by Reciprocal Rank Fusion~\cite{cormack2009rrf} to produce a single ranked list.
     \item Metadata hydration: each ASIN in the final list is resolved against the in-memory DataFrame to attach display metadata.
@@ -30,6 +30,7 @@ The internal pipeline executed by the \texttt{POST /search} handler is:
 \subsection{Profile-Based Retrieval}
 
 The \texttt{GET /recommend} endpoint uses a separate retrieval path.
-For authenticated warm users, the profile manager fetches the user's most recent click sequence and computes a mean-pool BGE-M3 profile vector.
-Pipeline~A queries the Cleora FAISS index (\texttt{IndexFlatIP}) with this profile vector, returning the 50 nearest co-purchase neighbours.
-Pipeline~B retrieves item embeddings for the candidate set from the flat BGE-M3 index using the \texttt{reconstruct(i)} operation (HNSW indices do not support reconstruction, which is why the flat index is maintained separately), and applies the content veto filter before returning the DIF-SASRec top items.
+For authenticated warm users, the profile manager maintains two profile vectors: a Cleora co-purchase embedding (mean of clicked items' Cleora vectors) and a BGE-M3 text embedding (weighted mean of clicked items' BGE-M3 vectors).
+Pipeline~A queries the Cleora FAISS index (\texttt{IndexFlatIP}) with the user's Cleora profile vector to retrieve up to 50 co-purchase neighbours; it also fetches per-seed-item Cleora neighbours for the five most recent interactions.
+The combined candidate pool is then re-ranked by cosine similarity to the user's BGE-M3 profile vector (content veto threshold $\tau = 0.3$), and the top items are returned as People Also Buy results.
+Pipeline~B queries the BGE-M3 HNSW index directly with the user's BGE-M3 profile vector, applies the same content veto filter, then scores surviving candidates with the DIF-SASRec sequential model before returning the You Might Like results.

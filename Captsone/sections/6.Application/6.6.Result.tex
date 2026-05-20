@@ -34,13 +34,13 @@ Figure~\ref{fig:search_demo} shows the result page for a representative search q
     \label{fig:search_multimodal}
 \end{subfigure}
 
-\caption{Active Search results (Mode 1). Each result card presents cover image, title, author, genre, score badges, and four interaction controls: \textit{Interested}, \textit{Skip}, \textit{Ask AI} (streaming LLM popover), and \textit{Add to Cart}. (a)~Text-only query shows RRF and BGE-M3 badges. (b)~Combined text and image query additionally shows a CLIP badge, demonstrating the multimodal fusion path.}
+\caption{Active Search results (Mode 1). Each result card presents cover image, title, author, genre, score badges, and three interaction controls: \textit{Interested}, \textit{Ask AI} (streaming LLM popover), and \textit{Not Interested}. (a)~Text-only query shows RRF and BGE-M3 badges. (b)~Combined text and image query additionally shows a CLIP badge, demonstrating the multimodal fusion path.}
 \label{fig:search_demo}
 \end{figure}
 
 Each result card provides three interaction controls.
-Interested logs a click event (reward 1.0), updates the in-memory user profile, and triggers a DIF-SASRec gradient step.
-Add to Cart logs a cart event (reward 5.0), appends the item to the in-session cart, and triggers a gradient step.
+Interested logs a click event, updates the in-memory user profile, and triggers a DIF-SASRec gradient step.
+Not Interested stores the item in a per-user blocked list and removes it from the recommendation panels immediately, without triggering a training step.
 Ask AI opens an inline streaming popover that calls \texttt{POST /ask\_llm\_stream}; the Qwen2.5 response is rendered progressively under Genre, Plot Summary, and Pitch headings as tokens arrive.
 
 For image queries, the user clicks the camera icon button embedded within the search input to open an upload popover.
@@ -49,7 +49,7 @@ If both text and image are supplied simultaneously, both encoders run in paralle
 
 \subsection{Personalised Recommendation Flow}
 
-After a user accumulates at least five interactions, the Recommendations tab (Mode 2) switches from cold-start to personalised mode.
+After a user accumulates at least five click interactions, the Recommendations tab (Mode 2) switches from cold-start to personalised mode.
 A toast notification confirms the transition to personalised mode.
 
 Figure~\ref{fig:rec_demo} shows the recommendation panel for a warm user.
@@ -60,12 +60,12 @@ Figure~\ref{fig:rec_demo} shows the recommendation panel for a warm user.
 \caption{Personalised Recommendations (Mode 2) for a warm user, displayed as two side-by-side columns.
 The People Also Buy column (Pipeline~A) surfaces Cleora co-purchase neighbours re-ranked by the user's BGE-M3 or CLIP profile vector, with cosine-similarity score badges and a \textit{Cleora~+~BGE-M3} or \textit{Cleora~+~CLIP} layer tag on each card.
 The You Might Like column (Pipeline~B) applies the DIF-SASRec sequential model, with a SASRec score badge and a \textit{DIF-SASRec} layer tag.
-The input-sequence strip above both columns displays the user's most recent click and cart interactions in chronological order, making the model's input visible.}
+The input-sequence strip above both columns displays the user's most recent click interactions in chronological order, making the model's input visible.}
 \label{fig:rec_demo}
 \end{figure}
 
 The input-sequence strip is displayed above both recommendation columns when personalised mode is active.
-This strip shows the user's most recent click and cart interactions — up to eight items — in chronological order, representing the exact sequence that DIF-SASRec reads when generating the next-item prediction.
+This strip shows the user's most recent click interactions, up to eight items, in chronological order, representing the exact sequence that DIF-SASRec reads when generating the next-item prediction.
 The strip makes the sequential model's input visible to the user, providing an explanation for why specific items were recommended.
 
 Recommendations are refreshed automatically every three new interactions.
@@ -74,7 +74,7 @@ Items that are new since the previous refresh are highlighted for four seconds.
 
 \subsection{Online Learning Observation}
 
-Every click or cart event triggers a sampled softmax gradient step on the user's personal DIF-SASRec checkpoint.
+Every click event triggers a sampled softmax gradient step on the user's personal DIF-SASRec checkpoint.
 The SASRec Loss sparkline in the right-side profile panel shows the full loss history as a filled area chart.
 A dashed divider marks the boundary between the pretraining phase (checkpoint-loaded, high loss scale) and the online fine-tuning phase (per-user gradient steps, lower scale).
 An information tooltip beside the chart title explains the expected scale difference, noting that pretraining uses 512 hard negatives whereas online training samples from the full 3-million-item catalogue, producing a structurally lower loss.
