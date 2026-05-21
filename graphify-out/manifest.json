@@ -1,0 +1,162 @@
+{
+  "C:\\Users\\Administrator\\Desktop\\DATN (1)\\app\\config.py": {
+    "mtime": 1777957909.8946388,
+    "ast_hash": "fe92bcd37bc54362df0047f7fd464d17",
+    "semantic_hash": "fe92bcd37bc54362df0047f7fd464d17"
+  },
+  "C:\\Users\\Administrator\\Desktop\\DATN (1)\\app\\main.py": {
+    "mtime": 1776318555.924705,
+    "ast_hash": "9a4815226d7c7ab1f972f75c4d44bbd3",
+    "semantic_hash": "9a4815226d7c7ab1f972f75c4d44bbd3"
+  },
+  "C:\\Users\\Administrator\\Desktop\\DATN (1)\\app\\__init__.py": {
+    "mtime": 1775709039.4908907,
+    "ast_hash": "d41d8cd98f00b204e9800998ecf8427e",
+    "semantic_hash": "d41d8cd98f00b204e9800998ecf8427e"
+  },
+  "C:\\Users\\Administrator\\Desktop\\DATN (1)\\app\\api\\dependencies.py": {
+    "mtime": 1775709039.4918902,
+    "ast_hash": "a9ff2a098d6f00ec0a2633f8f3d60b5c",
+    "semantic_hash": "a9ff2a098d6f00ec0a2633f8f3d60b5c"
+  },
+  "C:\\Users\\Administrator\\Desktop\\DATN (1)\\app\\api\\schemas.py": {
+    "mtime": 1779253336.823131,
+    "ast_hash": "f8e6cbc11ef7aa6f7225df3b377c9976",
+    "semantic_hash": "f8e6cbc11ef7aa6f7225df3b377c9976"
+  },
+  "C:\\Users\\Administrator\\Desktop\\DATN (1)\\app\\api\\__init__.py": {
+    "mtime": 1775709039.4908907,
+    "ast_hash": "d41d8cd98f00b204e9800998ecf8427e",
+    "semantic_hash": "d41d8cd98f00b204e9800998ecf8427e"
+  },
+  "C:\\Users\\Administrator\\Desktop\\DATN (1)\\app\\api\\routes\\auth.py": {
+    "mtime": 1776318555.9221435,
+    "ast_hash": "8cb8b7c6ea07a6eb4cbc80a6e61c2030",
+    "semantic_hash": "8cb8b7c6ea07a6eb4cbc80a6e61c2030"
+  },
+  "C:\\Users\\Administrator\\Desktop\\DATN (1)\\app\\api\\routes\\health.py": {
+    "mtime": 1775805443.2303896,
+    "ast_hash": "1e08fbceee61d081b7be074e2e96f8bb",
+    "semantic_hash": "1e08fbceee61d081b7be074e2e96f8bb"
+  },
+  "C:\\Users\\Administrator\\Desktop\\DATN (1)\\app\\api\\routes\\interact.py": {
+    "mtime": 1779253332.2979581,
+    "ast_hash": "83918c5abc14a299e8a4110142cbe2fe",
+    "semantic_hash": "83918c5abc14a299e8a4110142cbe2fe"
+  },
+  "C:\\Users\\Administrator\\Desktop\\DATN (1)\\app\\api\\routes\\llm.py": {
+    "mtime": 1775898889.807494,
+    "ast_hash": "e723ae0b23472dd84532c2da53e35faf",
+    "semantic_hash": "e723ae0b23472dd84532c2da53e35faf"
+  },
+  "C:\\Users\\Administrator\\Desktop\\DATN (1)\\app\\api\\routes\\profile.py": {
+    "mtime": 1775898575.7162557,
+    "ast_hash": "bb87415dd4e47b450bd977a2d4733c79",
+    "semantic_hash": "bb87415dd4e47b450bd977a2d4733c79"
+  },
+  "C:\\Users\\Administrator\\Desktop\\DATN (1)\\app\\api\\routes\\recommend.py": {
+    "mtime": 1779253350.169279,
+    "ast_hash": "22b4948e9eeaf4a456d67079027a07cb",
+    "semantic_hash": "22b4948e9eeaf4a456d67079027a07cb"
+  },
+  "C:\\Users\\Administrator\\Desktop\\DATN (1)\\app\\api\\routes\\search.py": {
+    "mtime": 1778222092.2691855,
+    "ast_hash": "045c785d254ecd4915df805bece0c6be",
+    "semantic_hash": "045c785d254ecd4915df805bece0c6be"
+  },
+  "C:\\Users\\Administrator\\Desktop\\DATN (1)\\app\\api\\routes\\__init__.py": {
+    "mtime": 1775709039.4918902,
+    "ast_hash": "d41d8cd98f00b204e9800998ecf8427e",
+    "semantic_hash": "d41d8cd98f00b204e9800998ecf8427e"
+  },
+  "C:\\Users\\Administrator\\Desktop\\DATN (1)\\app\\core\\container.py": {
+    "mtime": 1776318555.9236686,
+    "ast_hash": "68fdcaa0ffe923793946c978f9d3899f",
+    "semantic_hash": "68fdcaa0ffe923793946c978f9d3899f"
+  },
+  "C:\\Users\\Administrator\\Desktop\\DATN (1)\\app\\core\\lifespan.py": {
+    "mtime": 1777959064.8413482,
+    "ast_hash": "234dfbc6b91f8023d68bff3bce0e5772",
+    "semantic_hash": "234dfbc6b91f8023d68bff3bce0e5772"
+  },
+  "C:\\Users\\Administrator\\Desktop\\DATN (1)\\app\\core\\models.py": {
+    "mtime": 1775805443.2330675,
+    "ast_hash": "15829803d599435fbdd2f1d47ee9011e",
+    "semantic_hash": "15829803d599435fbdd2f1d47ee9011e"
+  },
+  "C:\\Users\\Administrator\\Desktop\\DATN (1)\\app\\core\\__init__.py": {
+    "mtime": 1775709039.4938915,
+    "ast_hash": "d41d8cd98f00b204e9800998ecf8427e",
+    "semantic_hash": "d41d8cd98f00b204e9800998ecf8427e"
+  },
+  "C:\\Users\\Administrator\\Desktop\\DATN (1)\\app\\infrastructure\\database.py": {
+    "mtime": 1775709039.4964187,
+    "ast_hash": "0b89f74918769394bdfc40d569fd9f15",
+    "semantic_hash": "0b89f74918769394bdfc40d569fd9f15"
+  },
+  "C:\\Users\\Administrator\\Desktop\\DATN (1)\\app\\infrastructure\\translation.py": {
+    "mtime": 1775805443.2353666,
+    "ast_hash": "d0176803be370a2e62a797f7ed65c51a",
+    "semantic_hash": "d0176803be370a2e62a797f7ed65c51a"
+  },
+  "C:\\Users\\Administrator\\Desktop\\DATN (1)\\app\\infrastructure\\__init__.py": {
+    "mtime": 1775709039.4948926,
+    "ast_hash": "d41d8cd98f00b204e9800998ecf8427e",
+    "semantic_hash": "d41d8cd98f00b204e9800998ecf8427e"
+  },
+  "C:\\Users\\Administrator\\Desktop\\DATN (1)\\app\\repository\\faiss_repo.py": {
+    "mtime": 1777956272.3300107,
+    "ast_hash": "254579a67b077e3d97c0663e3295d6e6",
+    "semantic_hash": "254579a67b077e3d97c0663e3295d6e6"
+  },
+  "C:\\Users\\Administrator\\Desktop\\DATN (1)\\app\\repository\\metadata_repo.py": {
+    "mtime": 1776318555.9257047,
+    "ast_hash": "fa10abbebd84465de82a2cc4c6a7665b",
+    "semantic_hash": "fa10abbebd84465de82a2cc4c6a7665b"
+  },
+  "C:\\Users\\Administrator\\Desktop\\DATN (1)\\app\\repository\\profile_repo.py": {
+    "mtime": 1779253489.64333,
+    "ast_hash": "2f0389503a46a5f8589d4a910e3f384f",
+    "semantic_hash": "2f0389503a46a5f8589d4a910e3f384f"
+  },
+  "C:\\Users\\Administrator\\Desktop\\DATN (1)\\app\\repository\\__init__.py": {
+    "mtime": 1775709039.4984496,
+    "ast_hash": "d41d8cd98f00b204e9800998ecf8427e",
+    "semantic_hash": "d41d8cd98f00b204e9800998ecf8427e"
+  },
+  "C:\\Users\\Administrator\\Desktop\\DATN (1)\\app\\services\\active_search.py": {
+    "mtime": 1775805443.2374403,
+    "ast_hash": "4ad1cf0915290d0501476f312f9ff214",
+    "semantic_hash": "4ad1cf0915290d0501476f312f9ff214"
+  },
+  "C:\\Users\\Administrator\\Desktop\\DATN (1)\\app\\services\\agent_pool.py": {
+    "mtime": 1776318555.9257047,
+    "ast_hash": "616df302d9195a02a3460c4d16559202",
+    "semantic_hash": "616df302d9195a02a3460c4d16559202"
+  },
+  "C:\\Users\\Administrator\\Desktop\\DATN (1)\\app\\services\\category_encoder.py": {
+    "mtime": 1776062740.190828,
+    "ast_hash": "a5128c3fb516fb81c3e5fbe9893e6f19",
+    "semantic_hash": "a5128c3fb516fb81c3e5fbe9893e6f19"
+  },
+  "C:\\Users\\Administrator\\Desktop\\DATN (1)\\app\\services\\dif_sasrec.py": {
+    "mtime": 1776318555.926705,
+    "ast_hash": "5cf781026c472c4fde3239989a56eed6",
+    "semantic_hash": "5cf781026c472c4fde3239989a56eed6"
+  },
+  "C:\\Users\\Administrator\\Desktop\\DATN (1)\\app\\services\\llm.py": {
+    "mtime": 1776318750.0816107,
+    "ast_hash": "ac3e16eea01ffbed9564d7d8d26993bd",
+    "semantic_hash": "ac3e16eea01ffbed9564d7d8d26993bd"
+  },
+  "C:\\Users\\Administrator\\Desktop\\DATN (1)\\app\\services\\passive_recommend.py": {
+    "mtime": 1778992169.569359,
+    "ast_hash": "d8017feaac0e0ae7b16758991be31737",
+    "semantic_hash": "d8017feaac0e0ae7b16758991be31737"
+  },
+  "C:\\Users\\Administrator\\Desktop\\DATN (1)\\app\\services\\__init__.py": {
+    "mtime": 1775709039.499976,
+    "ast_hash": "d41d8cd98f00b204e9800998ecf8427e",
+    "semantic_hash": "d41d8cd98f00b204e9800998ecf8427e"
+  }
+}

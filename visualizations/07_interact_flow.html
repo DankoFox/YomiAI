@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>YomiAI — Interact + Online Training</title>
+<style>
+:root{--navy:#2e3257;--steel:#627d9a;--bg:#f4f4f0;--card:#fff;--border:#e2e2dc;--tag-bg:#eeeef0;
+  --orange:#c2410c;--ol:#ffedd5;--ob:#fdba74;
+  --red:#b91c1c;--rl:#fee2e2;--rb:#fca5a5;
+  --purple:#7e22ce;--pl:#faf5ff;--pb:#d8b4fe;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--navy);font-size:13px;}
+nav{background:var(--navy);padding:13px 28px;display:flex;align-items:center;gap:8px;font-size:12px;}
+nav a{color:#aab;text-decoration:none;}nav a:hover{color:#fff;}
+nav .sep{color:#445;}nav .cur{color:#fff;font-weight:600;}
+.page{max-width:1200px;margin:0 auto;padding:32px 24px 64px;}
+.section-title{font-size:10px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:var(--steel);margin:28px 0 14px;padding-bottom:6px;border-bottom:1px solid var(--border);}
+code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--tag-bg);padding:1px 5px;border-radius:4px;font-size:10px;}
+/* ── Action switcher ── */
+.action-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:20px;}
+.action-card{border-radius:10px;padding:14px 16px;border:1px solid var(--border);}
+.ac-badge{display:inline-block;padding:3px 12px;border-radius:999px;font-size:10px;font-weight:700;margin-bottom:8px;}
+.ac-title{font-weight:700;font-size:12px;margin-bottom:5px;}
+.ac-desc{font-size:11px;color:var(--steel);line-height:1.55;}
+/* ── Swimlane ── */
+.swimlane{display:grid;grid-template-columns:160px 1fr 1fr 1fr;gap:0;border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:16px;}
+.lane-header{background:var(--navy);color:#fff;padding:10px 14px;font-weight:700;font-size:11px;text-align:center;}
+.lane-header:first-child{background:#1a1d36;}
+.lane-row{display:contents;}
+.lane-label{background:var(--tag-bg);border-top:1px solid var(--border);border-right:1px solid var(--border);padding:10px 12px;font-size:11px;font-weight:600;color:var(--steel);display:flex;align-items:center;justify-content:flex-end;}
+.lane-cell{border-top:1px solid var(--border);border-right:1px solid var(--border);padding:10px 12px;font-size:11px;vertical-align:top;}
+.lane-cell:last-child{border-right:none;}
+.lane-label:last-child{border-right:none;}
+.event{border-radius:7px;padding:8px 10px;margin-bottom:6px;}
+.event:last-child{margin-bottom:0;}
+.event-title{font-weight:700;font-size:11px;margin-bottom:3px;}
+.event-desc{font-size:10px;color:var(--steel);line-height:1.4;}
+.event-arrow{text-align:center;font-size:11px;color:var(--steel);margin:4px 0;}
+.tag{display:inline-block;padding:2px 8px;border-radius:999px;font-size:10px;font-weight:600;border:1px solid transparent;margin-top:4px;}
+/* ── Training detail ── */
+.train-box{background:var(--pl);border:1px solid var(--pb);border-radius:10px;padding:16px 18px;}
+.train-title{font-weight:700;font-size:12px;color:var(--purple);margin-bottom:8px;}
+.train-steps{list-style:none;}
+.train-steps li{display:flex;gap:8px;align-items:flex-start;padding:6px 0;border-bottom:1px dashed var(--pb);font-size:11px;}
+.train-steps li:last-child{border-bottom:none;}
+.tn{width:20px;height:20px;border-radius:50%;background:var(--purple);color:#fff;font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
+/* ── Steps list ── */
+.steps-list{list-style:none;}
+.steps-list li{display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-bottom:1px dashed var(--border);font-size:12px;}
+.steps-list li:last-child{border-bottom:none;}
+.sn{width:22px;height:22px;border-radius:50%;background:var(--navy);color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
+/* ── IO ── */
+.io-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px;}
+.io-box{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px 16px;}
+.io-title{font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--steel);margin-bottom:8px;}
+.json-block{background:#1e1b2e;color:#c9d1d9;border-radius:7px;padding:11px 13px;font-size:11px;font-family:monospace;line-height:1.6;}
+.k{color:#ff7b72;}.v{color:#a5d6ff;}.s{color:#7ee787;}
+</style>
+</head>
+<body>
+<nav>
+  <a href="00_index.html">YomiAI Flows</a>
+  <span class="sep">/</span>
+  <span class="cur">07 · Interact + Online Training</span>
+</nav>
+<div class="page">
+  <h1 style="font-size:20px;font-weight:800;margin-bottom:4px;">Interact + Online Training — POST /interact</h1>
+  <p style="color:var(--steel);font-size:11px;margin-bottom:24px;">Logs a user action and, for click events, triggers one DIF-SASRec gradient step. The core online learning loop: every click trains the model on the user's actual next-item selection.</p>
+
+  <div class="section-title">Three Action Types</div>
+  <div class="action-grid">
+    <div class="action-card" style="background:var(--rl);border-color:var(--rb);">
+      <div class="ac-badge" style="background:var(--rb);color:var(--red);">not_interested</div>
+      <div class="ac-title">Dismiss Item</div>
+      <div class="ac-desc">Writes <code>item_id</code> to Redis set <code>user:{uid}:blocked</code>. Returns immediately — no profile update, no training. Item will be filtered from all future recommendations.</div>
+    </div>
+    <div class="action-card" style="background:var(--ol);border-color:var(--ob);">
+      <div class="ac-badge" style="background:var(--ob);color:var(--orange);">skip</div>
+      <div class="ac-title">Soft Interaction</div>
+      <div class="ac-desc">Appends to <code>purchases</code> list only. No embedding update, no training gradient. Logged to Redis queue → MongoDB for analytics. Useful for tracking page-views without full engagement.</div>
+    </div>
+    <div class="action-card" style="background:#f0fdf4;border-color:#86efac;">
+      <div class="ac-badge" style="background:#86efac;color:#16a34a;">click</div>
+      <div class="ac-title">Full Engagement → Training</div>
+      <div class="ac-desc">Full profile update: append to clicks deque, recompute text/visual/cleora profiles with exponential decay, MongoDB upsert. Triggers one DIF-SASRec gradient step. Saves <code>.pt</code> checkpoint.</div>
+    </div>
+  </div>
+
+  <div class="section-title">Swimlane — Browser / FastAPI / Storage</div>
+  <div class="swimlane">
+    <div class="lane-header"></div>
+    <div class="lane-header">🖥 Browser</div>
+    <div class="lane-header">⚙️ FastAPI (interact.py)</div>
+    <div class="lane-header">💾 Storage</div>
+
+    <!-- Row: dispatch -->
+    <div class="lane-label">Dispatch</div>
+    <div class="lane-cell">
+      <div class="event" style="background:#dbeafe;border:1px solid #93c5fd;">
+        <div class="event-title">handleInteract(book, action)</div>
+        <div class="event-desc">Optimistic UI update: prepend to interactions state immediately. Fire <code>api.interact(userId, book.id, action)</code>.</div>
+      </div>
+    </div>
+    <div class="lane-cell">
+      <div class="event" style="background:var(--ol);border:1px solid var(--ob);">
+        <div class="event-title">POST /interact received</div>
+        <div class="event-desc">Parse body: <code>user_id, item_id, action, session_id, source</code>. Route to action branch.</div>
+      </div>
+    </div>
+    <div class="lane-cell"></div>
+
+    <!-- Row: not_interested -->
+    <div class="lane-label" style="color:var(--red);">not_interested</div>
+    <div class="lane-cell"></div>
+    <div class="lane-cell">
+      <div class="event" style="background:var(--rl);border:1px solid var(--rb);">
+        <div class="event-title">Early Exit</div>
+        <div class="event-desc">Return 200 immediately. No further processing.</div>
+      </div>
+    </div>
+    <div class="lane-cell">
+      <div class="event" style="background:var(--rl);border:1px solid var(--rb);">
+        <div class="event-title">Redis SADD</div>
+        <div class="event-desc"><code>redis.sadd("user:{uid}:blocked", item_id)</code></div>
+      </div>
+    </div>
+
+    <!-- Row: capture seq -->
+    <div class="lane-label" style="color:#16a34a;">click / skip</div>
+    <div class="lane-cell"></div>
+    <div class="lane-cell">
+      <div class="event" style="background:var(--ol);border:1px solid var(--ob);">
+        <div class="event-title">Capture click_seq_before</div>
+        <div class="event-desc"><code>profile_manager.get_click_sequence(user_id)</code> BEFORE profile update. This is the training input s<sub>t</sub>.</div>
+      </div>
+    </div>
+    <div class="lane-cell"></div>
+
+    <!-- Row: profile update -->
+    <div class="lane-label">Profile Update</div>
+    <div class="lane-cell"></div>
+    <div class="lane-cell">
+      <div class="event" style="background:#f0fdf4;border:1px solid #86efac;">
+        <div class="event-title">log_click / skip</div>
+        <div class="event-desc"><strong>click:</strong> append to clicks deque (max 50), recompute text/visual/cleora profile vectors (exp decay avg). <strong>skip:</strong> append to purchases list only.</div>
+      </div>
+    </div>
+    <div class="lane-cell">
+      <div class="event" style="background:#f0fdf4;border:1px solid #86efac;">
+        <div class="event-title">MongoDB Upsert</div>
+        <div class="event-desc"><code>db.upsert_profile(user_id, payload)</code> — persists updated profile fields atomically.</div>
+      </div>
+      <div class="event-arrow">↓</div>
+      <div class="event" style="background:var(--rl);border:1px solid var(--rb);">
+        <div class="event-title">Redis RPUSH</div>
+        <div class="event-desc">Push raw event to <code>"nba_interactions"</code>. Background <code>_log_worker</code> drains to MongoDB analytics collection.</div>
+      </div>
+    </div>
+
+    <!-- Row: training -->
+    <div class="lane-label" style="color:var(--purple);">Training (click only)</div>
+    <div class="lane-cell"></div>
+    <div class="lane-cell">
+      <div class="event" style="background:var(--pl);border:1px solid var(--pb);">
+        <div class="event-title">Borrow Agent + Train</div>
+        <div class="event-desc"><code>agent_pool.borrow()</code> → <code>agent.load_user(user_id)</code> → <code>recommend_engine.train_personal(user_id, item_id, agent, click_seq_before)</code> → one gradient step.</div>
+      </div>
+    </div>
+    <div class="lane-cell">
+      <div class="event" style="background:var(--pl);border:1px solid var(--pb);">
+        <div class="event-title">Save Checkpoint</div>
+        <div class="event-desc"><code>agent.save_user(user_id)</code> → write <code>data/profiles/{user_id}_dif_sasrec.pt</code> (model_state + optimizer_state + step + loss_history).</div>
+      </div>
+    </div>
+
+    <!-- Row: response -->
+    <div class="lane-label">Response</div>
+    <div class="lane-cell">
+      <div class="event" style="background:var(--tag-bg);border:1px solid var(--border);">
+        <div class="event-title">Update loss sparkline</div>
+        <div class="event-desc">Append <code>sasrec_loss</code> to chart. Every 3rd click triggers <code>loadRecs()</code> after 800ms delay.</div>
+      </div>
+    </div>
+    <div class="lane-cell">
+      <div class="event" style="background:var(--tag-bg);border:1px solid var(--border);">
+        <div class="event-title">Return JSON</div>
+        <div class="event-desc"><code>{"status":"ok", "sasrec_loss": float|null}</code></div>
+      </div>
+    </div>
+    <div class="lane-cell"></div>
+  </div>
+
+  <div class="section-title">Training Step Detail — One Gradient Update</div>
+  <div class="train-box">
+    <div class="train-title">train_personal(user_id, item_id, agent, click_seq_before)</div>
+    <ul class="train-steps">
+      <li><div class="tn">1</div><span><strong>Build tensors:</strong> <code>_build_tensors(click_seq_before, item_id)</code> → item content embeddings [L×1024] + category IDs [L] + positive item ASIN.</span></li>
+      <li><div class="tn">2</div><span><strong>Forward pass:</strong> DIF-SASRec → intent vector [512]. <code>ContentProjector(pos_item_emb)</code> → positive candidate projection [512].</span></li>
+      <li><div class="tn">3</div><span><strong>Negative sampling:</strong> sample 512 random ASINs from catalogue. <code>retriever.text_flat.reconstruct_batch(neg_ids)</code> → neg embeddings [512 × 1024] → project to [512 × 512].</span></li>
+      <li><div class="tn">4</div><span><strong>Sampled softmax loss:</strong> <code>intent · [pos_proj; neg_projs].T</code> → logits [513] → cross-entropy with label 0 (positive at index 0).</span></li>
+      <li><div class="tn">5</div><span><strong>Category auxiliary loss:</strong> <code>category_head(intent)</code> → logits [num_cats] → cross-entropy vs. true leaf category of clicked item. Weighted sum of both losses.</span></li>
+      <li><div class="tn">6</div><span><strong>Backprop + AdamW step:</strong> <code>loss.backward()</code> → <code>optimizer.step()</code> → <code>optimizer.zero_grad()</code>. Append loss to <code>agent.loss_history</code> (max 200 entries).</span></li>
+    </ul>
+  </div>
+
+  <div class="section-title">Request / Response</div>
+  <div class="io-grid">
+    <div class="io-box">
+      <div class="io-title">Request Body</div>
+      <div class="json-block"><span class="k">POST</span> /interact<br/>{<br/>  <span class="k">"user_id"</span>: <span class="v">"alice"</span>,<br/>  <span class="k">"item_id"</span>: <span class="v">"B08XYZ123"</span>,<br/>  <span class="k">"action"</span>: <span class="v">"click"</span> <span class="s">| "skip" | "not_interested"</span>,<br/>  <span class="k">"session_id"</span>: <span class="v">"sess_abc"</span>,<br/>  <span class="k">"source"</span>: <span class="v">"recommend"</span> <span class="s">| "search"</span><br/>}</div>
+    </div>
+    <div class="io-box">
+      <div class="io-title">Response</div>
+      <div class="json-block">{<br/>  <span class="k">"status"</span>: <span class="v">"ok"</span>,<br/>  <span class="k">"sasrec_loss"</span>: <span class="v">2.341</span> <span class="s">| null</span><br/>  <span class="s">/* null if action != "click"</span><br/>  <span class="s">   or click_seq was empty */</span><br/>}</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

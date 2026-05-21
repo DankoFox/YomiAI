@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>YomiAI — Pipeline B: DIF-SASRec</title>
+<style>
+:root{--navy:#2e3257;--steel:#627d9a;--bg:#f4f4f0;--card:#fff;--border:#e2e2dc;--tag-bg:#eeeef0;
+  --purple:#7e22ce;--purple-light:#faf5ff;--purple-border:#d8b4fe;--purple-mid:#e9d5ff;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--navy);font-size:13px;}
+nav{background:var(--navy);padding:13px 28px;display:flex;align-items:center;gap:8px;font-size:12px;}
+nav a{color:#aab;text-decoration:none;}nav a:hover{color:#fff;}
+nav .sep{color:#445;}nav .cur{color:#fff;font-weight:600;}
+.page{max-width:1200px;margin:0 auto;padding:32px 24px 64px;}
+.section-title{font-size:10px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:var(--steel);margin:28px 0 14px;padding-bottom:6px;border-bottom:1px solid var(--border);}
+code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--tag-bg);padding:1px 5px;border-radius:4px;font-size:10px;}
+/* ── Data flow ── */
+.flow{display:flex;align-items:center;gap:0;margin:16px 0;flex-wrap:nowrap;overflow-x:auto;}
+.flow-box{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px 14px;min-width:140px;flex-shrink:0;}
+.flow-box.purple{background:var(--purple-light);border-color:var(--purple-border);}
+.fb-title{font-weight:700;font-size:11px;margin-bottom:3px;}
+.fb-desc{font-size:10px;color:var(--steel);line-height:1.4;}
+.fb-vec{display:inline-block;background:#f0f0f8;border:1px solid #c8c8e0;border-radius:4px;padding:1px 7px;font-size:10px;font-weight:600;font-family:monospace;color:var(--navy);margin-top:4px;}
+.fb-vec.p{background:var(--purple-mid);border-color:var(--purple-border);color:var(--purple);}
+.flow-arrow{font-size:18px;color:var(--steel);padding:0 8px;flex-shrink:0;}
+/* ── Model stack ── */
+.model-stack{display:flex;flex-direction:column;gap:0;margin-top:14px;}
+.layer{display:flex;gap:0;align-items:stretch;}
+.layer-label{width:180px;flex-shrink:0;display:flex;align-items:center;justify-content:flex-end;padding-right:12px;font-size:11px;font-weight:600;color:var(--purple);}
+.layer-box{flex:1;background:var(--purple-light);border:1px solid var(--purple-border);padding:12px 16px;cursor:default;transition:background .15s;}
+.layer-box:hover{background:var(--purple-mid);}
+.layer-box:first-of-type{border-radius:10px 10px 0 0;}
+.layer-box:last-of-type{border-radius:0 0 10px 10px;}
+.layer-title{font-weight:700;font-size:11px;margin-bottom:4px;color:var(--purple);}
+.layer-desc{font-size:11px;color:var(--navy);line-height:1.5;}
+.layer-shapes{margin-top:5px;display:flex;gap:6px;flex-wrap:wrap;}
+.shape{display:inline-block;background:#fff;border:1px solid var(--purple-border);border-radius:4px;padding:1px 7px;font-size:10px;font-weight:600;font-family:monospace;color:var(--purple);}
+.layer-connector{width:180px;flex-shrink:0;display:flex;justify-content:flex-end;padding-right:12px;}
+.lc-line{width:2px;background:var(--purple-border);margin-right:calc(50% + 90px - 1px);min-height:12px;}
+/* ── Dual attention detail ── */
+.attn-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px;}
+.attn-box{background:var(--purple-light);border:1px solid var(--purple-border);border-radius:8px;padding:12px 14px;}
+.attn-title{font-weight:700;font-size:11px;color:var(--purple);margin-bottom:5px;}
+.attn-desc{font-size:11px;color:var(--navy);line-height:1.5;}
+/* ── Steps list ── */
+.steps-list{list-style:none;}
+.steps-list li{display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-bottom:1px dashed var(--border);font-size:12px;}
+.steps-list li:last-child{border-bottom:none;}
+.sn{width:22px;height:22px;border-radius:50%;background:var(--navy);color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
+/* ── scoring ── */
+.score-box{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px 18px;}
+.score-title{font-weight:700;font-size:12px;margin-bottom:8px;}
+.score-formula{background:#1e1b2e;color:#c9d1d9;border-radius:7px;padding:11px 13px;font-size:11px;font-family:monospace;line-height:1.6;margin-bottom:8px;}
+.k{color:#ff7b72;}.v{color:#a5d6ff;}.s{color:#7ee787;}
+</style>
+</head>
+<body>
+<nav>
+  <a href="00_index.html">YomiAI Flows</a>
+  <span class="sep">/</span>
+  <span class="cur">05 · Pipeline B — DIF-SASRec</span>
+</nav>
+<div class="page">
+  <h1 style="font-size:20px;font-weight:800;margin-bottom:4px;">Pipeline B — DIF-SASRec · <em style="font-weight:400;color:var(--steel);">You Might Like</em></h1>
+  <p style="color:var(--steel);font-size:11px;margin-bottom:24px;">Sequential intent modeling using a Decoupled Intent-Feature Self-Attentive Recommendation (DIF-SASRec) transformer. Models the user's evolving intent from their click sequence with separate content and category attention streams.</p>
+
+  <div class="section-title">Data Flow</div>
+  <div class="flow">
+    <div class="flow-box">
+      <div class="fb-title">Click Sequence</div>
+      <div class="fb-desc">Last 50 clicked ASINs from user profile (ordered)</div>
+      <div><span class="fb-vec">seq [L]</span></div>
+    </div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-box">
+      <div class="fb-title">CategoryEncoder</div>
+      <div class="fb-desc"><code>encode_sequence()</code> maps ASINs to leaf category IDs</div>
+      <div><span class="fb-vec">cat_ids [L]</span></div>
+    </div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-box purple">
+      <div class="fb-title">HNSW KNN</div>
+      <div class="fb-desc"><code>get_content_candidates()</code><br/>text_profile → 200 unseen items</div>
+      <div><span class="fb-vec p">candidates [200]</span></div>
+    </div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-box purple">
+      <div class="fb-title">Content Veto τ=0.3</div>
+      <div class="fb-desc">Filter by text_profile OR visual_profile cosine similarity</div>
+      <div><span class="fb-vec p">filtered [N]</span></div>
+    </div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-box purple">
+      <div class="fb-title">DIF-SASRec Score</div>
+      <div class="fb-desc"><code>get_candidate_scores()</code><br/>intent [512] · candidate_proj</div>
+      <div><span class="fb-vec p">scores [N]</span></div>
+    </div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-box purple" style="background:#f3e0ff;border-color:var(--purple);">
+      <div class="fb-title" style="color:var(--purple);">Top-10</div>
+      <div class="fb-desc">Min-max normalize scores → sort → return <code>you_might_like</code></div>
+    </div>
+  </div>
+
+  <div class="section-title">DIF-SASRec Model Architecture — Bottom to Top</div>
+  <p style="font-size:11px;color:var(--steel);margin-bottom:12px;">Hover each layer to highlight. All layers in <code>app/services/dif_sasrec.py</code>.</p>
+  <div class="model-stack">
+    <div class="layer">
+      <div class="layer-label">Input</div>
+      <div class="layer-box" style="border-radius:10px 10px 0 0;">
+        <div class="layer-title">Embeddings</div>
+        <div class="layer-desc">Item text embeddings [L × 1024] + position embeddings [L × 512] + category embeddings [L × cat_dim] summed as input to the first block.</div>
+        <div class="layer-shapes"><span class="shape">seq [L × 1024]</span><span class="shape">pos_emb [L × 512]</span><span class="shape">cat_emb [L × cat_dim]</span></div>
+      </div>
+    </div>
+    <div class="layer">
+      <div class="layer-label">Layer 1</div>
+      <div class="layer-box">
+        <div class="layer-title">ContentProjector</div>
+        <div class="layer-desc">Linear(1024 → 512) + LayerNorm + Dropout. Projects 1024-dim text embeddings into the 512-dim model space for the attention layers.</div>
+        <div class="layer-shapes"><span class="shape">[L × 1024] → [L × 512]</span></div>
+      </div>
+    </div>
+    <div class="layer">
+      <div class="layer-label">Layer 2 (×4)</div>
+      <div class="layer-box">
+        <div class="layer-title">DIFAttentionLayer — Dual-Stream Attention</div>
+        <div class="layer-desc">Two separate Q/K projections: <strong>Content stream</strong> (from projected text emb) and <strong>Category stream</strong> (from category emb). Attention scores from both streams are fused. Value (V) is always from content stream.</div>
+        <div class="layer-shapes">
+          <span class="shape">Q_content [L × 512]</span><span class="shape">K_content [L × 512]</span>
+          <span class="shape">Q_category [L × cat_dim]</span><span class="shape">K_category [L × cat_dim]</span>
+          <span class="shape">V [L × 512]</span><span class="shape">out [L × 512]</span>
+        </div>
+      </div>
+    </div>
+    <div class="layer">
+      <div class="layer-label">Layer 3 (×4)</div>
+      <div class="layer-box">
+        <div class="layer-title">DIFSASRecBlock — Attention + FFN with Residuals</div>
+        <div class="layer-desc">Pre-norm: LayerNorm → DIFAttentionLayer → residual. Then: LayerNorm → FFN(512→1024→512) → Dropout → residual. 4 such blocks stacked sequentially.</div>
+        <div class="layer-shapes"><span class="shape">4 × block</span><span class="shape">FFN: 512→1024→512</span><span class="shape">pre-norm + residual</span></div>
+      </div>
+    </div>
+    <div class="layer">
+      <div class="layer-label">Output</div>
+      <div class="layer-box">
+        <div class="layer-title">DIFSASRecModel — Intent Vector + Category Head</div>
+        <div class="layer-desc">Takes the last-position hidden state [512] as the <strong>intent vector</strong>. A linear <code>category_head</code> projects it for the auxiliary category prediction task (used during training only).</div>
+        <div class="layer-shapes"><span class="shape">intent [512]</span><span class="shape">cat_logits [num_cats]</span></div>
+      </div>
+    </div>
+    <div class="layer">
+      <div class="layer-label">Agent</div>
+      <div class="layer-box" style="border-radius:0 0 10px 10px;background:#f3e0ff;border-color:var(--purple);">
+        <div class="layer-title" style="color:var(--purple);">DIFSASRecAgent — Inference + Training</div>
+        <div class="layer-desc">Wraps model + AdamW optimizer. <code>get_candidate_scores()</code>: runs forward pass → intent [512] → dot-product with projected candidate embeddings → scores. <code>train_step()</code>: sampled softmax loss + category auxiliary loss → backprop → AdamW step. Checkpoint saved to <code>{user_id}_dif_sasrec.pt</code>.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-title">Dual-Stream Attention Detail</div>
+  <div style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px 18px;">
+    <div style="font-size:11px;color:var(--steel);margin-bottom:10px;">The key innovation of DIF-SASRec vs. standard SASRec: two separate attention streams computed independently, then fused. This lets the model decouple <em>what the user reads</em> (content) from <em>what genre they're exploring</em> (category).</div>
+    <div class="attn-grid">
+      <div class="attn-box">
+        <div class="attn-title">Content Stream</div>
+        <div class="attn-desc"><strong>Q, K:</strong> from ContentProjector output [L × 512]<br/><strong>V:</strong> also from ContentProjector output<br/><strong>Score:</strong> Q_c · K_c<sup>T</sup> / √512<br/>Captures semantic similarity between positions in the click sequence.</div>
+      </div>
+      <div class="attn-box">
+        <div class="attn-title">Category Stream</div>
+        <div class="attn-desc"><strong>Q, K:</strong> from category embeddings [L × cat_dim]<br/><strong>V:</strong> NOT used (value always from content)<br/><strong>Score:</strong> Q_cat · K_cat<sup>T</sup> / √cat_dim<br/>Captures genre-level intent signals. Helps when reading different genres sequentially.</div>
+      </div>
+    </div>
+    <div style="margin-top:10px;background:#f9f9fc;border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-size:11px;">
+      <strong>Fusion:</strong> <code>attn_score = content_score + α × category_score</code> — α is a learned parameter. Softmax → weighted sum over V (content values). Output is passed through residual + FFN in each DIFSASRecBlock.
+    </div>
+  </div>
+
+  <div class="section-title">Scoring Computation</div>
+  <div class="score-box">
+    <div class="score-title">get_candidate_scores(click_seq, cat_ids, candidates)</div>
+    <div class="score-formula"><span class="k">1.</span> Build item tensor: lookup BGE-M3 flat embeddings for each ASIN in click_seq → [L × 1024]<br/><span class="k">2.</span> Forward pass through DIF-SASRec → intent vector [512] (last-position hidden state)<br/><span class="k">3.</span> ContentProjector(candidate_embeddings) → candidate_proj [N × 512]<br/><span class="k">4.</span> scores = intent @ candidate_proj.T → [N] dot products<br/><span class="k">5.</span> min-max normalize → [0, 1] → sort descending → top-10</div>
+    <div style="font-size:11px;color:var(--steel);">All tensor operations run on GPU (if available) via PyTorch. Agent is borrowed from AgentPool to prevent concurrent state mutation.</div>
+  </div>
+
+  <div class="section-title">Detailed Step Trace</div>
+  <ul class="steps-list">
+    <li><div class="sn">1</div><span><code>profile_manager.get_click_sequence_with_categories(user_id)</code> → <code>(asin_list, cat_id_list)</code>. Both lists up to max 50 items, ordered oldest → newest.</span></li>
+    <li><div class="sn">2</div><span><code>retriever.get_content_candidates(text_profile, seen_asins, top_n=200)</code> → HNSW text index search → 200 unseen candidate ASINs (excludes items already in click history).</span></li>
+    <li><div class="sn">3</div><span>Content veto: same <code>content_verify(τ=0.3)</code> as Pipeline A. Filters candidates semantically unrelated to user's text + visual profile.</span></li>
+    <li><div class="sn">4</div><span><code>agent_pool.borrow()</code> (async context manager) → <code>agent.load_user(user_id)</code> loads <code>{user_id}_dif_sasrec.pt</code> from disk (or pretrained snapshot for new users).</span></li>
+    <li><div class="sn">5</div><span><code>agent.get_candidate_scores(click_seq, cat_ids, candidate_asins)</code> → forward pass → intent [512] → dot-product scores → <code>[N]</code> float32 array.</span></li>
+    <li><div class="sn">6</div><span>Min-max normalize scores, sort descending, slice top-10. Return as <code>you_might_like</code> list. Agent returned to pool automatically via context manager.</span></li>
+  </ul>
+</div>
+</body>
+</html>

@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>YomiAI — Pipeline A: Cleora</title>
+<style>
+:root{--navy:#2e3257;--steel:#627d9a;--bg:#f4f4f0;--card:#fff;--border:#e2e2dc;--tag-bg:#eeeef0;
+  --green:#16a34a;--green-light:#f0fdf4;--green-border:#86efac;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--navy);font-size:13px;}
+nav{background:var(--navy);padding:13px 28px;display:flex;align-items:center;gap:8px;font-size:12px;}
+nav a{color:#aab;text-decoration:none;}nav a:hover{color:#fff;}
+nav .sep{color:#445;}nav .cur{color:#fff;font-weight:600;}
+.page{max-width:1180px;margin:0 auto;padding:32px 24px 64px;}
+.section-title{font-size:10px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:var(--steel);margin:28px 0 14px;padding-bottom:6px;border-bottom:1px solid var(--border);}
+code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--tag-bg);padding:1px 5px;border-radius:4px;font-size:10px;}
+/* ── Funnel stages ── */
+@keyframes slideIn{from{opacity:0;transform:translateX(-12px);}to{opacity:1;transform:translateX(0);}}
+.funnel{display:flex;flex-direction:column;gap:0;}
+.stage{display:flex;align-items:stretch;gap:0;animation:slideIn .35s ease both;}
+.stage:nth-child(1){animation-delay:.05s;}.stage:nth-child(2){animation-delay:.15s;}
+.stage:nth-child(3){animation-delay:.25s;}.stage:nth-child(4){animation-delay:.35s;}
+.stage:nth-child(5){animation-delay:.45s;}.stage:nth-child(6){animation-delay:.55s;}
+.stage-left{width:220px;flex-shrink:0;display:flex;align-items:center;justify-content:flex-end;padding-right:14px;}
+.stage-badge{background:var(--green-light);border:1px solid var(--green-border);border-radius:20px;padding:4px 14px;font-size:11px;font-weight:700;color:var(--green);white-space:nowrap;}
+.stage-body{flex:1;background:var(--card);border:1px solid var(--border);padding:14px 18px;border-left:4px solid var(--green-border);}
+.stage-body:first-of-type{border-radius:10px 10px 0 0;}
+.stage-connector{width:220px;flex-shrink:0;display:flex;align-items:center;justify-content:flex-end;padding-right:14px;}
+.stage-connector-line{width:2px;height:100%;background:var(--green-border);margin-right:calc(50% - 1px + 4px);min-height:16px;}
+.stage-title{font-weight:700;font-size:12px;margin-bottom:4px;}
+.stage-desc{font-size:11px;color:var(--steel);line-height:1.6;}
+.count-pill{display:inline-block;background:#bbf7d0;border:1px solid var(--green-border);border-radius:999px;padding:1px 10px;font-size:11px;font-weight:700;color:var(--green);margin-left:8px;}
+.vec{display:inline-block;background:#f0f0f8;border:1px solid #c8c8e0;border-radius:4px;padding:1px 7px;font-size:10px;font-weight:600;font-family:monospace;color:var(--navy);margin-top:4px;}
+/* ── Veto visual ── */
+.veto-box{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px 18px;margin-top:14px;}
+.veto-grid{display:grid;grid-template-columns:1fr 40px 1fr;gap:0;align-items:center;margin-top:10px;}
+.veto-cond{background:var(--green-light);border:1px solid var(--green-border);border-radius:8px;padding:12px 14px;}
+.veto-or{font-weight:800;font-size:14px;color:var(--steel);text-align:center;}
+.veto-cond-title{font-weight:700;font-size:11px;color:var(--green);margin-bottom:4px;}
+.veto-cond-desc{font-size:11px;color:var(--navy);}
+/* ── Steps list ── */
+.steps-list{list-style:none;}
+.steps-list li{display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-bottom:1px dashed var(--border);font-size:12px;}
+.steps-list li:last-child{border-bottom:none;}
+.sn{width:22px;height:22px;border-radius:50%;background:var(--navy);color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
+/* ── IO ── */
+.io-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px;}
+.io-box{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px 16px;}
+.io-title{font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--steel);margin-bottom:8px;}
+.json-block{background:#1e1b2e;color:#c9d1d9;border-radius:7px;padding:11px 13px;font-size:11px;font-family:monospace;line-height:1.6;}
+.k{color:#ff7b72;}.v{color:#a5d6ff;}.s{color:#7ee787;}
+</style>
+</head>
+<body>
+<nav>
+  <a href="00_index.html">YomiAI Flows</a>
+  <span class="sep">/</span>
+  <span class="cur">04 · Pipeline A — Cleora</span>
+</nav>
+<div class="page">
+  <h1 style="font-size:20px;font-weight:800;margin-bottom:4px;">Pipeline A — Cleora · <em style="font-weight:400;color:var(--steel);">People Also Buy</em></h1>
+  <p style="color:var(--steel);font-size:11px;margin-bottom:24px;">Collaborative filtering via Cleora co-purchase graph embeddings. Uses behavioral proximity in embedding space to find items that users with similar purchase history also bought.</p>
+
+  <div class="section-title">Candidate Funnel</div>
+  <div class="funnel">
+
+    <div class="stage">
+      <div class="stage-left"><div class="stage-badge">Input</div></div>
+      <div class="stage-body" style="border-radius:10px 10px 0 0;">
+        <div class="stage-title">User Profile Vectors</div>
+        <div class="stage-desc">Retrieve <code>UserBehaviorProfile</code> from <code>UserProfileManager</code>. Extract the aggregated profile vectors maintained via exponential decay over click history.</div>
+        <div><span class="vec">cleora_profile [1024]</span> <span class="vec">text_profile [1024]</span> <span class="vec">visual_profile [512]</span></div>
+      </div>
+    </div>
+
+    <div class="stage">
+      <div class="stage-left"><div class="stage-badge">~375k items</div></div>
+      <div class="stage-body">
+        <div class="stage-title">Cleora FAISS Search — Behavioral Candidates</div>
+        <div class="stage-desc"><code>retriever.get_behavioral_candidates(cleora_profile)</code> → searches <code>IndexFlatIP</code> (375k Cleora co-purchase embeddings, 1024-dim). Returns nearest behavioral neighbors — items co-purchased by similar users. <span class="count-pill">≈200 candidates</span></div>
+      </div>
+    </div>
+
+    <div class="stage">
+      <div class="stage-left"><div class="stage-badge">+expansion</div></div>
+      <div class="stage-body">
+        <div class="stage-title">Seed Expansion</div>
+        <div class="stage-desc">Take the last 5 <code>recent_interactions</code> (recently clicked items) as seed ASINs. For each seed: call <code>get_behavioral_candidates(seed_embedding)</code> to fetch co-purchase neighbors. Union with main candidates. <span class="count-pill">≈300–400 total</span></div>
+      </div>
+    </div>
+
+    <div class="stage">
+      <div class="stage-left"><div class="stage-badge">filtered</div></div>
+      <div class="stage-body">
+        <div class="stage-title">Content Veto — τ = 0.3</div>
+        <div class="stage-desc">For each behavioral candidate: compute <code>text_profile · item_text_vec</code> AND <code>visual_profile · item_clip_vec</code>. Keep only items satisfying at least one threshold.</div>
+      </div>
+    </div>
+
+    <div class="stage">
+      <div class="stage-left"><div class="stage-badge">ranked</div></div>
+      <div class="stage-body">
+        <div class="stage-title">Rank by Text Score</div>
+        <div class="stage-desc">Sort surviving candidates by <code>text_profile · item_text_vec</code> descending. Content-profile alignment as the final ranking signal.</div>
+      </div>
+    </div>
+
+    <div class="stage">
+      <div class="stage-left"><div class="stage-badge">top-10 ✓</div></div>
+      <div class="stage-body" style="border-radius:0 0 10px 10px;background:var(--green-light);border-color:var(--green-border);">
+        <div class="stage-title" style="color:var(--green);">Output — people_also_buy</div>
+        <div class="stage-desc">Top-10 behaviorally similar + content-verified items. Deduplicated against recently seen items. Returned as <code>people_also_buy</code> in the recommendation response.</div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="section-title">Content Veto Logic</div>
+  <div class="veto-box">
+    <div style="font-size:11px;color:var(--steel);">A candidate passes the veto if it clears <strong>either</strong> threshold — not both. This ensures behaviorally interesting items aren't excluded for having low text similarity if they have visual similarity (e.g. illustrated books).</div>
+    <div class="veto-grid">
+      <div class="veto-cond">
+        <div class="veto-cond-title">Text Condition</div>
+        <div class="veto-cond-desc"><code>text_profile · item_text_vec ≥ 0.3</code><br/>BGE-M3 [1024] cosine dot product between user's aggregated text profile and item's text embedding.</div>
+      </div>
+      <div class="veto-or">OR</div>
+      <div class="veto-cond">
+        <div class="veto-cond-title">Visual Condition</div>
+        <div class="veto-cond-desc"><code>visual_profile · item_clip_vec ≥ 0.3</code><br/>CLIP [512] cosine dot product between user's aggregated visual profile and item's CLIP embedding.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-title">Detailed Step Trace</div>
+  <ul class="steps-list">
+    <li><div class="sn">1</div><span><code>profile_manager.get_profile(user_id)</code> — loads <code>UserBehaviorProfile</code>. Contains <code>cleora_profile</code>, <code>text_profile</code>, <code>visual_profile</code>, <code>clicks</code> deque (max 50), <code>recent_interactions</code>.</span></li>
+    <li><div class="sn">2</div><span><code>retriever.get_behavioral_candidates(cleora_profile, top_n)</code> → <code>IndexFlatIP.search()</code> over 375k Cleora co-purchase embeddings → list of (asin, cleora_score) tuples.</span></li>
+    <li><div class="sn">3</div><span>Seed expansion: for each of the last 5 <code>recent_interactions</code>, fetch that item's Cleora embedding and call <code>get_behavioral_candidates()</code>. Union all candidate sets.</span></li>
+    <li><div class="sn">4</div><span>Content veto: <code>recommend_engine.content_verify(candidates, text_profile, visual_profile, τ=0.3)</code> — filters out semantically unrelated items. Fetches item vectors from <code>retriever.text_flat</code> and <code>retriever.clip_index</code>.</span></li>
+    <li><div class="sn">5</div><span>Sort survivors by <code>text_profile @ item_text_vec</code> descending. Slice top-10. Return as <code>people_also_buy</code>.</span></li>
+  </ul>
+
+  <div class="section-title">Cleora Embedding Source</div>
+  <div style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px 18px;font-size:11px;line-height:1.7;color:var(--steel);">
+    <strong style="color:var(--navy);">cleora_embeddings.npz</strong> — 375k item embeddings trained via Cleora (Markov chain propagation on co-purchase interaction graph). Captures <em>behavioral co-occurrence</em> rather than content. Updated when <code>CLEORA_REFIT_THRESHOLD</code> interactions accumulate, then hot-swapped via <code>retriever.reload_cleora()</code> without server restart. User's <code>cleora_profile</code> is the exponential decay weighted mean of clicked items' Cleora vectors.
+  </div>
+</div>
+</body>
+</html>

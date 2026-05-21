@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>YomiAI — Active Search Flow</title>
+<style>
+:root{--navy:#2e3257;--steel:#627d9a;--bg:#f4f4f0;--card:#fff;--border:#e2e2dc;--tag-bg:#eeeef0;
+  --blue:#1d4ed8;--blue-light:#dbeafe;--blue-border:#93c5fd;--purple:#7e22ce;--purple-light:#faf5ff;--purple-border:#d8b4fe;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--navy);font-size:13px;}
+nav{background:var(--navy);padding:13px 28px;display:flex;align-items:center;gap:8px;font-size:12px;}
+nav a{color:#aab;text-decoration:none;}nav a:hover{color:#fff;}
+nav .sep{color:#445;}nav .cur{color:#fff;font-weight:600;}
+.page{max-width:1200px;margin:0 auto;padding:32px 24px 64px;}
+.section-title{font-size:10px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:var(--steel);margin:28px 0 14px;padding-bottom:6px;border-bottom:1px solid var(--border);}
+code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--tag-bg);padding:1px 5px;border-radius:4px;font-size:10px;}
+/* ── Pipeline ── */
+.pipeline{display:flex;align-items:stretch;gap:0;margin:16px 0;}
+.pipe-box{flex:1;background:var(--card);border:1px solid var(--border);padding:16px;position:relative;}
+.pipe-box:first-child{border-radius:10px 0 0 10px;}
+.pipe-box:last-child{border-radius:0 10px 10px 0;}
+.pb-num{width:22px;height:22px;border-radius:50%;background:var(--navy);color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;margin-bottom:8px;}
+.pb-title{font-weight:700;font-size:12px;margin-bottom:5px;}
+.pb-sub{font-size:10px;color:var(--steel);margin-bottom:6px;}
+.pb-detail{font-size:11px;color:var(--steel);line-height:1.55;}
+.pb-vec{display:inline-block;background:#f0f0f8;border:1px solid #c8c8e0;border-radius:4px;padding:1px 7px;font-size:10px;font-weight:600;font-family:monospace;color:var(--navy);margin-top:5px;}
+.pipe-arrow{width:28px;display:flex;align-items:center;justify-content:center;font-size:18px;color:var(--steel);flex-shrink:0;background:var(--bg);}
+/* ── Animated flow dot ── */
+@keyframes flowDot{0%{left:-6px;opacity:0;}10%{opacity:1;}90%{opacity:1;}100%{left:calc(100% + 6px);opacity:0;}}
+.pipe-flow{position:absolute;top:50%;width:100%;height:2px;background:transparent;overflow:visible;}
+.pipe-flow::after{content:'';position:absolute;width:8px;height:8px;border-radius:50%;background:var(--blue);top:-3px;animation:flowDot 2s ease-in-out infinite;}
+/* ── Parallel fork ── */
+.fork-box{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px 16px;}
+.fork-label{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--steel);margin-bottom:10px;}
+.fork-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.fork-item{border-radius:8px;padding:12px 14px;border:1px solid var(--border);}
+/* ── Steps detail ── */
+.steps-list{list-style:none;}
+.steps-list li{display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-bottom:1px dashed var(--border);font-size:12px;}
+.steps-list li:last-child{border-bottom:none;}
+.sn{width:22px;height:22px;border-radius:50%;background:var(--navy);color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
+/* ── IO boxes ── */
+.io-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px;}
+.io-box{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px 16px;}
+.io-title{font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--steel);margin-bottom:8px;}
+.json-block{background:#1e1b2e;color:#c9d1d9;border-radius:7px;padding:11px 13px;font-size:11px;font-family:monospace;line-height:1.6;}
+.k{color:#ff7b72;}.v{color:#a5d6ff;}.s{color:#7ee787;}
+/* ── tag ── */
+.tag{display:inline-block;padding:2px 8px;border-radius:999px;font-size:10px;font-weight:600;border:1px solid transparent;margin-right:4px;margin-top:4px;}
+</style>
+</head>
+<body>
+<nav>
+  <a href="00_index.html">YomiAI Flows</a>
+  <span class="sep">/</span>
+  <span class="cur">03 · Active Search</span>
+</nav>
+<div class="page">
+  <h1 style="font-size:20px;font-weight:800;margin-bottom:4px;">Active Search — POST /search</h1>
+  <p style="color:var(--steel);font-size:11px;margin-bottom:6px;">Multimodal search: text query (optionally Vietnamese) + optional image. Fuses semantic vector search with BM25 keyword ranking via RRF.</p>
+  <div>
+    <span class="tag" style="background:var(--blue-light);color:var(--blue);border-color:var(--blue-border);">BGE-M3 [1024]</span>
+    <span class="tag" style="background:var(--purple-light);color:var(--purple);border-color:var(--purple-border);">CLIP [512]</span>
+    <span class="tag" style="background:#ffedd5;color:#c2410c;border-color:#fdba74;">Tantivy BM25</span>
+    <span class="tag" style="background:#dcfce7;color:#16a34a;border-color:#86efac;">RRF Fusion</span>
+    <span class="tag" style="background:#f0f9ff;color:#0369a1;border-color:#7dd3fc;">NLLB-600M</span>
+  </div>
+
+  <div class="section-title" style="margin-top:24px;">Pipeline Overview</div>
+  <div class="pipeline">
+    <div class="pipe-box" style="border-top:3px solid #7dd3fc;">
+      <div class="pb-num">①</div>
+      <div class="pb-title">NLLB Translation</div>
+      <div class="pb-sub">app/infrastructure/translation.py</div>
+      <div class="pb-detail">Detect language via Lingua. If Vietnamese (or non-EN), translate with NLLB-600M in thread executor. LRU-cached. <br/>~5ms cached · ~274ms cold.</div>
+    </div>
+    <div class="pipe-arrow">→</div>
+    <div class="pipe-box" style="border-top:3px solid var(--purple-border);">
+      <div class="pb-num">②</div>
+      <div class="pb-title">Parallel Encoding</div>
+      <div class="pb-sub">app/core/models.py · anyio.TaskGroup</div>
+      <div class="pb-detail">BGE-M3 text encoding and CLIP image encoding run <strong>concurrently</strong> via <code>anyio.TaskGroup</code>. Image skipped if no <code>image_base64</code>.</div>
+      <div><span class="pb-vec">[1024] text</span> <span class="pb-vec">[512] image</span></div>
+    </div>
+    <div class="pipe-arrow">→</div>
+    <div class="pipe-box" style="border-top:3px solid #86efac;">
+      <div class="pb-num">③</div>
+      <div class="pb-title">Dual FAISS + BM25</div>
+      <div class="pb-sub">app/services/active_search.py</div>
+      <div class="pb-detail">HNSW text index + CLIP HNSW index searched <strong>in parallel</strong>. Tantivy BM25 on raw query string. Three ranked lists fused via <strong>RRF</strong>.</div>
+    </div>
+    <div class="pipe-arrow">→</div>
+    <div class="pipe-box" style="border-top:3px solid #fde047;">
+      <div class="pb-num">④</div>
+      <div class="pb-title">Metadata Hydration</div>
+      <div class="pb-sub">app/repository/metadata_repo.py</div>
+      <div class="pb-detail">For each ASIN in fused results: <code>metadata_repo.get_item(asin)</code> → title, author, genre, description, image_url, cover_color, score breakdown.</div>
+    </div>
+  </div>
+
+  <div class="section-title">Parallel Encoding Detail — Step ②</div>
+  <div class="fork-box">
+    <div class="fork-label">anyio.TaskGroup — runs both branches concurrently</div>
+    <div class="fork-row">
+      <div class="fork-item" style="background:var(--purple-light);border-color:var(--purple-border);">
+        <div style="font-weight:700;font-size:11px;color:var(--purple);margin-bottom:6px;">BGE-M3 Text Encoder</div>
+        <div style="font-size:11px;color:var(--navy);">Input: translated query string<br/>Model: BAAI/bge-m3 (SentenceTransformer)<br/>Output: <code>[1024]</code> float32 dense vector<br/>Used in: HNSW text search + profile similarity</div>
+      </div>
+      <div class="fork-item" style="background:#f0f9ff;border-color:#7dd3fc;">
+        <div style="font-weight:700;font-size:11px;color:#0369a1;margin-bottom:6px;">CLIP Image Encoder</div>
+        <div style="font-size:11px;color:var(--navy);">Input: base64 image (decoded)<br/>Model: openai/clip-vit-base-patch32<br/>Output: <code>[512]</code> float32 dense vector<br/>Skipped if no image provided → None</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-title">RRF Fusion Detail — Step ③</div>
+  <div style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px 18px;">
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr 28px 1fr;align-items:center;gap:0;margin-bottom:10px;">
+      <div style="background:#dbeafe;border:1px solid #93c5fd;border-radius:8px;padding:10px 14px;text-align:center;">
+        <div style="font-weight:700;font-size:11px;color:#1d4ed8;">HNSW Text</div>
+        <div style="font-size:10px;color:#1d4ed8;margin-top:2px;">1.7M vectors · BGE-M3 [1024]<br/>top-K by cosine similarity</div>
+      </div>
+      <div style="background:var(--purple-light);border:1px solid var(--purple-border);border-radius:8px;padding:10px 14px;text-align:center;margin:0 6px;">
+        <div style="font-weight:700;font-size:11px;color:var(--purple);">HNSW CLIP</div>
+        <div style="font-size:10px;color:var(--purple);margin-top:2px;">3M vectors · CLIP [512]<br/>top-K by cosine similarity</div>
+      </div>
+      <div style="background:#ffedd5;border:1px solid #fdba74;border-radius:8px;padding:10px 14px;text-align:center;">
+        <div style="font-weight:700;font-size:11px;color:#c2410c;">Tantivy BM25</div>
+        <div style="font-size:10px;color:#c2410c;margin-top:2px;">Full-text index · raw query<br/>title + description fields</div>
+      </div>
+      <div style="font-size:18px;color:var(--steel);text-align:center;">→</div>
+      <div style="background:#dcfce7;border:1px solid #86efac;border-radius:8px;padding:10px 14px;text-align:center;">
+        <div style="font-weight:700;font-size:11px;color:#16a34a;">RRF</div>
+        <div style="font-size:10px;color:#16a34a;margin-top:2px;">Reciprocal Rank Fusion<br/>score = Σ 1/(k+rank_i)<br/>k=60 constant</div>
+      </div>
+    </div>
+    <div style="font-size:11px;color:var(--steel);">If no image provided, CLIP search is skipped and RRF fuses only text FAISS + BM25 results.</div>
+  </div>
+
+  <div class="section-title">Detailed Step Trace</div>
+  <ul class="steps-list">
+    <li><div class="sn">1</div><span><code>translate_to_en(query)</code> — runs NLLB-600M in <code>loop.run_in_executor()</code>. Returns original query if already English. Result cached via LRU cache keyed by query string.</span></li>
+    <li><div class="sn">2</div><span>Parallel via <code>anyio.TaskGroup</code>: <code>encode_text(query, text_encoder)</code> → <code>[1024]</code> float32 &nbsp;/&nbsp; <code>encode_image_b64(image_b64, clip_model, clip_processor)</code> → <code>[512]</code> float32. Image branch skipped if no base64.</span></li>
+    <li><div class="sn">3</div><span><code>search_engine.search(user_id, text_vec, image_vec, query, top_k)</code> — dispatches HNSW text, HNSW CLIP, and Tantivy BM25 internally. Returns fused list of <code>(asin, score_dict)</code> pairs.</span></li>
+    <li><div class="sn">4</div><span>For each ASIN: <code>metadata_repo.get_item(asin)</code> → adds <code>title</code>, <code>author</code>, <code>genre</code>, <code>cover_color</code>, <code>image_url</code>, <code>bge_score</code>, <code>clip_score</code>, <code>rrf_score</code> to result dict.</span></li>
+    <li><div class="sn">5</div><span>Return JSON response. <code>live_encoding: true</code> if a real-time encoding happened (vs. cached). <code>query</code> echoes the translated query string.</span></li>
+  </ul>
+
+  <div class="section-title">Request / Response</div>
+  <div class="io-grid">
+    <div class="io-box">
+      <div class="io-title">Request Body</div>
+      <div class="json-block"><span class="k">POST</span> /search<br/>{<br/>  <span class="k">"query"</span>: <span class="v">"sách khoa học viễn tưởng"</span>,<br/>  <span class="k">"image_base64"</span>: <span class="v">"data:image/..."</span> <span class="s">| null</span>,<br/>  <span class="k">"top_k"</span>: <span class="v">10</span><br/>}</div>
+    </div>
+    <div class="io-box">
+      <div class="io-title">Response</div>
+      <div class="json-block">{<br/>  <span class="k">"results"</span>: [<br/>    { <span class="k">"asin"</span>: <span class="v">"B08..."</span>, <span class="k">"title"</span>: <span class="v">"..."</span>,<br/>      <span class="k">"bge_score"</span>: <span class="v">0.87</span>, <span class="k">"rrf_score"</span>: <span class="v">0.032</span>,<br/>      <span class="k">"image_url"</span>: <span class="v">"..."</span> }<br/>  ],<br/>  <span class="k">"total"</span>: <span class="v">10</span>,<br/>  <span class="k">"live_encoding"</span>: <span class="v">true</span>,<br/>  <span class="k">"query"</span>: <span class="v">"science fiction books"</span><br/>}</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

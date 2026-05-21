@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>YomiAI — LLM Context + Qwen2.5</title>
+<style>
+:root{--navy:#2e3257;--steel:#627d9a;--bg:#f4f4f0;--card:#fff;--border:#e2e2dc;--tag-bg:#eeeef0;
+  --gold:#a16207;--gl:#fef9c3;--gb:#fde047;--gbl:#fef08a;
+  --blue:#0369a1;--bl:#f0f9ff;--bb:#7dd3fc;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--navy);font-size:13px;}
+nav{background:var(--navy);padding:13px 28px;display:flex;align-items:center;gap:8px;font-size:12px;}
+nav a{color:#aab;text-decoration:none;}nav a:hover{color:#fff;}
+nav .sep{color:#445;}nav .cur{color:#fff;font-weight:600;}
+.page{max-width:1100px;margin:0 auto;padding:32px 24px 64px;}
+.section-title{font-size:10px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:var(--steel);margin:28px 0 14px;padding-bottom:6px;border-bottom:1px solid var(--border);}
+code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--tag-bg);padding:1px 5px;border-radius:4px;font-size:10px;}
+/* ── Context fan-in ── */
+.fanin{display:grid;grid-template-columns:1fr 50px 1fr;gap:0;align-items:stretch;margin-bottom:14px;}
+.sources{display:flex;flex-direction:column;gap:10px;}
+.source{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px 16px;position:relative;}
+.source::after{content:'→';position:absolute;right:-28px;top:50%;transform:translateY(-50%);font-size:16px;color:var(--steel);}
+.src-title{font-weight:700;font-size:12px;margin-bottom:4px;}
+.src-desc{font-size:11px;color:var(--steel);line-height:1.55;}
+.src-tag{display:inline-block;padding:2px 8px;border-radius:999px;font-size:10px;font-weight:600;margin-top:5px;}
+.merge-col{display:flex;align-items:center;justify-content:center;}
+.merge-node{background:var(--gl);border:2px solid var(--gb);border-radius:50%;width:46px;height:46px;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:800;color:var(--gold);}
+.model-box{background:var(--gl);border:2px solid var(--gb);border-radius:12px;padding:16px 20px;display:flex;align-items:center;gap:14px;}
+.model-icon{font-size:32px;}
+.model-title{font-weight:800;font-size:14px;color:var(--gold);margin-bottom:3px;}
+.model-desc{font-size:11px;color:#78350f;line-height:1.5;}
+/* ── Two endpoints ── */
+.endpoints{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;}
+.ep{border-radius:12px;border:1px solid var(--border);overflow:hidden;}
+.ep-head{padding:10px 16px;font-weight:700;font-size:12px;}
+.ep-body{padding:12px 16px;}
+.ep-step{display:flex;gap:8px;align-items:flex-start;padding:6px 0;border-bottom:1px dashed var(--border);font-size:11px;}
+.ep-step:last-child{border-bottom:none;}
+.esn{width:18px;height:18px;border-radius:50%;background:var(--navy);color:#fff;font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
+/* ── Stream animation ── */
+@keyframes tokenFlow{0%{opacity:0;transform:translateX(-8px);}100%{opacity:1;transform:translateX(0);}}
+.stream-demo{background:#1e1b2e;color:#c9d1d9;border-radius:8px;padding:12px 14px;font-family:monospace;font-size:11px;line-height:1.8;position:relative;overflow:hidden;}
+.token{display:inline;animation:tokenFlow .15s ease both;}
+.t1{animation-delay:.2s;}.t2{animation-delay:.45s;}.t3{animation-delay:.7s;}.t4{animation-delay:.95s;}.t5{animation-delay:1.2s;}.t6{animation-delay:1.45s;}.t7{animation-delay:1.7s;}.t8{animation-delay:1.95s;}.t9{animation-delay:2.2s;}.t10{animation-delay:2.45s;}.t11{animation-delay:2.7s;}.t12{animation-delay:2.95s;}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:0;}}
+.cursor{display:inline-block;width:8px;height:14px;background:#7ee787;vertical-align:text-bottom;animation:blink .8s infinite;}
+/* ── Prompt template ── */
+.prompt-box{background:#1e1b2e;border-radius:10px;padding:16px;font-family:monospace;font-size:11px;color:#c9d1d9;line-height:1.7;margin-top:12px;}
+.ph{color:#fde047;}.cm{color:#8b949e;}.v{color:#a5d6ff;}
+/* ── Steps list ── */
+.steps-list{list-style:none;}
+.steps-list li{display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-bottom:1px dashed var(--border);font-size:12px;}
+.steps-list li:last-child{border-bottom:none;}
+.sn{width:22px;height:22px;border-radius:50%;background:var(--navy);color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
+.io-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px;}
+.io-box{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px 16px;}
+.io-title{font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--steel);margin-bottom:8px;}
+.json-block{background:#1e1b2e;color:#c9d1d9;border-radius:7px;padding:11px 13px;font-size:11px;font-family:monospace;line-height:1.6;}
+.k{color:#ff7b72;}
+</style>
+</head>
+<body>
+<nav>
+  <a href="00_index.html">YomiAI Flows</a>
+  <span class="sep">/</span>
+  <span class="cur">08 · LLM Context + Qwen2.5</span>
+</nav>
+<div class="page">
+  <h1 style="font-size:20px;font-weight:800;margin-bottom:4px;">LLM Context Enrichment + Qwen2.5</h1>
+  <p style="color:var(--steel);font-size:11px;margin-bottom:24px;">Grounded book Q&A using Qwen2.5-1.5B-Instruct loaded locally. Three context sources are assembled before inference: local parquet description, Wikipedia summary, and Google Books snippet.</p>
+
+  <div class="section-title">Context Enrichment — Fan-In to Prompt</div>
+  <div class="fanin">
+    <div class="sources">
+      <div class="source" style="border-color:#e0f2fe;">
+        <div class="src-title">① Local Parquet</div>
+        <div class="src-desc"><code>metadata_repo.get_item(item_id)</code> → description field + genre tags from <code>item_metadata.parquet</code>. Always available — no network call needed. Fastest source.</div>
+        <span class="src-tag" style="background:#e0f2fe;color:var(--blue);">metadata_repo · disk</span>
+      </div>
+      <div class="source" style="border-color:#d1fae5;">
+        <div class="src-title">② Wikipedia API</div>
+        <div class="src-desc"><code>fetch_wikipedia_summary(title, author)</code> → Wikipedia REST API → first paragraph of article. LRU-cached by query. Adds author biography context and plot background.</div>
+        <span class="src-tag" style="background:#d1fae5;color:#065f46;">Wikipedia API · async</span>
+      </div>
+      <div class="source" style="border-color:#fef3c7;">
+        <div class="src-title">③ Google Books API</div>
+        <div class="src-desc"><code>_fetch_google_books(title, author)</code> → Google Books REST API → editorial description snippet. Provides publisher-curated summary. Falls back to empty string on failure.</div>
+        <span class="src-tag" style="background:#fef3c7;color:#92400e;">Google Books API · async</span>
+      </div>
+    </div>
+    <div class="merge-col">
+      <div class="merge-node">+</div>
+    </div>
+    <div>
+      <div class="model-box">
+        <div class="model-icon">🤖</div>
+        <div>
+          <div class="model-title">Qwen2.5-1.5B-Instruct</div>
+          <div class="model-desc">Local model, preloaded at startup. Receives assembled prompt with all three context sources. Runs in <code>loop.run_in_executor()</code> to avoid blocking the async event loop. System prompt: <em>"You are a helpful book assistant."</em></div>
+        </div>
+      </div>
+      <div style="margin-top:10px;font-size:11px;color:var(--steel);padding:10px 14px;background:var(--card);border:1px solid var(--border);border-radius:8px;">
+        Context sources fetched <strong>in parallel</strong> (asyncio tasks). Prompt assembled once all three are ready. Wikipedia + Google Books fetches are async I/O; parquet lookup is synchronous O(1).
+      </div>
+    </div>
+  </div>
+
+  <div class="section-title">Prompt Template</div>
+  <div class="prompt-box"><span class="cm"># System message:</span><br/><span class="v">You are a helpful assistant who answers questions about books.</span><br/><br/><span class="cm"># User message (assembled from 3 sources):</span><br/><span class="v">Here is information about the book "<span class="ph">{title}</span>" by <span class="ph">{author}</span>:</span><br/><br/><span class="ph">[Local description from parquet]</span><br/><span class="ph">[Wikipedia summary paragraph]</span><br/><span class="ph">[Google Books editorial snippet]</span><br/><br/><span class="v">User question: <span class="ph">{user_prompt}</span></span></div>
+
+  <div class="section-title">Two Endpoints: Sync vs. Stream</div>
+  <div class="endpoints">
+    <div class="ep" style="border-color:#e0f2fe;">
+      <div class="ep-head" style="background:#e0f2fe;color:var(--blue);">POST /ask_llm — Synchronous</div>
+      <div class="ep-body">
+        <div class="ep-step"><div class="esn">1</div><span><code>metadata_repo.get_item(item_id)</code> → description + genre. Fetch Wikipedia + Google Books in parallel.</span></div>
+        <div class="ep-step"><div class="esn">2</div><span>Assemble prompt string from all three context sources.</span></div>
+        <div class="ep-step"><div class="esn">3</div><span><code>llm_service.generate(title, author, prompt, local_desc, text_encoder, genre)</code> → Qwen2.5-1.5B inference via <code>loop.run_in_executor()</code>.</span></div>
+        <div class="ep-step"><div class="esn">4</div><span>Return <code>{"response": str}</code> — full text in one JSON response.</span></div>
+        <div style="margin-top:10px;background:var(--tag-bg);border-radius:6px;padding:8px 10px;font-size:11px;color:var(--steel);">Blocks until full generation completes. Suitable for programmatic use.</div>
+      </div>
+    </div>
+    <div class="ep" style="border-color:var(--gb);">
+      <div class="ep-head" style="background:var(--gl);color:var(--gold);">POST /ask_llm_stream — SSE Token Stream</div>
+      <div class="ep-body">
+        <div class="ep-step"><div class="esn">1</div><span>Same context enrichment as sync version.</span></div>
+        <div class="ep-step"><div class="esn">2</div><span><code>llm_service.generate_stream()</code> → async generator yields text chunks token-by-token via <code>loop.run_in_executor()</code> + queue handoff.</span></div>
+        <div class="ep-step"><div class="esn">3</div><span>FastAPI returns <code>StreamingResponse(content=gen, media_type="text/event-stream")</code>.</span></div>
+        <div class="ep-step"><div class="esn">4</div><span>Browser reads via <code>ReadableStream</code> in <code>api.askLLMStream()</code>. Chunks appended to UI as received.</span></div>
+        <div style="margin-top:10px;background:var(--gl);border-radius:6px;padding:8px 10px;font-size:11px;color:#78350f;">Lower perceived latency — first tokens appear in ~200ms vs waiting for full response.</div>
+        <div style="margin-top:10px;">
+          <div style="font-size:10px;font-weight:700;color:var(--steel);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">Live token output</div>
+          <div class="stream-demo"><span class="token t1">This</span><span class="token t2"> book</span><span class="token t3"> by</span><span class="token t4"> Isaac</span><span class="token t5"> Asimov</span><span class="token t6"> explores</span><span class="token t7"> the</span><span class="token t8"> decline</span><span class="token t9"> of</span><span class="token t10"> a</span><span class="token t11"> galactic</span><span class="token t12"> empire</span><span class="cursor"></span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-title">Context Enrichment Functions (app/services/llm.py)</div>
+  <ul class="steps-list">
+    <li><div class="sn">A</div><span><code>fetch_book_context(title, author, item_id)</code> — top-level coordinator. Calls <code>fetch_wikipedia_summary()</code> and <code>_fetch_google_books()</code> concurrently via asyncio tasks. Merges with local parquet description.</span></li>
+    <li><div class="sn">B</div><span><code>fetch_wikipedia_summary(title, author)</code> — Wikipedia API <code>/api/rest_v1/page/summary/{title}</code>. Cleans HTML tags. Falls back to empty string. LRU-cached via <code>@lru_cache</code> on normalized query.</span></li>
+    <li><div class="sn">C</div><span><code>_fetch_google_books(title, author)</code> — Google Books API <code>volumes?q={title}+inauthor:{author}</code>. Extracts <code>volumeInfo.description</code> from first result. Falls back to empty string on HTTP/parse errors.</span></li>
+    <li><div class="sn">D</div><span><code>ensure_loaded()</code> — lazy-loads Qwen2.5 tokenizer + model on first LLM call if not already in memory. Runs once per process lifetime. Also calls <code>_build_wiki_queries()</code> to pre-warm common author queries.</span></li>
+  </ul>
+
+  <div class="section-title">Request / Response</div>
+  <div class="io-grid">
+    <div class="io-box">
+      <div class="io-title">Request Body (both endpoints)</div>
+      <div class="json-block"><span class="k">POST</span> /ask_llm<br/>      /ask_llm_stream<br/>{<br/>  <span class="k">"item_id"</span>: <span class="k">"B08XYZ"</span>,<br/>  <span class="k">"title"</span>: <span class="k">"Foundation"</span>,<br/>  <span class="k">"author"</span>: <span class="k">"Isaac Asimov"</span>,<br/>  <span class="k">"user_prompt"</span>: <span class="k">"What is this book about?"</span><br/>}</div>
+    </div>
+    <div class="io-box">
+      <div class="io-title">/ask_llm Response</div>
+      <div class="json-block">{<br/>  <span class="k">"response"</span>: <span class="k">"Foundation is a science fiction..."</span><br/>}<br/><br/><span style="color:#8b949e;">// /ask_llm_stream: text/event-stream</span><br/><span style="color:#8b949e;">// data: "Foundation"</span><br/><span style="color:#8b949e;">// data: " is a"</span><br/><span style="color:#8b949e;">// data: " science"  ← one token per chunk</span><br/><span style="color:#8b949e;">// data: [DONE]</span></div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

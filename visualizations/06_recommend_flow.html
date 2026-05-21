@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>YomiAI — Full Recommendation Flow</title>
+<style>
+:root{--navy:#2e3257;--steel:#627d9a;--bg:#f4f4f0;--card:#fff;--border:#e2e2dc;--tag-bg:#eeeef0;
+  --green:#16a34a;--gl:#f0fdf4;--gb:#86efac;
+  --purple:#7e22ce;--pl:#faf5ff;--pb:#d8b4fe;
+  --red:#b91c1c;--rl:#fee2e2;--rb:#fca5a5;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--navy);font-size:13px;}
+nav{background:var(--navy);padding:13px 28px;display:flex;align-items:center;gap:8px;font-size:12px;}
+nav a{color:#aab;text-decoration:none;}nav a:hover{color:#fff;}
+nav .sep{color:#445;}nav .cur{color:#fff;font-weight:600;}
+.page{max-width:1200px;margin:0 auto;padding:32px 24px 64px;}
+.section-title{font-size:10px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:var(--steel);margin:28px 0 14px;padding-bottom:6px;border-bottom:1px solid var(--border);}
+code{font-family:'Cascadia Code','Fira Code',monospace;background:var(--tag-bg);padding:1px 5px;border-radius:4px;font-size:10px;}
+/* ── Top decision ── */
+.decision{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px 20px;margin-bottom:14px;display:grid;grid-template-columns:1fr auto 1fr;gap:20px;align-items:center;}
+.dec-warm{background:var(--gl);border:1px solid var(--gb);border-radius:10px;padding:12px 16px;}
+.dec-cold{background:var(--rl);border:1px solid var(--rb);border-radius:10px;padding:12px 16px;}
+.dec-title{font-weight:700;font-size:12px;margin-bottom:5px;}
+.dec-desc{font-size:11px;color:var(--steel);line-height:1.5;}
+.dec-badge{background:var(--navy);color:#fff;border-radius:999px;padding:5px 16px;font-weight:700;font-size:11px;text-align:center;}
+/* ── Dual pipeline ── */
+.dual{display:grid;grid-template-columns:1fr 50px 1fr;gap:0;margin-bottom:14px;}
+.pipe-col{border-radius:10px;overflow:hidden;border:1px solid var(--border);}
+.pipe-head{padding:10px 14px;font-weight:700;font-size:11px;}
+.pipe-step{padding:9px 14px;border-top:1px dashed var(--border);font-size:11px;display:flex;gap:8px;align-items:flex-start;}
+.ps-n{width:18px;height:18px;border-radius:50%;color:#fff;font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
+.merge-col{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;}
+.merge-arrow{font-size:20px;color:var(--steel);}
+/* ── Post pipeline steps ── */
+.post-steps{display:flex;flex-direction:column;gap:8px;margin-bottom:14px;}
+.post-step{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px 16px;display:flex;gap:12px;align-items:flex-start;}
+.ps-icon{font-size:18px;flex-shrink:0;}
+.ps-title{font-weight:700;font-size:12px;margin-bottom:3px;}
+.ps-desc{font-size:11px;color:var(--steel);line-height:1.55;}
+/* ── Steps list ── */
+.steps-list{list-style:none;}
+.steps-list li{display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-bottom:1px dashed var(--border);font-size:12px;}
+.steps-list li:last-child{border-bottom:none;}
+.sn{width:22px;height:22px;border-radius:50%;background:var(--navy);color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
+/* ── IO ── */
+.io-box{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px 16px;}
+.io-title{font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--steel);margin-bottom:8px;}
+.json-block{background:#1e1b2e;color:#c9d1d9;border-radius:7px;padding:11px 13px;font-size:11px;font-family:monospace;line-height:1.6;}
+.k{color:#ff7b72;}.v{color:#a5d6ff;}.s{color:#7ee787;}
+</style>
+</head>
+<body>
+<nav>
+  <a href="00_index.html">YomiAI Flows</a>
+  <span class="sep">/</span>
+  <span class="cur">06 · Full Recommendation Flow</span>
+</nav>
+<div class="page">
+  <h1 style="font-size:20px;font-weight:800;margin-bottom:4px;">Full Recommendation Flow — GET /recommend</h1>
+  <p style="color:var(--steel);font-size:11px;margin-bottom:24px;">Orchestrates both Pipeline A (Cleora behavioral) and Pipeline B (DIF-SASRec sequential). Applies cold-start fallback, Redis blocked-set filter, deduplication, and metadata hydration.</p>
+
+  <div class="section-title">Step 1 — Cold-Start Check</div>
+  <div class="decision">
+    <div class="dec-warm">
+      <div class="dec-title" style="color:var(--green);">Warm Path — Personalized</div>
+      <div class="dec-desc"><code>len(profile.clicks) ≥ 5</code><br/>User has enough interaction history. Run both pipelines. Borrow agent from pool. Return <code>mode: "personalized"</code>.</div>
+    </div>
+    <div>
+      <div class="dec-badge">clicks ≥ 5?</div>
+      <div style="text-align:center;font-size:18px;color:var(--steel);margin-top:4px;">⇅</div>
+    </div>
+    <div class="dec-cold">
+      <div class="dec-title" style="color:var(--red);">Cold-Start Path</div>
+      <div class="dec-desc"><code>len(profile.clicks) &lt; 5</code><br/>Not enough history. Return 20 random catalogue items via random ASIN sample. Return <code>mode: "cold_start"</code>. Skip both pipelines.</div>
+    </div>
+  </div>
+
+  <div class="section-title">Step 2 — Dual Pipeline (Warm Path)</div>
+  <div class="dual">
+    <div class="pipe-col" style="border-color:var(--gb);">
+      <div class="pipe-head" style="background:var(--gl);color:var(--green);">Pipeline A — People Also Buy (Cleora)</div>
+      <div class="pipe-step"><div class="ps-n" style="background:var(--green);">1</div><div>Cleora <code>IndexFlatIP</code> search on <code>cleora_profile [1024]</code> → behavioral neighbors from 375k co-purchase graph.</div></div>
+      <div class="pipe-step"><div class="ps-n" style="background:var(--green);">2</div><div>Seed expansion: last 5 recent_interactions → additional co-purchase neighbors. Union candidate set.</div></div>
+      <div class="pipe-step"><div class="ps-n" style="background:var(--green);">3</div><div>Content veto τ=0.3: filter by text_profile OR visual_profile cosine similarity.</div></div>
+      <div class="pipe-step"><div class="ps-n" style="background:var(--green);">4</div><div>Sort by <code>text_profile · item_text_vec</code> → top-10 <strong>people_also_buy</strong>.</div></div>
+    </div>
+    <div class="merge-col">
+      <div style="font-size:10px;font-weight:700;color:var(--steel);text-transform:uppercase;letter-spacing:1px;writing-mode:vertical-rl;transform:rotate(180deg);margin-bottom:8px;">parallel</div>
+      <div class="merge-arrow">↕</div>
+      <div style="font-size:20px;font-weight:800;color:var(--steel);">+</div>
+      <div class="merge-arrow">↕</div>
+    </div>
+    <div class="pipe-col" style="border-color:var(--pb);">
+      <div class="pipe-head" style="background:var(--pl);color:var(--purple);">Pipeline B — You Might Like (DIF-SASRec)</div>
+      <div class="pipe-step"><div class="ps-n" style="background:var(--purple);">1</div><div>HNSW text search on <code>text_profile [1024]</code> → 200 unseen content candidates.</div></div>
+      <div class="pipe-step"><div class="ps-n" style="background:var(--purple);">2</div><div>Content veto τ=0.3 on same threshold (shared logic with Pipeline A).</div></div>
+      <div class="pipe-step"><div class="ps-n" style="background:var(--purple);">3</div><div><code>agent.get_candidate_scores(click_seq, cat_ids, candidates)</code> → intent [512] dot-product scores.</div></div>
+      <div class="pipe-step"><div class="ps-n" style="background:var(--purple);">4</div><div>Min-max normalize → top-10 <strong>you_might_like</strong>.</div></div>
+    </div>
+  </div>
+
+  <div class="section-title">Steps 3–6 — Post-Pipeline Processing</div>
+  <div class="post-steps">
+    <div class="post-step" style="border-left:4px solid var(--rb);">
+      <div class="ps-icon">⚡</div>
+      <div>
+        <div class="ps-title">Redis Blocked-Set Filter</div>
+        <div class="ps-desc">For each recommended ASIN: check Redis set <code>user:{uid}:blocked</code>. Remove any item the user marked "not_interested". O(1) per ASIN lookup. Prevents dismissed items from re-surfacing.</div>
+      </div>
+    </div>
+    <div class="post-step" style="border-left:4px solid #93c5fd;">
+      <div class="ps-icon">📋</div>
+      <div>
+        <div class="ps-title">Log Recommendations</div>
+        <div class="ps-desc"><code>profile_manager.log_recommendation(user_id, all_rec_ids)</code> → appends combined ASIN list to <code>recent_recs</code> in MongoDB profile for analytics and future deduplication.</div>
+      </div>
+    </div>
+    <div class="post-step" style="border-left:4px solid #fde047;">
+      <div class="ps-icon">🔍</div>
+      <div>
+        <div class="ps-title">Metadata Hydration</div>
+        <div class="ps-desc"><code>metadata_repo.get_item(asin)</code> for every recommendation → enriches with title, author, genre, description, cover_color, image_url, pipeline score. All 20+ items hydrated in a single pass.</div>
+      </div>
+    </div>
+    <div class="post-step" style="border-left:4px solid var(--gb);">
+      <div class="ps-icon">🔗</div>
+      <div>
+        <div class="ps-title">Combined List</div>
+        <div class="ps-desc">Union of <code>people_also_buy</code> + <code>you_might_like</code> deduplicated by ASIN → <code>combined</code> list. Preserves both per-pipeline lists separately for the frontend to render in two sections.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-title">Detailed Step Trace</div>
+  <ul class="steps-list">
+    <li><div class="sn">1</div><span><code>profile_manager.get_profile(user_id)</code>. Check <code>len(profile.clicks) &lt; 5</code> → if true, cold-start random sample of 20 ASINs, hydrate, return immediately with <code>mode: "cold_start"</code>.</span></li>
+    <li><div class="sn">2</div><span><code>agent_pool.borrow()</code> (async context manager) → <code>agent.load_user(user_id)</code>: load personal <code>.pt</code> checkpoint from <code>data/profiles/</code> or pretrained snapshot for first-time users.</span></li>
+    <li><div class="sn">3</div><span><code>recommend_engine.recommend_for_user(user_id, agent, top_k=10)</code> → runs Pipeline A (collaborative_filter) and Pipeline B (_personal_recommend) sequentially. Returns <code>(people_also_buy, you_might_like)</code>.</span></li>
+    <li><div class="sn">4</div><span>Redis filter: <code>await redis.smembers(f"user:{uid}:blocked")</code> → set difference removes blocked ASINs from both lists.</span></li>
+    <li><div class="sn">5</div><span><code>profile_manager.log_recommendation(user_id, combined_asins)</code> → MongoDB upsert appends to <code>recent_recs</code>.</span></li>
+    <li><div class="sn">6</div><span>Metadata hydration loop: <code>[metadata_repo.get_item(asin) for asin in all_recs]</code>. Build response with per-pipeline scores and combined list.</span></li>
+    <li><div class="sn">7</div><span>Return JSON. Agent automatically returned to AgentPool queue by <code>async with</code> context manager exit, making it available for the next request.</span></li>
+  </ul>
+
+  <div class="section-title">Response Shape</div>
+  <div class="io-box">
+    <div class="io-title">GET /recommend Response</div>
+    <div class="json-block">{<br/>  <span class="k">"people_also_buy"</span>: [ { <span class="k">"asin"</span>: <span class="v">"B08..."</span>, <span class="k">"title"</span>: <span class="v">"..."</span>, <span class="k">"cleora_score"</span>: <span class="v">0.84</span>, ... }, ... ],<br/>  <span class="k">"you_might_like"</span>:  [ { <span class="k">"asin"</span>: <span class="v">"B09..."</span>, <span class="k">"title"</span>: <span class="v">"..."</span>, <span class="k">"sasrec_score"</span>: <span class="v">0.91</span>, ... }, ... ],<br/>  <span class="k">"combined"</span>: [ <span class="s">/* union, deduped */</span> ],<br/>  <span class="k">"mode"</span>: <span class="v">"personalized"</span> <span class="s">| "cold_start"</span><br/>}</div>
+  </div>
+</div>
+</body>
+</html>

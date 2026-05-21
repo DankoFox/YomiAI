@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>YomiAI — Flow Index</title>
+<style>
+:root{--navy:#2e3257;--steel:#627d9a;--bg:#f4f4f0;--card:#ffffff;--border:#e2e2dc;--tag-bg:#eeeef0;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--navy);font-size:13px;min-height:100vh;}
+nav{background:var(--navy);padding:14px 28px;display:flex;align-items:center;gap:10px;}
+nav .logo{font-size:16px;font-weight:800;color:#fff;letter-spacing:-.3px;}
+nav .sub{font-size:11px;color:#8899bb;margin-left:6px;}
+.page{max-width:1140px;margin:0 auto;padding:36px 24px 72px;}
+.hero{margin-bottom:36px;}
+.hero h2{font-size:22px;font-weight:800;letter-spacing:-.5px;margin-bottom:6px;}
+.hero p{color:var(--steel);font-size:12px;max-width:560px;line-height:1.6;}
+.section-title{font-size:10px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:var(--steel);margin-bottom:18px;padding-bottom:6px;border-bottom:1px solid var(--border);}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:14px;}
+a.card{display:block;background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;text-decoration:none;color:inherit;transition:transform .15s,box-shadow .15s;}
+a.card:hover{transform:translateY(-3px);box-shadow:0 10px 32px rgba(46,50,87,.13);}
+.card-stripe{height:5px;}
+.card-body{padding:18px 20px 12px;}
+.card-num{font-size:36px;font-weight:800;opacity:.08;float:right;line-height:1;margin-top:-4px;}
+.card-title{font-weight:700;font-size:13.5px;margin-bottom:5px;}
+.card-desc{font-size:11px;color:var(--steel);line-height:1.65;}
+.card-tags{padding:10px 20px 14px;display:flex;flex-wrap:wrap;gap:5px;border-top:1px solid var(--border);}
+.tag{display:inline-block;padding:2px 9px;border-radius:999px;font-size:10px;font-weight:600;border:1px solid transparent;}
+.sys-diagram{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px 24px;margin-bottom:32px;}
+.sys-diagram h3{font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--steel);margin-bottom:14px;}
+.sys-row{display:flex;align-items:center;gap:0;flex-wrap:wrap;}
+.sys-box{background:var(--tag-bg);border:1px solid var(--border);border-radius:8px;padding:8px 14px;font-size:11px;font-weight:600;text-align:center;white-space:nowrap;}
+.sys-arrow{padding:0 8px;color:var(--steel);font-size:14px;}
+.sys-note{font-size:10px;color:var(--steel);margin-top:4px;}
+</style>
+</head>
+<body>
+<nav>
+  <span class="logo">YomiAI</span>
+  <span class="sub">System Flow Visualizations · 8 documents</span>
+</nav>
+<div class="page">
+
+  <div class="hero">
+    <h2>YomiAI — Flow Visualizations</h2>
+    <p>Data-flow and architecture diagrams for every major system path. Each diagram shows inputs, processing steps, vector shapes, and outputs for one flow.</p>
+  </div>
+
+  <div class="sys-diagram">
+    <h3>System Overview</h3>
+    <div class="sys-row">
+      <div class="sys-box" style="background:#dbeafe;border-color:#93c5fd;color:#1d4ed8;">Browser</div>
+      <div class="sys-arrow">→</div>
+      <div class="sys-box" style="background:#eeeef0;border-color:#c8c8d0;color:#2e3257;">FastAPI Routes</div>
+      <div class="sys-arrow">→</div>
+      <div class="sys-box" style="background:#f0fdf4;border-color:#86efac;color:#16a34a;">Services<br/><span class="sys-note">Cleora · DIF-SASRec · Search · LLM</span></div>
+      <div class="sys-arrow">→</div>
+      <div class="sys-box" style="background:#faf5ff;border-color:#d8b4fe;color:#7e22ce;">ML Indices<br/><span class="sys-note">FAISS · Tantivy · Encoders</span></div>
+      <div class="sys-arrow">→</div>
+      <div class="sys-box" style="background:#ffedd5;border-color:#fdba74;color:#c2410c;">Storage<br/><span class="sys-note">MongoDB · Redis · .pt files</span></div>
+    </div>
+  </div>
+
+  <div class="section-title">All Documents</div>
+  <div class="grid">
+
+    <a class="card" href="01_codebase_guide.html">
+      <div class="card-stripe" style="background:#627d9a;"></div>
+      <div class="card-body">
+        <div class="card-num">01</div>
+        <div class="card-title">Codebase Architecture Guide</div>
+        <div class="card-desc">Complete reference: all routes, AppContainer fields, service layer map, repository layer, data stores, and frontend component map.</div>
+      </div>
+      <div class="card-tags">
+        <span class="tag" style="background:#eeeef0;color:#627d9a;">Full Reference</span>
+        <span class="tag" style="background:#dbeafe;color:#1d4ed8;">All Routes</span>
+      </div>
+    </a>
+
+    <a class="card" href="02_startup_flow.html">
+      <div class="card-stripe" style="background:#dfc5a4;"></div>
+      <div class="card-body">
+        <div class="card-num">02</div>
+        <div class="card-title">Startup Sequence</div>
+        <div class="card-desc">8-step lifespan initialization — FAISS → Metadata → CategoryEncoder → AgentPool → BGE-M3 → CLIP → Tantivy → Qwen + MongoDB. AppContainer fields and background log-worker.</div>
+      </div>
+      <div class="card-tags">
+        <span class="tag" style="background:#fef9c3;color:#a16207;">lifespan.py</span>
+        <span class="tag" style="background:#fef9c3;color:#a16207;">AppContainer</span>
+        <span class="tag" style="background:#fef9c3;color:#a16207;">8 Steps</span>
+      </div>
+    </a>
+
+    <a class="card" href="03_active_search_flow.html">
+      <div class="card-stripe" style="background:#93c5fd;"></div>
+      <div class="card-body">
+        <div class="card-num">03</div>
+        <div class="card-title">Active Search</div>
+        <div class="card-desc">POST /search — NLLB translation → parallel BGE-M3 [1024] + CLIP [512] encoding → dual FAISS HNSW + Tantivy BM25 → RRF fusion → metadata hydration.</div>
+      </div>
+      <div class="card-tags">
+        <span class="tag" style="background:#dbeafe;color:#1d4ed8;">POST /search</span>
+        <span class="tag" style="background:#f3e8ff;color:#7e22ce;">BGE-M3 · CLIP</span>
+        <span class="tag" style="background:#ffedd5;color:#c2410c;">RRF Fusion</span>
+      </div>
+    </a>
+
+    <a class="card" href="04_pipeline_a_cleora.html">
+      <div class="card-stripe" style="background:#86efac;"></div>
+      <div class="card-body">
+        <div class="card-num">04</div>
+        <div class="card-title">Pipeline A — Cleora (People Also Buy)</div>
+        <div class="card-desc">Collaborative filtering via Cleora co-purchase graph embeddings. Behavioral KNN → seed expansion → content veto (τ=0.3) → rank by text score → top-10.</div>
+      </div>
+      <div class="card-tags">
+        <span class="tag" style="background:#dcfce7;color:#16a34a;">GET /recommend</span>
+        <span class="tag" style="background:#dcfce7;color:#16a34a;">Cleora 375k</span>
+        <span class="tag" style="background:#dcfce7;color:#16a34a;">BGE-M3 profile</span>
+      </div>
+    </a>
+
+    <a class="card" href="05_pipeline_b_difsasrec.html">
+      <div class="card-stripe" style="background:#d8b4fe;"></div>
+      <div class="card-body">
+        <div class="card-num">05</div>
+        <div class="card-title">Pipeline B — DIF-SASRec (You Might Like)</div>
+        <div class="card-desc">Sequential intent modeling with dual-stream attention (content + category). HNSW 200 candidates → veto → intent [512] dot-product scoring → top-10.</div>
+      </div>
+      <div class="card-tags">
+        <span class="tag" style="background:#faf5ff;color:#7e22ce;">DIF-SASRec</span>
+        <span class="tag" style="background:#faf5ff;color:#7e22ce;">AgentPool</span>
+        <span class="tag" style="background:#faf5ff;color:#7e22ce;">4 Blocks</span>
+      </div>
+    </a>
+
+    <a class="card" href="06_recommend_flow.html">
+      <div class="card-stripe" style="background:linear-gradient(90deg,#86efac,#d8b4fe);"></div>
+      <div class="card-body">
+        <div class="card-num">06</div>
+        <div class="card-title">Full Recommendation Flow</div>
+        <div class="card-desc">GET /recommend — cold-start detection, Pipeline A + B run in sequence, Redis blocked-set filter, deduplication, metadata hydration.</div>
+      </div>
+      <div class="card-tags">
+        <span class="tag" style="background:#dcfce7;color:#16a34a;">Pipeline A</span>
+        <span class="tag" style="background:#faf5ff;color:#7e22ce;">Pipeline B</span>
+        <span class="tag" style="background:#fee2e2;color:#b91c1c;">Redis filter</span>
+        <span class="tag" style="background:#eeeef0;color:#2e3257;">Cold-start</span>
+      </div>
+    </a>
+
+    <a class="card" href="07_interact_flow.html">
+      <div class="card-stripe" style="background:#fdba74;"></div>
+      <div class="card-body">
+        <div class="card-num">07</div>
+        <div class="card-title">Interact + Online Training</div>
+        <div class="card-desc">POST /interact — click/skip/not_interested actions, profile embedding update, Redis queue push, one DIF-SASRec gradient step, .pt checkpoint save.</div>
+      </div>
+      <div class="card-tags">
+        <span class="tag" style="background:#ffedd5;color:#c2410c;">POST /interact</span>
+        <span class="tag" style="background:#ffedd5;color:#c2410c;">Online Training</span>
+        <span class="tag" style="background:#fee2e2;color:#b91c1c;">Redis queue</span>
+      </div>
+    </a>
+
+    <a class="card" href="08_llm_flow.html">
+      <div class="card-stripe" style="background:#fde047;"></div>
+      <div class="card-body">
+        <div class="card-num">08</div>
+        <div class="card-title">LLM Context + Qwen2.5</div>
+        <div class="card-desc">POST /ask_llm and /ask_llm_stream — parquet description + Wikipedia + Google Books context enrichment → Qwen2.5-1.5B prompt → sync response or SSE token stream.</div>
+      </div>
+      <div class="card-tags">
+        <span class="tag" style="background:#fef9c3;color:#a16207;">Qwen2.5-1.5B</span>
+        <span class="tag" style="background:#fef9c3;color:#a16207;">SSE Stream</span>
+        <span class="tag" style="background:#fef9c3;color:#a16207;">Context Enrichment</span>
+      </div>
+    </a>
+
+  </div>
+</div>
+</body>
+</html>
