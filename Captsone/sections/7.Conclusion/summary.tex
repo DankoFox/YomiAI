@@ -21,7 +21,7 @@ The DIF-SASRec result is stable across five random evaluation seeds (standard de
 Multilingual search performance reached Precision@10 = 0.55 on long Vietnamese queries under BGE-M3, compared to 0.05 under BLaIR.
 Warm-cache end-to-end search latency was reduced from 1{,}102\,ms to 59\,ms.
 
-Chapter~6 presented the deployed book discovery application, demonstrating the end-to-end integration of all components: the login gate, the multimodal search interface (text, image, and fused), the dual-panel recommendation view with the DIF-SASRec input-sequence strip, the real-time profile panel with the training loss sparkline, and the streaming Qwen2.5 book assistant.
+Chapter~6 presented the book discovery application, demonstrating the end-to-end integration of all components: the login gate, the multimodal search interface (text, image, and fused), the dual-panel recommendation view with the DIF-SASRec input-sequence strip, the real-time profile panel with the training loss sparkline, and the streaming Qwen2.5 book assistant.
 
 
 \section{Evaluation of Objectives}
@@ -53,9 +53,9 @@ Reduce warm-cache end-to-end search latency below 100\,ms &
 Met &
 Latency reduced from 1{,}102\,ms to 59\,ms (warm cache), Table~\ref{tab:latency_stages} \\
 
-Deploy an interactive application integrating all platform components &
+Build and run an interactive application integrating all platform components &
 Met &
-Chapter~6 presents the deployed book discovery application combining multimodal search, dual-pipeline recommendations, online DIF-SASRec fine-tuning, and the Qwen2.5 LLM assistant \\
+Chapter~6 presents the book discovery application combining multimodal search, dual-pipeline recommendations, online DIF-SASRec fine-tuning, and the Qwen2.5 LLM assistant \\
 \hline
 \end{tabular}
 \end{table}
@@ -92,7 +92,7 @@ This project makes the following specific technical contributions:
     This provides immediate, per-interaction visual confirmation that the DIF-SASRec model has updated, a transparency mechanism with no equivalent in existing open-source recommendation systems.
 
     \item \textbf{BGE-M3-based semantic re-ranking for LLM grounding.}
-    Rather than passing raw Wikipedia or Google Books extracts to the Qwen2.5 assistant, the grounding pipeline uses the same BGE-M3 encoder deployed throughout the system to select the top-5 plot-relevant sentences from the retrieved text.
+    Rather than passing raw Wikipedia or Google Books extracts to the Qwen2.5 assistant, the grounding pipeline uses the same BGE-M3 encoder used throughout the system to select the top-5 plot-relevant sentences from the retrieved text.
     This suppresses author biography sentences and marketing language without requiring a separate re-ranking model.
 \end{enumerate}
 

@@ -7,7 +7,7 @@ Three aspects are examined: the text encoder choice, the approximate nearest-nei
 \subsection{Text Encoder: BGE-M3 vs.\ BLaIR}
 
 The system uses BGE-M3~\cite{chen2024bge} as the primary text encoder.
-BGE-M3 (\texttt{BAAI/bge-m3}) is a multilingual model producing 1{,}024-dimensional embeddings, and is the production encoder for both the recommendation profile and the semantic search pipeline.
+BGE-M3 (\texttt{BAAI/bge-m3}) is a multilingual model producing 1{,}024-dimensional embeddings, and is the primary encoder for both the recommendation profile and the semantic search pipeline.
 As a comparison point, the legacy encoder BLaIR~\cite{hou2024blair} (\texttt{hyp1231/blair-roberta-large}) was evaluated on the same held-out set.
 
 The comparison was conducted on 20{,}000 test users with $N = 99$ negatives, using identical evaluation logic.
@@ -29,7 +29,7 @@ BGE-M3 (current, 1.7M HNSW) & 0.3767 & 0.4510 & 0.3128 & 0.2694 \\
 
 A direct numerical comparison of Table~\ref{tab:encoder_comparison} shows BLaIR outperforming BGE-M3 on all recommendation metrics.
 However, this comparison is not fair in terms of index configuration: BLaIR used a 3M-item flat exact-search index, while BGE-M3 used a 1.7M-item HNSW approximate index covering a sub-catalogue.
-The BGE-M3 HNSW index was chosen for its lower latency in production (Section~\ref{sec:latency_opt}).
+The BGE-M3 HNSW index was chosen for its lower latency (Section~\ref{sec:latency_opt}).
 
 The decisive advantage of BGE-M3 emerges in the query retrieval evaluation, reported in Table~\ref{tab:query_retrieval}.
 Queries were manually curated across five groups: short English, medium English, long English, short Vietnamese, and long Vietnamese.
@@ -58,12 +58,12 @@ Real search queries are short and conversational, something like ``dark fantasy 
 The data confirms this: BLaIR achieves competitive precision on very short English queries where surface token overlap compensates for the distribution gap, but underperforms on anything requiring semantic generalisation beyond its training domain.
 On Vietnamese queries it fails entirely, as it is an English-only model.
 BGE-M3, trained on diverse multilingual query-passage pairs including short conversational queries, handles both the real-world query style and non-English languages.
-Based on this analysis, BGE-M3 is retained as the production encoder for both the recommendation pipeline and the semantic search pipeline.
+Based on this analysis, BGE-M3 is retained as the primary encoder for both the recommendation pipeline and the semantic search pipeline.
 
 \subsection{Approximate Nearest-Neighbour Index: HNSW vs.\ Flat}
 \label{sec:hnsw}
 
-The production deployment uses a FAISS HNSW index over 1.7M BGE-M3 vectors, while the evaluation uses a flat (exact) index over 3M vectors.
+The system uses a FAISS HNSW index over 1.7M BGE-M3 vectors for serving, while evaluation uses a flat (exact) index over 3M vectors.
 Table~\ref{tab:hnsw_comparison} reports the latency and recall trade-off, and Figure~\ref{fig:hnsw_latency} visualises the comparison.
 
 \begin{table}[H]

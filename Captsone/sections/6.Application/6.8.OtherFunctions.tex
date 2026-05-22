@@ -4,15 +4,15 @@
 \subsection{User Authentication}
 
 Authentication is handled by a full-screen login gate rendered before the main application.
-The flow proceeds in three stages: the user enters a user ID and submits; the frontend calls \texttt{POST /auth/check}; if the ID is found in MongoDB the session begins immediately, and if not, a confirmation prompt offers account creation via \texttt{POST /auth/create} or the option to re-enter a different ID.
+The user enters a user ID and submits; the frontend calls \texttt{POST /auth/check}. If the ID is found in MongoDB, the session begins immediately. If not, a confirmation prompt offers account creation via \texttt{POST /auth/create} or the option to re-enter a different ID.
 A Continue as Guest button on the login page generates a random \texttt{guest\_XXXXXX} identifier and bypasses both checks.
 No password is stored or required at any point.
 The resolved user ID is persisted in \texttt{localStorage}; subsequent visits load it and bypass the gate automatically.
 
 \subsection{Not Interested}
 
-Each book card provides a Not Interested button.
-Clicking it immediately removes the item from the current recommendation panels on the frontend and sends a \texttt{POST /interact} request with \texttt{action = "not\_interested"}.
+Each book card has a Not Interested button.
+Clicking it immediately removes the item from the current recommendation panels and sends a \texttt{POST /interact} request with \texttt{action = "not\_interested"}.
 The backend stores the item identifier in a per-user Redis set (\texttt{user:\{id\}:blocked}); subsequent calls to \texttt{GET /recommend} filter out any blocked items before enriching the candidate lists, so the dismissed book will not reappear across sessions.
 No gradient step is triggered for not-interested events.
 
@@ -21,7 +21,7 @@ No gradient step is triggered for not-interested events.
 The \texttt{POST /interact} endpoint accepts \texttt{user\_id}, \texttt{item\_id}, and \texttt{action} (\texttt{click} or \texttt{not\_interested}).
 For click actions, the endpoint borrows a DIF-SASRec agent from the pool, loads the user's personal checkpoint, runs one sampled softmax gradient step, saves the updated checkpoint, and returns the resulting \texttt{sasrec\_loss} value.
 Not-interested actions are written to a per-user Redis blocked set with no training step.
-The frontend appends the returned loss value to the sparkline on response, providing sub-second visual confirmation that the model has updated.
+The frontend appends the returned loss value to the sparkline on response, giving sub-second visual confirmation that the model has updated.
 
 \subsection{Streaming LLM Book Assistant}
 \label{sec:llm_assistant}
@@ -32,14 +32,14 @@ The response streams token-by-token into the popover via \texttt{TextIteratorStr
 
 \subsubsection{Grounding Pipeline}
 
-To reduce hallucination and produce content-specific descriptions rather than generic summaries from training knowledge, the assistant uses a two-stage grounding pipeline before LLM generation:
+To reduce hallucination and produce content-specific descriptions rather than generic summaries drawn from training knowledge, the assistant uses a two-stage grounding pipeline before LLM generation:
 
 \begin{enumerate}
-    \item Context retrieval: The system first queries the Google Books API using \texttt{intitle:} and \texttt{inauthor:} operators for precision, falling back to a Wikipedia search with progressively broader queries (volume-specific → series-level → title-only) if Google Books returns no description.
+    \item Context retrieval: The system queries the Google Books API using \texttt{intitle:} and \texttt{inauthor:} operators for precision, falling back to a Wikipedia search with progressively broader queries (volume-specific $\to$ series-level $\to$ title-only) if Google Books returns no description.
     Rate-limiting logic backs off for 120 seconds after a 429 response, and an \texttt{@lru\_cache(maxsize=128)} stores results so repeated queries for the same title cost 0~ms.
     \item Semantic re-ranking: The raw retrieved text is split into sentences and each sentence is scored by cosine similarity to a query embedding \texttt{``plot summary arc story characters events \{title\} volume \{vol\}''}.
     The top-5 highest-scoring sentences are selected and concatenated as the grounding context.
-    This step, implemented using the same BGE-M3 encoder used throughout the system, suppresses author biography sentences and publisher marketing text in favour of plot-relevant content.
+    This step uses the same BGE-M3 encoder used throughout the system, and in practice suppresses author biography sentences and publisher marketing text in favour of plot-relevant content.
 \end{enumerate}
 
 \subsubsection{Prompt Design}
@@ -73,4 +73,4 @@ The frontend uses this response to populate the \texttt{ProfileRadar} chart and 
 \subsection{Health Check}
 
 \texttt{GET /health} reports the readiness status of each loaded component, including FAISS indices, encoders, and the AgentPool.
-It is intended for infrastructure monitoring and can be queried by external health-check probes to determine when the server is ready to serve traffic.
+It can be polled to check when the server has finished loading all components and is ready to accept requests.

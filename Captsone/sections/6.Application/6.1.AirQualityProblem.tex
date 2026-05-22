@@ -1,12 +1,12 @@
 \section{Application Overview}
 \label{sec:app_overview}
 
-The deployed application is a multimodal book discovery platform that allows users to find books through natural-language text queries, image queries, or both, and to receive personalised recommendations that adapt to their interaction history.
+The application is a multimodal book discovery platform. Users can search by typing a query, uploading a cover image, or combining both, and receive personalised recommendations that adapt as they interact with the catalogue.
 
-The application serves three practical user needs.
-First, catalogue scale: the index covers approximately 3 million book items, making unguided browsing impractical.
-Second, language diversity: Vietnamese-speaking users can query the catalogue through the integrated NLLB-200 translation pipeline, which translates queries to English before encoding.
-Third, adaptive personalisation: a cold-start user receives co-purchase-based suggestions from the Cleora graph immediately; once five click interactions accumulate, DIF-SASRec sequential recommendations engage automatically.
+Three design decisions shaped what the application needs to do well.
+The catalogue covers roughly 3 million items, so unguided browsing is not practical and all discovery paths go through embedding-based retrieval.
+Vietnamese-speaking users can query the system directly; the NLLB-200 pipeline translates the input to English before encoding, with no change to the search interface.
+Personalisation works from the first visit: a new user immediately receives co-purchase suggestions from the Cleora graph, and once five click interactions accumulate, DIF-SASRec sequential recommendations engage automatically.
 
 The full application stack is:
 \begin{itemize}
@@ -15,5 +15,5 @@ The full application stack is:
     \item Infrastructure: MongoDB (\texttt{nba\_logs} database) and Redis (interaction write-queue), both provisioned via Docker Compose.
 \end{itemize}
 
-If the backend is unreachable, a dismissible error notification is displayed and the interface continues to present the most recently loaded data without breaking the user experience.
+If the backend is unreachable, a dismissible error notification appears and the interface continues showing the most recently loaded data.
 User identity is persisted in \texttt{localStorage} so that returning users bypass the login gate automatically.

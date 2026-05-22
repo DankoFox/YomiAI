@@ -18,7 +18,7 @@ Table~\ref{tab:index_files} summarises the four index artefacts managed by the s
 \hline
 \textbf{File} & \textbf{Type} & \textbf{Vectors} & \textbf{Role} \\
 \hline
-\nolinkurl{bge_index_hnsw.faiss}        & BGE-M3 HNSW  & 1.7M (prod.) & ANN search, production query path \\
+\nolinkurl{bge_index_hnsw.faiss}        & BGE-M3 HNSW  & 1.7M         & ANN search, primary query path \\
 \nolinkurl{bge_index_flat.faiss}        & BGE-M3 flat  & 3M (exact)   & Exact reconstruction for RL pipeline \\
 \nolinkurl{blair_index_hnsw_legacy.faiss} & BLaIR HNSW  & 3M           & Legacy fallback \\
 \nolinkurl{blair_index_flat_legacy.faiss} & BLaIR flat  & 3M           & Legacy last-resort fallback \\

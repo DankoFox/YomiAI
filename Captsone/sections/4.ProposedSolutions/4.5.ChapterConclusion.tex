@@ -12,7 +12,7 @@ The pipeline is triggered automatically at \texttt{CLEORA\_REFIT\_THRESHOLD} = 5
 Section~\ref{sec:viz_improvements} replaced synchronous rendering with skeleton loading states, exposed the dual-pipeline recommendation architecture as two explicit sub-tabs (People Also Buy and You Might Like), and added an inline training visualisation showing the DIF-SASRec loss sparkline with pretrain-to-online phase annotation.
 The revised interface also supports multimodal search through a combined text-and-image input area, and provides a dark mode toggle and a live recently-viewed strip.
 
-Section~\ref{sec:storage_improvements} introduced a dual FAISS index strategy (an HNSW index for production ANN search and a flat index for exact reconstruction), loaded via memory mapping to eliminate the 45-second full-load startup penalty.
+Section~\ref{sec:storage_improvements} introduced a dual FAISS index strategy (an HNSW index for approximate ANN search and a flat index for exact reconstruction), loaded via memory mapping to eliminate the 45-second full-load startup penalty.
 The HNSW index reduces P50 search latency from 612.19 ms to 119.56 ms (a 5.12$\times$ speedup), at a recall of 0.521 that is partially compensated by the BM25 re-ranking stage.
 The Cleora behavioural embeddings are maintained as a separate hot-swappable archive covering 375{,}280 catalogue items.
 

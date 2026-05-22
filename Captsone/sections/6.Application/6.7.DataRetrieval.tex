@@ -32,5 +32,5 @@ The internal pipeline executed by the \texttt{POST /search} handler is:
 The \texttt{GET /recommend} endpoint uses a separate retrieval path.
 For authenticated warm users, the profile manager maintains two profile vectors: a Cleora co-purchase embedding (mean of clicked items' Cleora vectors) and a BGE-M3 text embedding (weighted mean of clicked items' BGE-M3 vectors).
 Pipeline~A queries the Cleora FAISS index (\texttt{IndexFlatIP}) with the user's Cleora profile vector to retrieve up to 50 co-purchase neighbours; it also fetches per-seed-item Cleora neighbours for the five most recent interactions.
-The combined candidate pool is then re-ranked by cosine similarity to the user's BGE-M3 profile vector (content veto threshold $\tau = 0.3$), and the top items are returned as People Also Buy results.
+The combined candidate pool is re-ranked by cosine similarity to the user's BGE-M3 profile vector (content veto threshold $\tau = 0.3$), and the top items are returned as People Also Buy results.
 Pipeline~B queries the BGE-M3 HNSW index directly with the user's BGE-M3 profile vector, applies the same content veto filter, then scores surviving candidates with the DIF-SASRec sequential model before returning the You Might Like results.

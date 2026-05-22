@@ -13,10 +13,10 @@ The project pursues the following objectives:
     \item \textbf{Enable multilingual semantic search.}
     Replace the legacy BLaIR text encoder with the multilingual BGE-M3 model to support Vietnamese language queries, with a target of at least 5$\times$ improvement in Precision@10 on Vietnamese queries relative to the legacy encoder.
 
-    \item \textbf{Reduce search latency to production acceptable levels.}
+    \item \textbf{Reduce search latency to interactive levels.}
     Optimise the search pipeline (translation, encoding, and FAISS retrieval) to achieve a warm cache end to end latency below 100 ms, enabling interactive use in a web application.
 
-    \item \textbf{Deploy an interactive application integrating all platform components.}
+    \item \textbf{Build and run an interactive application integrating all platform components.}
     Build and demonstrate a full stack book discovery application that combines multimodal search, personalized recommendations from dual pipelines with per-session DIF-SASRec fine tuning, a streaming LLM book assistant, and real time learning visualization, showing that all platform components work together in a complete system.
 \end{enumerate}
 
