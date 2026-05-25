@@ -85,29 +85,31 @@ class DIFAttentionLayer(nn.Module):
     A causal lower-triangular mask prevents attending to future positions.
     """
 
-    def __init__(self, hidden_dim: int = HIDDEN_DIM, n_heads: int = N_HEADS):
+    def __init__(self, hidden_dim: int = HIDDEN_DIM, n_heads: int = N_HEADS,
+                 content_only: bool = False):
         super().__init__()
-        self.hidden_dim = hidden_dim
-        self.n_heads    = n_heads
-        self.head_dim   = hidden_dim // n_heads
+        self.hidden_dim   = hidden_dim
+        self.n_heads      = n_heads
+        self.head_dim     = hidden_dim // n_heads
+        self.content_only = content_only
 
         # Content stream projections
         self.q_content = nn.Linear(hidden_dim, hidden_dim, bias=False)
         self.k_content = nn.Linear(hidden_dim, hidden_dim, bias=False)
         self.v_content = nn.Linear(hidden_dim, hidden_dim, bias=False)
 
-        # Category stream projections (no V — values always from content)
-        self.q_cat = nn.Linear(hidden_dim, hidden_dim, bias=False)
-        self.k_cat = nn.Linear(hidden_dim, hidden_dim, bias=False)
-
         self.out_proj = nn.Linear(hidden_dim, hidden_dim)
         self.drop     = nn.Dropout(DROPOUT)
 
-        # Learnable fusion scalar: α = sigmoid(α_logit)
-        # init so sigmoid(x) ≈ ALPHA_INIT → x = log(α/(1-α))
-        import math
-        init_logit = math.log(ALPHA_INIT / (1.0 - ALPHA_INIT))
-        self.alpha_logit = nn.Parameter(torch.tensor(init_logit))
+        if not content_only:
+            # Category stream projections (no V — values always from content)
+            self.q_cat = nn.Linear(hidden_dim, hidden_dim, bias=False)
+            self.k_cat = nn.Linear(hidden_dim, hidden_dim, bias=False)
+            # Learnable fusion scalar: α = sigmoid(α_logit)
+            # init so sigmoid(x) ≈ ALPHA_INIT → x = log(α/(1-α))
+            import math
+            init_logit = math.log(ALPHA_INIT / (1.0 - ALPHA_INIT))
+            self.alpha_logit = nn.Parameter(torch.tensor(init_logit))
 
     def _split_heads(self, x: torch.Tensor) -> torch.Tensor:
         """[B, T, D] → [B, n_heads, T, head_dim]"""
@@ -127,30 +129,28 @@ class DIFAttentionLayer(nn.Module):
         scale = self.head_dim ** -0.5
 
         # Content stream
-        Q_c = self._split_heads(self.q_content(content))   # [B, H, T, head_dim]
+        Q_c = self._split_heads(self.q_content(content))
         K_c = self._split_heads(self.k_content(content))
         V   = self._split_heads(self.v_content(content))
 
-        # Category stream
-        Q_k = self._split_heads(self.q_cat(category))
-        K_k = self._split_heads(self.k_cat(category))
+        A_content = (Q_c @ K_c.transpose(-2, -1)) * scale
+        A_content = A_content.masked_fill(causal_mask, float("-inf"))
+        A_content = torch.softmax(A_content, dim=-1)
 
-        # Attention logits
-        A_content  = (Q_c @ K_c.transpose(-2, -1)) * scale   # [B, H, T, T]
-        A_category = (Q_k @ K_k.transpose(-2, -1)) * scale
+        if self.content_only:
+            A_fused = self.drop(A_content)
+        else:
+            # Category stream
+            Q_k = self._split_heads(self.q_cat(category))
+            K_k = self._split_heads(self.k_cat(category))
+            A_category = (Q_k @ K_k.transpose(-2, -1)) * scale
+            A_category = A_category.masked_fill(causal_mask, float("-inf"))
+            A_category = torch.softmax(A_category, dim=-1)
+            alpha   = torch.sigmoid(self.alpha_logit)
+            A_fused = alpha * A_category + (1.0 - alpha) * A_content
+            A_fused = self.drop(A_fused)
 
-        # Apply causal mask (set masked positions to -inf before softmax)
-        A_content  = A_content.masked_fill(causal_mask, float("-inf"))
-        A_category = A_category.masked_fill(causal_mask, float("-inf"))
-
-        A_content  = torch.softmax(A_content,  dim=-1)
-        A_category = torch.softmax(A_category, dim=-1)
-
-        alpha   = torch.sigmoid(self.alpha_logit)
-        A_fused = alpha * A_category + (1.0 - alpha) * A_content
-        A_fused = self.drop(A_fused)
-
-        out = (A_fused @ V)                                   # [B, H, T, head_dim]
+        out = (A_fused @ V)
         out = out.transpose(1, 2).contiguous().view(content.shape[0], -1, self.hidden_dim)
         return self.out_proj(out)
 
@@ -164,11 +164,11 @@ class DIFSASRecBlock(nn.Module):
           → LN → FFN(256→512→256, GELU) → + residual
     """
 
-    def __init__(self, hidden_dim: int = HIDDEN_DIM):
+    def __init__(self, hidden_dim: int = HIDDEN_DIM, content_only: bool = False):
         super().__init__()
         self.norm1 = nn.LayerNorm(hidden_dim)
         self.norm2 = nn.LayerNorm(hidden_dim)
-        self.attn  = DIFAttentionLayer(hidden_dim)
+        self.attn  = DIFAttentionLayer(hidden_dim, content_only=content_only)
         self.drop  = nn.Dropout(DROPOUT)
         self.ffn   = nn.Sequential(
             nn.Linear(hidden_dim, hidden_dim * 2),
@@ -197,24 +197,26 @@ class DIFSASRecModel(nn.Module):
     """
 
     def __init__(self, num_categories: int, hidden_dim: int = HIDDEN_DIM,
-                 n_blocks: int = N_BLOCKS, max_len: int = MAX_SEQ_LEN):
+                 n_blocks: int = N_BLOCKS, max_len: int = MAX_SEQ_LEN,
+                 content_only: bool = False):
         super().__init__()
-        self.hidden_dim = hidden_dim
-        self.max_len    = max_len
+        self.hidden_dim     = hidden_dim
+        self.max_len        = max_len
+        self.content_only   = content_only
+        self.num_categories = num_categories
 
-        self.content_proj  = ContentProjector(TEXT_EMBED_DIM, hidden_dim)
-        self.category_emb  = nn.Embedding(num_categories, hidden_dim, padding_idx=0)
-        self.position_emb  = nn.Embedding(max_len, hidden_dim)
-        self.blocks        = nn.ModuleList([DIFSASRecBlock(hidden_dim) for _ in range(n_blocks)])
-        self.final_norm    = nn.LayerNorm(hidden_dim)
-
-        # Candidate projection (shared weight space — dot product scoring)
+        self.content_proj   = ContentProjector(TEXT_EMBED_DIM, hidden_dim)
+        self.position_emb   = nn.Embedding(max_len, hidden_dim)
+        self.blocks         = nn.ModuleList(
+            [DIFSASRecBlock(hidden_dim, content_only=content_only) for _ in range(n_blocks)]
+        )
+        self.final_norm     = nn.LayerNorm(hidden_dim)
         self.candidate_proj = ContentProjector(TEXT_EMBED_DIM, hidden_dim)
 
-        # Auxiliary task: predict category from hidden state
-        self.category_head = nn.Linear(hidden_dim, num_categories)
+        if not content_only:
+            self.category_emb  = nn.Embedding(num_categories, hidden_dim, padding_idx=0)
+            self.category_head = nn.Linear(hidden_dim, num_categories)
 
-        # Pre-build causal mask buffer (will be trimmed to actual seq len at runtime)
         mask = torch.triu(torch.ones(max_len, max_len, dtype=torch.bool), diagonal=1)
         self.register_buffer("causal_mask_full", mask)
 
@@ -234,30 +236,28 @@ class DIFSASRecModel(nn.Module):
         device   = bge_seqs.device
 
         # Content projection + positional encoding
-        content  = self.content_proj(bge_seqs)              # [B, T, D]
+        content  = self.content_proj(bge_seqs)
         pos_ids  = torch.arange(T, device=device).unsqueeze(0).expand(B, -1)
         content  = content + self.position_emb(pos_ids)
 
-        # Category embedding
-        category = self.category_emb(cat_ids)               # [B, T, D]
+        # Category embedding (skipped in content_only mode — blocks ignore the argument)
+        if self.content_only:
+            category = torch.zeros_like(content)
+        else:
+            category = self.category_emb(cat_ids)
 
-        # Causal mask trimmed to current sequence length
-        causal_mask = self.causal_mask_full[:T, :T]         # [T, T]
-        # Expand for multi-head: [1, 1, T, T]
+        causal_mask = self.causal_mask_full[:T, :T]
         causal_mask = causal_mask.unsqueeze(0).unsqueeze(0)
 
-        # Transformer blocks
         h = content
         for block in self.blocks:
             h = block(h, category, causal_mask)
-        h = self.final_norm(h)                              # [B, T, D]
+        h = self.final_norm(h)
 
-        # Extract intent vector at the last valid position for each sequence
-        # lengths are 1-indexed: position index = length - 1
-        idx = (lengths - 1).clamp(min=0)                   # [B]
-        intent = h[torch.arange(B, device=device), idx]    # [B, D]
+        idx = (lengths - 1).clamp(min=0)
+        intent = h[torch.arange(B, device=device), idx]
 
-        cat_logits = self.category_head(h)                  # [B, T, num_cats]
+        cat_logits = None if self.content_only else self.category_head(h)
 
         return h, intent, cat_logits
 
@@ -292,13 +292,15 @@ class DIFSASRecAgent:
       - Candidate scoring for the recommendation funnel
     """
 
-    def __init__(self, retriever, category_encoder, pretrained_path: str = None):
+    def __init__(self, retriever, category_encoder, pretrained_path: str = None,
+                 content_only: bool = False):
         self.retriever        = retriever
         self.category_encoder = category_encoder
         self.device           = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
         num_cats = category_encoder.num_categories if category_encoder else 2
-        self.model = DIFSASRecModel(num_categories=num_cats).to(self.device)
+        self.model = DIFSASRecModel(num_categories=num_cats,
+                                    content_only=content_only).to(self.device)
         self.optimizer = optim.AdamW(self.model.parameters(), lr=LR, weight_decay=WEIGHT_DECAY)
 
         # Mixed-precision training (no-op on CPU — GradScaler requires CUDA)
@@ -437,7 +439,7 @@ class DIFSASRecAgent:
 
         self.scheduler = LambdaLR(self.optimizer, _lr_lambda)
         print(f"[DIFSASRecAgent] Scheduler: linear warmup {warmup_steps:,} steps "
-              f"→ cosine decay to {total_steps:,} steps")
+              f"-> cosine decay to {total_steps:,} steps")
 
     def _get_asin_vec(self, asin: str):
         """Return BGE-M3 vector [1024] for an ASIN, or None."""
@@ -623,18 +625,19 @@ class DIFSASRecAgent:
             targets    = torch.zeros(B, dtype=torch.long, device=self.device)
             loss_softmax = F.cross_entropy(logits, targets)
 
-            # Category auxiliary loss
-            last_idx    = (len_t - 1).clamp(min=0)
-            last_logits = cat_logits[torch.arange(B, device=self.device), last_idx]
-            cat_tgt     = torch.tensor(tgt_cats, dtype=torch.long, device=self.device)
-            num_cats    = self.model.category_head.out_features
-            valid_cat   = (cat_tgt >= 0) & (cat_tgt < num_cats)
-            if valid_cat.any():
-                loss_cat = F.cross_entropy(last_logits[valid_cat], cat_tgt[valid_cat])
+            if cat_logits is not None:
+                last_idx    = (len_t - 1).clamp(min=0)
+                last_logits = cat_logits[torch.arange(B, device=self.device), last_idx]
+                cat_tgt     = torch.tensor(tgt_cats, dtype=torch.long, device=self.device)
+                num_cats    = self.model.category_head.out_features
+                valid_cat   = (cat_tgt >= 0) & (cat_tgt < num_cats)
+                if valid_cat.any():
+                    loss_cat = F.cross_entropy(last_logits[valid_cat], cat_tgt[valid_cat])
+                else:
+                    loss_cat = torch.tensor(0.0, device=self.device)
+                total_loss = loss_softmax + CAT_AUX_WEIGHT * loss_cat
             else:
-                loss_cat = torch.tensor(0.0, device=self.device)
-
-            total_loss = loss_softmax + CAT_AUX_WEIGHT * loss_cat
+                total_loss = loss_softmax
 
         # ── AMP-aware backprop ────────────────────────────────────────────────
         self.optimizer.zero_grad()
@@ -716,12 +719,14 @@ class DIFSASRecAgent:
         softmax_loss = F.cross_entropy(scores.unsqueeze(0), target_idx)
 
         # ── Category auxiliary loss ──────────────────────────────────────────
-        last_pos  = (len_t - 1).clamp(min=0)                                   # [1]
-        last_logit = cat_logits[0, last_pos[0]]                                # [num_cats]
-        cat_target = torch.tensor([target_cat_id], device=self.device)
-        cat_loss   = F.cross_entropy(last_logit.unsqueeze(0), cat_target)
-
-        total_loss = softmax_loss + CAT_AUX_WEIGHT * cat_loss
+        if cat_logits is not None:
+            last_pos   = (len_t - 1).clamp(min=0)
+            last_logit = cat_logits[0, last_pos[0]]
+            cat_target = torch.tensor([target_cat_id], device=self.device)
+            cat_loss   = F.cross_entropy(last_logit.unsqueeze(0), cat_target)
+            total_loss = softmax_loss + CAT_AUX_WEIGHT * cat_loss
+        else:
+            total_loss = softmax_loss
 
         self.optimizer.zero_grad()
         total_loss.backward()
@@ -740,13 +745,15 @@ class DIFSASRecAgent:
 
     def save(self, path: str):
         """Save model state, optimizer state, and step counter."""
+        arch = "sasrec_content_v1" if self.model.content_only else "dif_sasrec_v1"
         torch.save({
-            "arch":            "dif_sasrec_v1",
+            "arch":            arch,
+            "content_only":    self.model.content_only,
             "model_state":     self.model.state_dict(),
             "optimizer_state": self.optimizer.state_dict(),
             "step":            self._step,
             "loss_history":    self.loss_history,
-            "num_categories":  self.model.category_emb.num_embeddings,
+            "num_categories":  self.model.num_categories,
         }, path)
         print(f"[DIFSASRecAgent] Saved checkpoint to {path} (step={self._step})")
 
@@ -756,9 +763,10 @@ class DIFSASRecAgent:
             return
         ckpt = torch.load(path, map_location=self.device, weights_only=False)
 
-        if ckpt.get("arch") != "dif_sasrec_v1":
+        expected_arch = "sasrec_content_v1" if self.model.content_only else "dif_sasrec_v1"
+        if ckpt.get("arch") != expected_arch:
             print(f"[DIFSASRecAgent] Skipping {path} — arch mismatch "
-                  f"(got '{ckpt.get('arch')}')")
+                  f"(expected '{expected_arch}', got '{ckpt.get('arch')}')")
             return
 
         self.model.load_state_dict(ckpt["model_state"])

@@ -192,6 +192,99 @@ class DIFSASRecStrategy:
         return [a for a, _ in sorted(scores.items(), key=lambda x: x[1], reverse=True)][:k]
 
 
+class SASRecContentStrategy:
+    """
+    SASRec ablation: pretrained DIF-SASRec with α forced to 0.
+
+    Setting alpha_logit = -20 makes sigmoid(alpha_logit) ≈ 0, collapsing
+    A_fused → A_content.  This is functionally equivalent to SASRec with
+    content embeddings — the category attention branch is zeroed out.
+    Same pretrained weights as DIFSASRec; no retraining required.
+    """
+    name = "SASRec (content-only)"
+
+    def __init__(self, retriever, category_encoder, emb_cache: dict = None,
+                 pretrained_path=None):
+        import torch
+        from app.services.dif_sasrec import DIFSASRecAgent
+        self.agent       = DIFSASRecAgent(retriever, category_encoder, pretrained_path)
+        self.retriever   = retriever
+        self.cat_encoder = category_encoder
+        self.emb_cache   = emb_cache or {}
+        if self.emb_cache:
+            self.agent.set_embedding_cache(self.emb_cache)
+        # Zero out the category fusion scalar in every DIF attention layer
+        with torch.no_grad():
+            for block in self.agent.model.blocks:
+                block.attn.alpha_logit.fill_(-20.0)
+
+    def _vec(self, asin):
+        if asin in self.emb_cache:
+            return self.emb_cache[asin]
+        if asin in self.retriever.asin_to_idx:
+            return self.retriever.text_flat.reconstruct(self.retriever.asin_to_idx[asin])
+        return None
+
+    def score_candidates(self, train_clicks: list, candidate_asins: list) -> dict:
+        cat_ids = self.cat_encoder.encode_sequence(train_clicks)
+        return self.agent.get_candidate_scores(train_clicks, cat_ids, candidate_asins)
+
+    def recommend_full(self, train_clicks: list, k: int, exclude: set) -> list:
+        vecs = [v for a in train_clicks if (v := self._vec(a)) is not None]
+        if not vecs:
+            return []
+        profile = np.mean(vecs, axis=0)
+        candidates = self.retriever.get_content_candidates(
+            profile, top_n=settings.PERSONAL_CANDIDATES, exclude_asins=exclude
+        )
+        scores = self.score_candidates(train_clicks, candidates)
+        return [a for a, _ in sorted(scores.items(), key=lambda x: x[1], reverse=True)][:k]
+
+
+class SASRecTrainedStrategy:
+    """
+    SASRec trained from scratch with content_only=True (no category stream or aux loss).
+
+    Loads data/sasrec_content_pretrained.pt — produced by scripts/train_sasrec_content.py.
+    Provides a legitimate external-comparison row for the committee: same BGE-M3 embeddings,
+    same training protocol, same evaluation protocol, but no category information at all.
+    """
+    name = "SASRec (trained from scratch)"
+
+    def __init__(self, retriever, category_encoder, emb_cache: dict = None,
+                 pretrained_path=None):
+        from app.services.dif_sasrec import DIFSASRecAgent
+        self.agent       = DIFSASRecAgent(retriever, category_encoder, pretrained_path,
+                                          content_only=True)
+        self.retriever   = retriever
+        self.cat_encoder = category_encoder
+        self.emb_cache   = emb_cache or {}
+        if self.emb_cache:
+            self.agent.set_embedding_cache(self.emb_cache)
+
+    def _vec(self, asin):
+        if asin in self.emb_cache:
+            return self.emb_cache[asin]
+        if asin in self.retriever.asin_to_idx:
+            return self.retriever.text_flat.reconstruct(self.retriever.asin_to_idx[asin])
+        return None
+
+    def score_candidates(self, train_clicks: list, candidate_asins: list) -> dict:
+        cat_ids = self.cat_encoder.encode_sequence(train_clicks)
+        return self.agent.get_candidate_scores(train_clicks, cat_ids, candidate_asins)
+
+    def recommend_full(self, train_clicks: list, k: int, exclude: set) -> list:
+        vecs = [v for a in train_clicks if (v := self._vec(a)) is not None]
+        if not vecs:
+            return []
+        profile = np.mean(vecs, axis=0)
+        candidates = self.retriever.get_content_candidates(
+            profile, top_n=settings.PERSONAL_CANDIDATES, exclude_asins=exclude
+        )
+        scores = self.score_candidates(train_clicks, candidates)
+        return [a for a, _ in sorted(scores.items(), key=lambda x: x[1], reverse=True)][:k]
+
+
 class PipelineAStrategy:
     """
     Pipeline A: Cleora behavioral graph + BGE-M3 profile similarity ranking.
@@ -814,9 +907,19 @@ def main():
             retriever, cat_encoder, emb_cache,
             pretrained_path=pretrained_path if os.path.exists(pretrained_path) else None,
         )
+        sasrec_strategy = SASRecContentStrategy(
+            retriever, cat_encoder, emb_cache,
+            pretrained_path=pretrained_path if os.path.exists(pretrained_path) else None,
+        )
+        sasrec_content_path = os.path.join(DATA_DIR, "sasrec_content_pretrained.pt")
+        sasrec_trained = SASRecTrainedStrategy(
+            retriever, cat_encoder, emb_cache,
+            pretrained_path=sasrec_content_path if os.path.exists(sasrec_content_path) else None,
+        ) if os.path.exists(sasrec_content_path) else None
         strategies = [
             ContentBaseline(retriever, emb_cache),
-            GRUSeqDQNStrategy(retriever, emb_cache),
+            sasrec_strategy,
+            *([sasrec_trained] if sasrec_trained else []),
             dif_strategy,
         ]
 
