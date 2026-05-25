@@ -1,0 +1,58 @@
+% Chapter 2 — Section: Evolution of Next Best Action Systems and the Research Gap
+% Generated from: literature_step1.md + verified_papers.md
+% All citations verified in ≥2 databases. Format: \cite{} only.
+% Do NOT insert \begin{document} or markdown — paste directly into the chapter.
+
+\subsection{Evolution of Next Best Action Systems and the Research Gap}
+\label{subsec:nba-evolution}
+
+The problem of predicting a user's next preferred item — variously framed as session-based
+recommendation, sequential prediction, or next best action (NBA) — has evolved through three
+distinct algorithmic generations over the past fifteen years.
+The earliest formalization by \cite{rendle2010fpmc} combined matrix factorization with
+first-order Markov chain transitions, enabling tractable inference over personalized item
+sequences even under sparse interaction data.
+This Markov foundation established the key inductive bias of the field: that the immediate
+prior interaction is the strongest predictor of the next, a principle all subsequent methods
+either extend or challenge.
+The deep learning transition arrived with \cite{hidasi2016gru4rec}, who demonstrated that
+Gated Recurrent Units (GRU) capture session-level sequential dependencies substantially more
+effectively than Markov models by modeling unbounded interaction histories through learned
+hidden states.
+\cite{kang2018self} subsequently replaced recurrence with self-attention, introducing
+\emph{SASRec}, which attends selectively to decision-relevant past items via a causally
+masked Transformer and achieves superior accuracy on both sparse and dense interaction
+datasets.
+
+Despite this rapid architectural progress, traditional sequential recommendation methods share
+a fundamental limitation that none of the above systems address: item representations are
+learned ID embeddings, carrying no visual attributes, textual descriptions, or multimodal
+content signals.
+Under this paradigm, two visually identical products with distinct catalog identifiers are
+treated as semantically unrelated; models trained on fixed ID vocabularies fail on new or
+infrequently purchased items where embeddings remain undertrained; and inference weights are
+frozen at serving time, leaving models unable to adapt to within-session preference shifts as
+a user's intent evolves.
+This shared failure mode — the inability to incorporate item visual attributes, the fragility
+of ID-based representations under cold-start conditions, and the rigidity of static weights
+under session-level context shifts — constitutes the central research gap that our dual-pipeline
+NBA system is designed to address.
+
+The multimodal wave of 2022--2024 began closing this gap by aligning visual and textual item
+signals with collaborative filtering.
+\cite{wei2023mmssl} demonstrated via inter-modality contrastive learning that visual-textual
+alignment provides recommendation signal orthogonal to co-occurrence statistics, substantially
+improving cold-start performance on e-commerce benchmarks.
+\cite{zhou2023bm3} showed that simple dropout-based contrastive augmentation across modalities
+achieves competitive accuracy with 2--9$\times$ lower training cost than graph-based multimodal
+methods, establishing visual-textual bootstrapping as a practical industrial approach.
+Most recently, \cite{guo2024lgmrec} demonstrated that combining local item-level and global
+user-level graph structures with multimodal features consistently outperforms single-modality
+ablations, confirming that visual content and interaction structure are complementary signals
+rather than substitutes.
+Our system operationalizes this multimodal insight through two independent pipelines: Pipeline~A
+employs Cleora behavioral co-purchase graph embeddings re-ranked by BGE-M3 content similarity,
+targeting the structural signal \cite{rendle2010fpmc} identified; Pipeline~B extends the
+\cite{xie2022difsasrec} decoupled side-information architecture with per-user online
+fine-tuning, enabling visual and categorical features to modulate sequential intent while
+the \texttt{AgentPool} mechanism allows model weights to adapt within a live session.
