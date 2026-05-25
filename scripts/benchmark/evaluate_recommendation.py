@@ -285,6 +285,46 @@ class SASRecTrainedStrategy:
         return [a for a, _ in sorted(scores.items(), key=lambda x: x[1], reverse=True)][:k]
 
 
+class GRU4RecStrategy:
+    """
+    GRU4Rec recurrent baseline — two-layer GRU over BGE-M3 content embeddings.
+
+    Loads data/gru4rec_pretrained.pt — produced by scripts/train_gru4rec.py.
+    No category stream. Provides the recurrent row in the architectural
+    progression: Content Baseline → GRU4Rec → SASRecF → DIF-SASRec.
+    """
+    name = "GRU4Rec (content-based)"
+
+    def __init__(self, retriever, emb_cache: dict = None, pretrained_path=None):
+        from app.services.gru4rec import GRU4RecAgent
+        self.agent     = GRU4RecAgent(retriever, pretrained_path)
+        self.retriever = retriever
+        self.emb_cache = emb_cache or {}
+        if self.emb_cache:
+            self.agent.set_embedding_cache(self.emb_cache)
+
+    def _vec(self, asin):
+        if asin in self.emb_cache:
+            return self.emb_cache[asin]
+        if asin in self.retriever.asin_to_idx:
+            return self.retriever.text_flat.reconstruct(self.retriever.asin_to_idx[asin])
+        return None
+
+    def score_candidates(self, train_clicks: list, candidate_asins: list) -> dict:
+        return self.agent.get_candidate_scores(train_clicks, candidate_asins)
+
+    def recommend_full(self, train_clicks: list, k: int, exclude: set) -> list:
+        vecs = [v for a in train_clicks if (v := self._vec(a)) is not None]
+        if not vecs:
+            return []
+        profile = np.mean(vecs, axis=0)
+        candidates = self.retriever.get_content_candidates(
+            profile, top_n=settings.PERSONAL_CANDIDATES, exclude_asins=exclude
+        )
+        scores = self.score_candidates(train_clicks, candidates)
+        return [a for a, _ in sorted(scores.items(), key=lambda x: x[1], reverse=True)][:k]
+
+
 class PipelineAStrategy:
     """
     Pipeline A: Cleora behavioral graph + BGE-M3 profile similarity ranking.
@@ -916,8 +956,14 @@ def main():
             retriever, cat_encoder, emb_cache,
             pretrained_path=sasrec_content_path if os.path.exists(sasrec_content_path) else None,
         ) if os.path.exists(sasrec_content_path) else None
+        gru4rec_path = os.path.join(DATA_DIR, "gru4rec_pretrained.pt")
+        gru4rec_strategy = GRU4RecStrategy(
+            retriever, emb_cache,
+            pretrained_path=gru4rec_path,
+        ) if os.path.exists(gru4rec_path) else None
         strategies = [
             ContentBaseline(retriever, emb_cache),
+            *([gru4rec_strategy] if gru4rec_strategy else []),
             sasrec_strategy,
             *([sasrec_trained] if sasrec_trained else []),
             dif_strategy,
