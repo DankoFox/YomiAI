@@ -6,53 +6,14 @@
 \subsection{Evolution of Next Best Action Systems and the Research Gap}
 \label{subsec:nba-evolution}
 
-The problem of predicting a user's next preferred item — variously framed as session-based
-recommendation, sequential prediction, or next best action (NBA) — has evolved through three
-distinct algorithmic generations over the past fifteen years.
-The earliest formalization by \cite{rendle2010fpmc} combined matrix factorization with
-first-order Markov chain transitions, enabling tractable inference over personalized item
-sequences even under sparse interaction data.
-This Markov foundation established the key inductive bias of the field: that the immediate
-prior interaction is the strongest predictor of the next, a principle all subsequent methods
-either extend or challenge.
-The deep learning transition arrived with \cite{hidasi2016gru4rec}, who demonstrated that
-Gated Recurrent Units (GRU) capture session-level sequential dependencies substantially more
-effectively than Markov models by modeling unbounded interaction histories through learned
-hidden states.
-\cite{kang2018self} subsequently replaced recurrence with self-attention, introducing
-\emph{SASRec}, which attends selectively to decision-relevant past items via a causally
-masked Transformer and achieves superior accuracy on both sparse and dense interaction
-datasets.
+Sequential recommendation, also called session-based recommendation or next best action (NBA) prediction, has gone through three broad model families over the past fifteen years.
 
-Despite this rapid architectural progress, traditional sequential recommendation methods share
-a fundamental limitation that none of the above systems address: item representations are
-learned ID embeddings, carrying no visual attributes, textual descriptions, or multimodal
-content signals.
-Under this paradigm, two visually identical products with distinct catalog identifiers are
-treated as semantically unrelated; models trained on fixed ID vocabularies fail on new or
-infrequently purchased items where embeddings remain undertrained; and inference weights are
-frozen at serving time, leaving models unable to adapt to within-session preference shifts as
-a user's intent evolves.
-This shared failure mode — the inability to incorporate item visual attributes, the fragility
-of ID-based representations under cold-start conditions, and the rigidity of static weights
-under session-level context shifts — constitutes the central research gap that our dual-pipeline
-NBA system is designed to address.
+The earliest was Markov-based. \cite{rendle2010fpmc} combined matrix factorization with first-order Markov transitions, which made per-user sequential inference tractable even on sparse data. The core assumption from the start: the most recent interaction is the strongest signal for the next one.
 
-The multimodal wave of 2022--2024 began closing this gap by aligning visual and textual item
-signals with collaborative filtering.
-\cite{wei2023mmssl} demonstrated via inter-modality contrastive learning that visual-textual
-alignment provides recommendation signal orthogonal to co-occurrence statistics, substantially
-improving cold-start performance on e-commerce benchmarks.
-\cite{zhou2023bm3} showed that simple dropout-based contrastive augmentation across modalities
-achieves competitive accuracy with 2--9$\times$ lower training cost than graph-based multimodal
-methods, establishing visual-textual bootstrapping as a practical industrial approach.
-Most recently, \cite{guo2024lgmrec} demonstrated that combining local item-level and global
-user-level graph structures with multimodal features consistently outperforms single-modality
-ablations, confirming that visual content and interaction structure are complementary signals
-rather than substitutes.
-Our system operationalizes this multimodal insight through two independent pipelines: Pipeline~A
-employs Cleora behavioral co-purchase graph embeddings re-ranked by BGE-M3 content similarity,
-targeting the structural signal \cite{rendle2010fpmc} identified; Pipeline~B extends the
-\cite{xie2022difsasrec} decoupled side-information architecture with per-user online
-fine-tuning, enabling visual and categorical features to modulate sequential intent while
-the \texttt{AgentPool} mechanism allows model weights to adapt within a live session.
+Recurrent networks followed. \cite{hidasi2016gru4rec} showed that Gated Recurrent Units (GRU) outperform Markov models by reading the full sequence through a learned hidden state rather than just the last step. Then \cite{kang2018self} replaced the recurrence with self-attention. SASRec applies a causally masked Transformer to weight past items selectively and outperforms GRU-based approaches on both sparse and dense datasets.
+
+All three share the same limitation: items are ID embeddings. Two books with different ISBNs are orthogonal vectors regardless of how similar they are in content. Models trained on a fixed vocabulary struggle with new or rarely purchased items, and their weights are frozen at serving time, so they cannot adjust as a user's intent shifts mid-session. This is the gap the present system targets.
+
+\cite{wei2023mmssl} showed that aligning visual and textual item signals via contrastive learning produces recommendation signal orthogonal to co-occurrence patterns, which improves cold-start accuracy substantially. \cite{zhou2023bm3} showed that simple dropout-based cross-modal augmentation reaches competitive accuracy at 2--9$\times$ lower training cost than graph-based multimodal methods. \cite{guo2024lgmrec} added local and global graph structure on top of multimodal features and found that visual content and interaction structure contribute independently rather than substituting for each other.
+
+Pipeline~A of the present system uses Cleora co-purchase graph embeddings re-ranked by BGE-M3, capturing the co-occurrence structure that goes back to \cite{rendle2010fpmc}. Pipeline~B extends the decoupled attention architecture from \cite{xie2022difsasrec} with per-user online fine-tuning via \texttt{AgentPool}, allowing visual and categorical features to adjust recommendations within a live session without waiting for offline retraining.
