@@ -476,10 +476,15 @@ def build_eval_cache(retriever, eval_users, all_asins, n_neg, logger):
 # ─── Evaluation modes ─────────────────────────────────────────────────────────
 
 def eval_sampled(strategy, eval_users, all_asins, neg_pool_asins,
-                 n_neg, k, max_users, logger):
+                 n_neg, k, max_users, logger,
+                 hard_negatives=False, category_asins=None, cat_encoder=None):
     """
     Sampled evaluation (academic standard).
-    Rank test item among itself + n_neg random negatives drawn from neg_pool_asins.
+    Rank test item among itself + n_neg negatives drawn from neg_pool_asins.
+
+    When hard_negatives=True, negatives are drawn from the same category as the
+    target (within-category). Falls back to random if the category pool has
+    fewer than 200 available items after excluding seen ASINs.
     """
     hr5, hr10, ndcg10, mrr10 = [], [], [], []
     t0          = time.time()
@@ -503,8 +508,19 @@ def eval_sampled(strategy, eval_users, all_asins, neg_pool_asins,
             continue
 
         seen = set(train) | set(test)
-        negs = [a for a in random.sample(neg_pool_asins, min(n_neg * 3, len(neg_pool_asins)))
-                if a not in seen][:n_neg]
+        if hard_negatives and category_asins is not None and cat_encoder is not None:
+            target_cat = cat_encoder.get_category_id(target)
+            cat_pool   = [a for a in category_asins.get(target_cat, [])
+                          if a not in seen and a in all_asins_s]
+            if len(cat_pool) >= 200:
+                negs = random.sample(cat_pool, min(n_neg, len(cat_pool)))
+            else:
+                negs = [a for a in random.sample(neg_pool_asins,
+                                                  min(n_neg * 3, len(neg_pool_asins)))
+                        if a not in seen][:n_neg]
+        else:
+            negs = [a for a in random.sample(neg_pool_asins, min(n_neg * 3, len(neg_pool_asins)))
+                    if a not in seen][:n_neg]
         if len(negs) < n_neg // 2:
             skipped += 1
             continue
@@ -866,6 +882,10 @@ def parse_args():
                    help="Run Pipeline A + DIF-SASRec + Combined (A+B) and print complementarity table")
     p.add_argument("--pretrained-path", type=str, default=None,
                    help="Path to DIF-SASRec checkpoint (default: data/dif_sasrec_pretrained.pt)")
+    p.add_argument("--hard-negatives", action="store_true",
+                   help="Sample negatives from the same category as the target item "
+                        "(within-category hard negatives). Falls back to random when "
+                        "the category pool has fewer than 200 available items.")
     return p.parse_args()
 
 
@@ -920,6 +940,19 @@ def main():
     logger.info(f"Eval users loaded: {len(eval_users):,} total  using {n_eval:,}")
 
     all_asins = list(retriever.asin_to_idx.keys())
+
+    # ── Hard-negative index ───────────────────────────────────────────────────
+    category_asins = {}
+    if args.hard_negatives:
+        cat_index_path = os.path.join(DATA_DIR, "category_asins.json")
+        if not os.path.exists(cat_index_path):
+            print(f"  ERROR: category_asins.json not found at {cat_index_path}")
+            print("         Run scripts/build_category_index.py first.")
+            sys.exit(1)
+        with open(cat_index_path, encoding="utf-8") as f:
+            category_asins = {int(k): v for k, v in json.load(f).items()}
+        print(f"  Hard negatives: {yellow('ON')}  — {len(category_asins)} categories loaded")
+        logger.info(f"Hard-negative mode: {len(category_asins)} categories loaded")
 
     # ── Pre-cache embeddings ──────────────────────────────────────────────────
     emb_cache, neg_pool_asins = build_eval_cache(
@@ -1007,7 +1040,10 @@ def main():
                 print(f"  {bold(s.name)} ...", end="", flush=True)
                 r = eval_sampled(s, eval_users, all_asins, neg_pool_asins,
                                  n_neg=args.negatives, k=args.k,
-                                 max_users=args.max_users, logger=logger)
+                                 max_users=args.max_users, logger=logger,
+                                 hard_negatives=args.hard_negatives,
+                                 category_asins=category_asins,
+                                 cat_encoder=cat_encoder)
                 hr5, hr10, nd, mr, n, t = r
                 print(f"\r  {bold(s.name):<22}  done  {green(f'HR@10={hr10:.4f}')}"
                       f"  NDCG@10={nd:.4f}  {t:.1f}s")

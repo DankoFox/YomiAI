@@ -1,7 +1,7 @@
-\section{Existing Solutions}
+\subsection{Sequential Recommendation Models}
 \label{sec:existing_solutions}
 
-\subsection{Evolution of Sequential Recommendation Models}
+\subsubsection{Evolution of Sequential Recommendation Models}
 
 Sequential recommendation has evolved through several model families, each addressing a limitation of its predecessor.
 
@@ -24,8 +24,7 @@ Xie et al.~\cite{xie2022difsasrec} observed that prior methods fuse side informa
 DIF-SASRec decouples these streams into separate attention modules and shows consistent gains over SASRec and BERT4Rec across multiple datasets.
 This architecture is adopted as Pipeline~B of the proposed system.
 
-\subsection{ Limitations of Early Fusion Side Information Models
-}
+\subsubsection{Limitations of Early Fusion Side Information Models}
 
 Early side information-aware recommendation models typically incorporate textual or categorical metadata by merging side information embeddings with item embeddings before the self attention layer. This introduces several architectural limitations.
 
@@ -37,7 +36,7 @@ Third, additive fusion strategies produce coupled gradient updates for item and 
 
 These limitations motivated the development of DIF-SASRec, which performs attention computation separately for content and side-information streams before combining the resulting attention maps.
 
-\subsection{Comparison of Sequential Recommendation Architectures}
+\subsubsection{Comparison of Sequential Recommendation Architectures}
 \label{sec:seq_model_comparison}
 
 Table~\ref{tab:seq_model_comparison} summarises the key architectural properties of the sequential recommendation models discussed above, including the proposed DIF-SASRec system.
@@ -64,7 +63,7 @@ DIF-SASRec uniquely combines parallel (non-sequential) training, explicit side-i
 The bidirectional masking of BERT4Rec makes it incompatible with causal inference and online adaptation, ruling it out for the real-time personalisation objective of this system.
 GRU-based models (GRU4Rec, GRU-SeqDQN) are parallelisation-constrained and scale poorly to the 200-item sequences present in the Amazon Books evaluation set.
 
-\subsection{The Prior System: GRU-SeqDQN}
+\subsubsection{The Prior System: GRU-SeqDQN}
 
 The system evaluated in this report supersedes a prior implementation (hereafter GRU-SeqDQN) that paired a GRU sequence encoder with a Deep Q-Network (DQN) policy for recommendation.
 The DQN formulates recommendation as a reinforcement learning problem: the agent receives a reward signal from user interactions and learns a Q-function mapping (user state, candidate item) pairs to expected return.
@@ -74,4 +73,15 @@ Two structural limitations explain this failure.
 First, the GRU encoder inherits the sequential bottleneck identified above.
 Second, DQN training is highly sample-inefficient at the scale of millions of items: the action space is too large for the Q-function to converge reliably in a reasonable number of training steps.
 The proposed DIF-SASRec (Pipeline B) and Cleora-based (Pipeline A) pipelines directly address both limitations.
+
+\subsection{Research Gap and Motivation}
+
+The works surveyed above address individual dimensions of the recommendation problem in isolation.
+Commercial systems such as Amazon's co-purchase engine~\cite{linden2003amazon} scale behavioural signals effectively but do not model within-session sequential intent.
+Sequential models (GRU4Rec~\cite{hidasi2016gru4rec}, SASRec~\cite{kang2018self}, BERT4Rec~\cite{sun2019bert4rec}) capture temporal intent but rely on item ID embeddings, limiting generalisation to new or rare items and providing no mechanism for multilingual or visual queries.
+Multimodal encoders such as BGE-M3~\cite{chen2024bge} and CLIP~\cite{radford2021clip} address content and cross-modal retrieval but offer no sequential personalisation.
+DIF-SASRec~\cite{xie2022difsasrec} integrates side information into sequential modelling but was designed for offline batch inference without a mechanism for within-session online adaptation.
+
+No existing system simultaneously addresses all four challenges present in large-scale book recommendation: (1)~cold-start coverage for the long catalogue tail via content embeddings, (2)~within-session online adaptation without offline retraining cycles, (3)~multilingual query support for non-English users, and (4)~complementary fusion of behavioural co-purchase signals with sequential intent modelling.
+The dual-pipeline system proposed in this thesis directly targets this intersection, combining Cleora co-purchase graph embeddings (Pipeline~A) with an online-adaptive DIF-SASRec sequential model (Pipeline~B), unified by a BGE-M3 semantic backbone that supports both dense retrieval and multilingual input.
 
