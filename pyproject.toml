@@ -1,0 +1,99 @@
+[project]
+name = "nba-recommendation"
+version = "3.0.0"
+description = "NBA Multimodal Recommendation System — multimodal search + DIF-SASRec personalisation"
+requires-python = ">=3.12"
+dependencies = [
+    # ── Web framework ──────────────────────────────────────────────────────────
+    "fastapi>=0.135",
+    "uvicorn[standard]>=0.41",
+    "pydantic>=2.12",
+    "pydantic-settings>=2.14",
+    "python-multipart>=0.0.22",
+    "sse-starlette>=3.3",
+    "anyio>=4.12",
+
+    # ── ML / NLP (torch handled separately — pre-install before uv sync) ─────
+    "sentence-transformers>=5.3",
+    "transformers @ git+https://github.com/huggingface/transformers.git@a553395766001116a719c82870171f8d6b458c98",
+    "accelerate>=1.13",
+    "bitsandbytes>=0.49",
+    "safetensors>=0.7",
+    "datasets>=4.6",
+    "tokenizers>=0.22",
+    "sentencepiece>=0.2",
+
+    # ── Data science ──────────────────────────────────────────────────────────
+    "numpy>=2.4",
+    "pandas>=3.0",
+    "pyarrow>=23.0",
+    "scikit-learn>=1.8",
+    "scipy>=1.17",
+    "matplotlib>=3.10",
+    "seaborn>=0.13",
+    "Pillow>=12.1",
+
+    # ── Search / Retrieval ────────────────────────────────────────────────────
+    "faiss-cpu>=1.13",
+    "tantivy>=0.25",
+    "rank-bm25>=0.2",
+
+    # ── Database / Cache ──────────────────────────────────────────────────────
+    "motor>=3.7",
+    "redis>=7.4",
+
+    # ── Auth ──────────────────────────────────────────────────────────────────
+    "Authlib>=1.7",
+    "PyJWT>=2.12",
+
+    # ── LLM / Translation ─────────────────────────────────────────────────────
+    "lingua-language-detector>=2.2",
+
+    # ── Utilities ─────────────────────────────────────────────────────────────
+    "python-dotenv>=1.2",
+    "requests>=2.32",
+    "httpx>=0.28",
+    "graphviz>=0.21",
+    "PyYAML>=6.0",
+    "tqdm>=4.67",
+    "rich>=14.3",
+    "watchdog>=5.0",
+    "pyperclip>=1.11",
+    "python-json-logger>=4.1",
+    "fsspec>=2026.2",
+
+    # ── Code Review Graph (knowledge graph for codebase understanding) ────────
+    "code-review-graph>=2.3",
+
+    # ── Cleora collaborative filtering ────────────────────────────────────────
+    "pycleora>=3.2",
+
+    # ── Browser automation (slide export) ─────────────────────────────────────
+    "playwright>=1.52",
+]
+
+[dependency-groups]
+dev = [
+    "ipykernel>=7.2",
+    "ipython>=9.10",
+    "pytest>=8",
+]
+
+# ── Custom index for PyTorch nightly (Blackwell GPU CUDA 12.8) ──────────────
+# Torch is a device-specific dependency. It MUST be swapped in AFTER uv sync
+# because sentence-transformers pulls torch transitively — uv resolves it to
+# the stable PyPI build, overwriting any pre-installed nightly.
+#
+# Correct install order:
+#   1. uv sync                              # installs everything (stable torch)
+#   2. uv pip uninstall torch torchvision torchaudio
+#   3. uv pip install --pre torch torchvision torchaudio \
+#        --index-url https://download.pytorch.org/whl/nightly/cu128
+#   4. python -c "import torch; print(torch.cuda.is_available())"  # verify
+[[tool.uv.index]]
+name = "pytorch-nightly"
+url = "https://download.pytorch.org/whl/nightly/cu128"
+explicit = true
+
+[tool.uv]
+exclude-newer = "2026-06-06T00:00:00Z"
