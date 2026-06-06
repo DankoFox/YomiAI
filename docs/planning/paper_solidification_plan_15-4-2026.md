@@ -1,7 +1,7 @@
 # Paper Solidification Plan — April 15, 2026
 
 Prepared ahead of IAAA 2026 submission.
-Based on full review of `paper/` and all progress updates in `Markdowns/update_regular/`.
+Based on full review of `paper/` and all progress updates in `docs/updates/`.
 
 ---
 

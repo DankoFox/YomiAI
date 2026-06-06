@@ -9,7 +9,7 @@
 Always open with this to reload context:
 
 ```
-Read Markdowns/progress/DEFENSE_NEXT_SESSION.md and Markdowns/progress/HARD_NEGATIVES_PLAN.md, confirm what's done and what's next.
+Read docs/progress/DEFENSE_NEXT_SESSION.md and docs/progress/HARD_NEGATIVES_PLAN.md, confirm what's done and what's next.
 ```
 
 ---
@@ -63,7 +63,7 @@ Load category_asins.json in main() only when --hard-negatives is set. Pass it an
 cat_encoder into eval_sampled as optional kwargs (default None). Do not change
 anything in the --combined or --pipeline-a-only branches.
 
-Full plan is in Markdowns/progress/HARD_NEGATIVES_PLAN.md Steps 2a-2e.
+Full plan is in docs/progress/HARD_NEGATIVES_PLAN.md Steps 2a-2e.
 ```
 
 ---
@@ -147,7 +147,7 @@ Confirm the surrounding sentence still reads correctly with the new number.
 ## Session C — Defense Slides
 
 ```
-Read Markdowns/progress/DEFENSE_NEXT_SESSION.md for the canonical benchmark numbers.
+Read docs/progress/DEFENSE_NEXT_SESSION.md for the canonical benchmark numbers.
 
 Build a defense slide deck outline for a 20-minute thesis presentation on a dual-pipeline
 multimodal book recommendation system (Amazon Books, FastAPI + React). The system achieves

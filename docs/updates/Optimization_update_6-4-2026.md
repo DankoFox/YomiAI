@@ -1,6 +1,6 @@
 # Search Optimization Update — April 6, 2026
 
-This document tracks the progress of Phase 1.1 (Performance Benchmarking & Optimization) as outlined in the [31-3 Planning Roadmap](../../Markdowns/planning/31-3%20planning.md).
+This document tracks the progress of Phase 1.1 (Performance Benchmarking & Optimization) as outlined in the [31-3 Planning Roadmap](../planning/31-3%20planning.md).
 
 ---
 

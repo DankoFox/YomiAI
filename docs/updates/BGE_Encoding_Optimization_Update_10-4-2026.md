@@ -43,7 +43,7 @@ Measured on Windows (with `torch.compile` skipped, but Cache/Cap active):
 
 - `app/core/models.py`: Core logic for caching, capping, and compilation.
 - `app/core/lifespan.py`: Integrated warmup sequence.
-- `Markdowns/update_regular/BGE_Encoding_Optimization_Update_10-4-2026.md`: This report.
+- `docs/updates/BGE_Encoding_Optimization_Update_10-4-2026.md`: This report.
 
 ---
 *Report generated on April 10, 2026. Verified via `scripts/benchmark/search_timing.py`.*

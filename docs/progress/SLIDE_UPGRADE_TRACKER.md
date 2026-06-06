@@ -1,6 +1,6 @@
 # Phase 2 Slide Upgrade Tracker
 **Goal:** Transition Defense Deck from Phase 1 (BLaIR/CLIP) to Phase 2 (Cleora/DIF-SASRec/BGE-M3).
-**Reference:** `Markdowns/planning/phase2_slide_upgrade_analysis.md`
+**Reference:** `docs/planning/phase2_slide_upgrade_analysis.md`
 
 ## 🔴 Critical Path: Structural Replacements
 - [x] **NEW-SCOPE:** Replace Slide 5 (English-only) with Multilingual/Online Scope.

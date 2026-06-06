@@ -1,6 +1,6 @@
 # Cleora Dynamic Integration Update — April 8, 2026
 
-This document tracks the progress of Phase 1.3 (Dynamic Behavioral Learning) as outlined in the [Cleora Dynamic Integration Plan](../../Markdowns/planning/cleora_dynamic_integration_plan.md).
+This document tracks the progress of Phase 1.3 (Dynamic Behavioral Learning) as outlined in the [Cleora Dynamic Integration Plan](../planning/cleora_dynamic_integration_plan.md).
 
 ---
 

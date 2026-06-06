@@ -9,13 +9,13 @@
 
 | Step | Task | Status | Output File |
 |------|------|--------|-------------|
-| 1A | Research trend analysis (NBA/sequential rec) | ✅ Done | `Markdowns/report/trend_analysis.md` |
-| 1B | Literature review — traditional sequential | ✅ Done | `Markdowns/report/literature_step1.md` |
-| 1B | Literature review — multimodal/visual | ✅ Done | `Markdowns/report/literature_step1.md` |
-| 1C | Cross-verify all cited papers | ✅ Done | `Markdowns/report/verified_papers.md` |
-| 2A | Code verify: routing logic | ✅ Done | `Markdowns/report/code_verification_step2.md` |
-| 2B | Code verify: AgentPool / Phase 2 | ✅ Done | `Markdowns/report/code_verification_step2.md` |
-| 2C | Code verify: HR@10 eval reproducibility | ✅ Done | `Markdowns/report/code_verification_step2.md` |
+| 1A | Research trend analysis (NBA/sequential rec) | ✅ Done | `docs/report/trend_analysis.md` |
+| 1B | Literature review — traditional sequential | ✅ Done | `docs/report/literature_step1.md` |
+| 1B | Literature review — multimodal/visual | ✅ Done | `docs/report/literature_step1.md` |
+| 1C | Cross-verify all cited papers | ✅ Done | `docs/report/verified_papers.md` |
+| 2A | Code verify: routing logic | ✅ Done | `docs/report/code_verification_step2.md` |
+| 2B | Code verify: AgentPool / Phase 2 | ✅ Done | `docs/report/code_verification_step2.md` |
+| 2C | Code verify: HR@10 eval reproducibility | ✅ Done | `docs/report/code_verification_step2.md` |
 | 3 | Write Chapter 2 NBA section (LaTeX) | ✅ Done | `Captsone/chapter2_nba_section.tex` |
 | 4 | Write Chapter 5 Holistic Eval (LaTeX) | ✅ Done | `Captsone/chapter5_holistic.tex` |
 | 5A | Slide: NBA Origins Timeline | ✅ Done | `slides/slide_nba_origins.png` |
@@ -152,7 +152,7 @@ _To be filled from code-review-graph query._
 
 ### Final QA
 - [x] Zero `\parencite{}` in `Captsone/` new files
-- [x] All new claims match `Markdowns/report/code_verification_step2.md`
-- [x] All citations exist in `Markdowns/report/verified_papers.md`
+- [x] All new claims match `docs/report/code_verification_step2.md`
+- [x] All citations exist in `docs/report/verified_papers.md`
 - [x] 4 new BibTeX entries added to `Captsone/sections/ref.bib`
 - [ ] Global `\parencite{}` scan on all existing Captsone sections (run manually)

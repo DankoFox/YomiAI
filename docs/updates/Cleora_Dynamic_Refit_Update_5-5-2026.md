@@ -1,6 +1,6 @@
 # Cleora Dynamic Refit Update — May 5, 2026
 
-This document records the completion of Phase B (Slow Path) and Phase C (Hot-Swap) from the [Cleora Dynamic Integration Plan](../../Markdowns/planning/cleora_dynamic_integration_plan.md).
+This document records the completion of Phase B (Slow Path) and Phase C (Hot-Swap) from the [Cleora Dynamic Integration Plan](../planning/cleora_dynamic_integration_plan.md).
 
 ---
 

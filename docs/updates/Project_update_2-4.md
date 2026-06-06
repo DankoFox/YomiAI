@@ -175,7 +175,7 @@ The FAISS + Adaptive RRF alone (without BGE) should take **< 100 ms** for most q
 |---|---|---|
 | `src/utils.py` | NEW | `detect_language()` + `translate_vi_to_en()` with lazy NLLB-1.3B loading |
 | `api.py` | MODIFIED | Translation hook wired; BGE Reranker removed; import path fixed |
-| `Markdowns/planning/2-4-2026_vietnamese_query_proposal.md` | NEW | Technical proposal document for this session's changes |
+| `docs/planning/2-4-2026_vietnamese_query_proposal.md` | NEW | Technical proposal document for this session's changes |
 
 No changes to `src/active_search_engine.py`, `src/reranker.py`, `src/retriever.py`, or any model files.
 

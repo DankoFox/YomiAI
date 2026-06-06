@@ -36,7 +36,6 @@ output.log
 
 # Legacy / non-source directories
 IAAAconference(Latex)/
-Markdowns/
 profiling/
 
 # IDE & OS

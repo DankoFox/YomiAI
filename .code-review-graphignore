@@ -39,7 +39,6 @@ profiling/
 
 # Legacy / non-source directories
 IAAAconference(Latex)/
-Markdowns/
 
 # Internal graph store
 .code-review-graph/
