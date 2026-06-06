@@ -1,7 +1,7 @@
 # Paper Solidification Plan — April 15, 2026
 
 Prepared ahead of IAAA 2026 submission.
-Based on full review of `paper/` and all progress updates in `docs/updates/`.
+Based on full review of `thesis/paper/` and all progress updates in `docs/updates/`.
 
 ---
 
@@ -48,7 +48,7 @@ This directly supports the "dual complementary pipelines" claim in Section 1.
 ## Medium Priority
 
 ### 4. Expand Related Work §2.4 (Hybrid Systems)
-**File:** `paper/sections/02_related_work.tex:27–31`
+**File:** `thesis/paper/sections/02_related_work.tex:27–31`
 
 Currently one sentence. Add 2–3 citations on multi-modal recommenders (e.g., VBPR, MMSSL, or two-tower models) and explain how they differ from the dual-mode active/passive framing used here.
 
@@ -72,17 +72,17 @@ Can be a small table in the Results section or a compact figure.
 ## Low-Risk Cleanup
 
 ### 6. Fix GRU-SeqDQN citation placeholder
-**File:** `paper/tables/baselines.tex:4`
+**File:** `thesis/paper/tables/baselines.tex:4`
 
 `% TODO: replace with correct GRU-SeqDQN citation` is still open.
 
 ### 7. Fill in author names and student IDs
-**File:** `paper/main.tex:32–39`
+**File:** `thesis/paper/main.tex:32–39`
 
 `[Author Name]`, `[Co-Author Name]`, `[student-id]` are all still placeholders.
 
 ### 8. Fix latency discrepancy in conclusion
-**File:** `paper/sections/07_conclusion.tex:13`
+**File:** `thesis/paper/sections/07_conclusion.tex:13`
 
 The conclusion states "71ms" but the latency table (`tables/latency.tex`) shows warm P50 = 17ms internal / 34ms E2E. Reconcile with the actual measured number.
 

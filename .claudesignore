@@ -35,7 +35,6 @@ output.log
 2026-04-12-2048batch-Retrain-0.77HR@10.txt
 
 # Legacy / non-source directories
-IAAAconference(Latex)/
 profiling/
 
 # IDE & OS

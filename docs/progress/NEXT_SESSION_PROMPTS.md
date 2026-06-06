@@ -102,10 +102,10 @@ DIF-SASRec achieved HR@10=[X] on hard negatives vs SASRecF=[Y] and GRU4Rec=[Z]
 (from evaluation/results_history.json).
 
 Do the following:
-1. Add a second table block to Captsone/chapter5_comparison_table.tex showing the
+1. Add a second table block to thesis/Captsone/chapter5_comparison_table.tex showing the
    hard-negative results. Use \midrule to separate from the existing random-negative
    block. Add a row label footnote explaining "hard negatives = same-category pool".
-2. Add one paragraph to Captsone/chapter5_holistic.tex (after the existing comparison
+2. Add one paragraph to thesis/Captsone/chapter5_holistic.tex (after the existing comparison
    paragraph) explaining the hard-negative result and what it reveals about the
    category stream's contribution.
 3. Also add the GRU4Rec row to the existing random-negative table block
@@ -120,9 +120,9 @@ Use \cite{} only. All numbers must come from evaluation/results_history.json.
 DIF-SASRec did not outperform SASRecF on hard negatives. Do not add the
 hard-negative table. Instead:
 
-1. Add only the GRU4Rec row to Captsone/chapter5_comparison_table.tex between
+1. Add only the GRU4Rec row to thesis/Captsone/chapter5_comparison_table.tex between
    Content Baseline and SASRec ablation. Use \cite{hidasi2016gru4rec}.
-2. Add one sentence to Captsone/chapter5_holistic.tex establishing the GRU4Rec
+2. Add one sentence to thesis/Captsone/chapter5_holistic.tex establishing the GRU4Rec
    recurrent baseline and the jump to self-attention (SASRecF).
 3. In the existing DIF-SASRec paragraph, add one sentence citing Xie et al. 2022
    to explain the limited category gain on Amazon Books (coarse taxonomy).
@@ -137,7 +137,7 @@ Use \cite{} only. Numbers from evaluation/results_history.json only.
 ```
 Khoa provided the Phase 2 HR@10 delta: [VALUE].
 
-Fill the placeholder in Captsone/chapter5_holistic.tex line ~41.
+Fill the placeholder in thesis/Captsone/chapter5_holistic.tex line ~41.
 Replace [DELTA_RESULT] with the actual value. Do not change anything else in that file.
 Confirm the surrounding sentence still reads correctly with the new number.
 ```

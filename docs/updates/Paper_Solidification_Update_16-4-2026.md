@@ -11,9 +11,9 @@ but the actual evaluation used **sampled mode (99 negatives, 100 candidates tota
 HR@10=0.7749 at 99-neg is a strong result; it would be implausible against 3.08M items.
 
 **Fixed in:**
-- `paper/sections/05_experiments.tex` — evaluation metrics rewritten with accurate protocol
-- `paper/tables/main_results.tex` — caption corrected
-- `paper/sections/06_results.tex` — two "full-catalog" references removed
+- `thesis/paper/sections/05_experiments.tex` — evaluation metrics rewritten with accurate protocol
+- `thesis/paper/tables/main_results.tex` — caption corrected
+- `thesis/paper/sections/06_results.tex` — two "full-catalog" references removed
 
 ---
 
@@ -41,8 +41,8 @@ Note: the original single-run 0.7749 was a lucky unseeded draw. The mean across 
 (0.7244) is the honest canonical number and has been updated in the paper.
 
 **Paper updated:**
-- `paper/tables/main_results.tex` — DIF-SASRec row now shows `0.7244 ± 0.0024 / 0.4441 ± 0.0017`
-- `paper/sections/06_results.tex` — percentages recalculated (+66% over Content-KNN, +24% over SASRec)
+- `thesis/paper/tables/main_results.tex` — DIF-SASRec row now shows `0.7244 ± 0.0024 / 0.4441 ± 0.0017`
+- `thesis/paper/sections/06_results.tex` — percentages recalculated (+66% over Content-KNN, +24% over SASRec)
 
 ---
 
@@ -65,9 +65,9 @@ GRU-SeqDQN drops below the random baseline at harder evaluation, confirming
 it lacks genuine discriminative capacity.
 
 **Paper updated:**
-- `paper/tables/robustness_results.tex` — new table created
-- `paper/sections/06_results.tex` — new §6.2 Robustness subsection added
-- `paper/sections/05_experiments.tex` — 999-neg protocol referenced with cross-link
+- `thesis/paper/tables/robustness_results.tex` — new table created
+- `thesis/paper/sections/06_results.tex` — new §6.2 Robustness subsection added
+- `thesis/paper/sections/05_experiments.tex` — 999-neg protocol referenced with cross-link
 
 ---
 

@@ -16,8 +16,8 @@
 | 2A | Code verify: routing logic | ✅ Done | `docs/report/code_verification_step2.md` |
 | 2B | Code verify: AgentPool / Phase 2 | ✅ Done | `docs/report/code_verification_step2.md` |
 | 2C | Code verify: HR@10 eval reproducibility | ✅ Done | `docs/report/code_verification_step2.md` |
-| 3 | Write Chapter 2 NBA section (LaTeX) | ✅ Done | `Captsone/chapter2_nba_section.tex` |
-| 4 | Write Chapter 5 Holistic Eval (LaTeX) | ✅ Done | `Captsone/chapter5_holistic.tex` |
+| 3 | Write Chapter 2 NBA section (LaTeX) | ✅ Done | `thesis/Captsone/chapter2_nba_section.tex` |
+| 4 | Write Chapter 5 Holistic Eval (LaTeX) | ✅ Done | `thesis/Captsone/chapter5_holistic.tex` |
 | 5A | Slide: NBA Origins Timeline | ✅ Done | `slides/slide_nba_origins.png` |
 | 5B | Slide: Alternative NBA Approaches | ✅ Done | `slides/slide_nba_alternatives.png` |
 | 5C | Slide: End-to-End System Performance | ✅ Done | `slides/slide_system_performance.png` |
@@ -134,14 +134,14 @@ _To be filled from code-review-graph query._
 - [x] Drafted from verified papers only
 - [x] GRU-SeqDQN labeled "traditional sequential NBA" (in code_verification_step2.md)
 - [x] Content Baseline labeled "non-multimedia NBA" (in code_verification_step2.md)
-- [x] Output → `Captsone/chapter2_nba_section.tex`
+- [x] Output → `thesis/Captsone/chapter2_nba_section.tex`
 - [ ] scholar-evaluation score ≥ 3/5 all dimensions (run manually)
 
 ### Step 4 — Chapter 5
 - [x] Drafted from code-verified facts (all function names traceable)
-- [x] Output → `Captsone/chapter5_holistic.tex`
+- [x] Output → `thesis/Captsone/chapter5_holistic.tex`
 - [ ] Khoa's Phase 2 delta — replace `[DELTA\_RESULT]` (still open)
-- [x] Comparison table added → `Captsone/chapter5_comparison_table.tex`
+- [x] Comparison table added → `thesis/Captsone/chapter5_comparison_table.tex`
 - [x] Benchmark run (seed=42) — SASRec ablation + DIF-SASRec confirmed
 - [ ] scholar-evaluation score ≥ 3/5 all dimensions (run manually)
 
@@ -151,8 +151,8 @@ _To be filled from code-review-graph query._
 - [x] `slides/slide_system_performance.png` generated
 
 ### Final QA
-- [x] Zero `\parencite{}` in `Captsone/` new files
+- [x] Zero `\parencite{}` in `thesis/Captsone/` new files
 - [x] All new claims match `docs/report/code_verification_step2.md`
 - [x] All citations exist in `docs/report/verified_papers.md`
-- [x] 4 new BibTeX entries added to `Captsone/sections/ref.bib`
+- [x] 4 new BibTeX entries added to `thesis/Captsone/sections/ref.bib`
 - [ ] Global `\parencite{}` scan on all existing Captsone sections (run manually)

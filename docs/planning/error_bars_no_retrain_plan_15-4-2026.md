@@ -48,8 +48,8 @@ Update `sections/05_experiments.tex` to:
 |---|---|
 | `scripts/benchmark/evaluate_recommendation.py` | `--seed`, `--dif-only`, `--pretrained-path` args |
 | `scripts/benchmark/multiseed_eval.py` | New orchestrator — runs N seeds, computes mean ± std |
-| `paper/sections/05_experiments.tex` | Protocol justification paragraph |
-| `paper/tables/main_results.tex` | DIF-SASRec row updated with mean ± std |
+| `thesis/paper/sections/05_experiments.tex` | Protocol justification paragraph |
+| `thesis/paper/tables/main_results.tex` | DIF-SASRec row updated with mean ± std |
 
 ---
 

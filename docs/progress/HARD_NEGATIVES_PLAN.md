@@ -167,7 +167,7 @@ PYTHONIOENCODING=utf-8 python scripts/benchmark/evaluate_recommendation.py --see
 ```
 
 ### Step 4 — Update LaTeX (~20 min)
-**File: `Captsone/chapter5_comparison_table.tex`**
+**File: `thesis/Captsone/chapter5_comparison_table.tex`**
 
 Add a second table block or extend the existing table with a hard-negatives section:
 
@@ -181,7 +181,7 @@ SASRecF~\cite{kang2018self}$\ddagger$ & ... & [HR@10] & ... & ... \\
 DIF-SASRec (ours)~\cite{xie2022difsasrec} & ... & \textbf{[HR@10]} & ... & ... \\
 ```
 
-**File: `Captsone/chapter5_holistic.tex`**
+**File: `thesis/Captsone/chapter5_holistic.tex`**
 
 Add one paragraph after the existing comparison paragraph:
 > "To test the category stream's discriminative contribution, we repeat the evaluation with  
@@ -223,5 +223,5 @@ Do NOT add the hard-negative table if DIF-SASRec does not win — it would hurt 
 | CREATE | `scripts/build_category_index.py` |
 | MODIFY | `scripts/benchmark/evaluate_recommendation.py` (add `--hard-negatives`) |
 | CREATE | `data/category_asins.json` (output of Step 1) |
-| MODIFY | `Captsone/chapter5_comparison_table.tex` (if DIF wins) |
-| MODIFY | `Captsone/chapter5_holistic.tex` (if DIF wins) |
+| MODIFY | `thesis/Captsone/chapter5_comparison_table.tex` (if DIF wins) |
+| MODIFY | `thesis/Captsone/chapter5_holistic.tex` (if DIF wins) |

@@ -22,7 +22,7 @@
 
 **Insert after:** "Problem Statements & Motivation"  
 **Before:** "Next Best Action System Concept"  
-**Source:** `Captsone/chapter2_nba_section.tex`
+**Source:** `thesis/Captsone/chapter2_nba_section.tex`
 
 ### New Slide: "15 Years of Next Best Action Research"
 
@@ -60,7 +60,7 @@ Our System (2024)
 ## Fix 2 — Rewrite "Traditional Gaps" Bullet (CRITICAL)
 
 **Where:** "Problem Statements & Motivation" slide, "Traditional Gaps" section  
-**Source:** `Captsone/chapter2_nba_section.tex` (failure modes paragraph)
+**Source:** `thesis/Captsone/chapter2_nba_section.tex` (failure modes paragraph)
 
 ### Current (weak):
 > - Limited search for both keyword & long query  
@@ -79,7 +79,7 @@ Then map each "Our Solution" bullet 1-to-1 to these three failures. This makes t
 ## Fix 3 — Replace Evaluation Table (CRITICAL)
 
 **Where:** "End-to-end Evaluation" slide  
-**Source:** `Captsone/chapter5_comparison_table.tex`
+**Source:** `thesis/Captsone/chapter5_comparison_table.tex`
 
 ### Current table (REMOVE):
 Missing GRU4Rec, SASRecF, and System A∪B. GRU-SeqDQN listed as a "baseline" when it is actually your prior system — this confuses the committee.
@@ -107,7 +107,7 @@ Missing GRU4Rec, SASRecF, and System A∪B. GRU-SeqDQN listed as a "baseline" wh
 ## Fix 4 — Add Holistic System Slide (IMPORTANT)
 
 **Insert after:** evaluation table slide  
-**Source:** `Captsone/chapter5_holistic.tex`
+**Source:** `thesis/Captsone/chapter5_holistic.tex`
 
 ### New Slide: "System A∪B — True End-to-End Evaluation"
 

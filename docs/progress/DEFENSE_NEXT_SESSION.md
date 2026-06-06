@@ -13,11 +13,11 @@
 | SASRecF checkpoint | `data/sasrec_content_pretrained.pt` | step=46770, trained end-to-end without category stream |
 | SASRecTrainedStrategy added to eval | `scripts/benchmark/evaluate_recommendation.py` | Loads sasrec_content_pretrained.pt |
 | Benchmark run completed | `evaluation/logs/20260525_113118.log` | seed=42, 100k users, all 4 sequential strategies |
-| Table updated with SASRecF row | `Captsone/chapter5_comparison_table.tex` | Row label: `SASRecF~\cite{kang2018self}$\ddagger$` |
-| Table DIF-SASRec numbers updated | `Captsone/chapter5_comparison_table.tex` | 0.7755→0.7738, HR@5: 0.5860→0.5854 (same run) |
-| Holistic text updated | `Captsone/chapter5_holistic.tex` | SASRecF framing, updated DIF-SASRec number, coarse-category explanation |
-| SASRec row relabeled as ablation | `Captsone/chapter5_comparison_table.tex` | `SASRec-equiv. (ablation, α=0)†` |
-| Xie et al. anchor sentence added | `Captsone/chapter5_holistic.tex` | Published comparison, direction confirmed |
+| Table updated with SASRecF row | `thesis/Captsone/chapter5_comparison_table.tex` | Row label: `SASRecF~\cite{kang2018self}$\ddagger$` |
+| Table DIF-SASRec numbers updated | `thesis/Captsone/chapter5_comparison_table.tex` | 0.7755→0.7738, HR@5: 0.5860→0.5854 (same run) |
+| Holistic text updated | `thesis/Captsone/chapter5_holistic.tex` | SASRecF framing, updated DIF-SASRec number, coarse-category explanation |
+| SASRec row relabeled as ablation | `thesis/Captsone/chapter5_comparison_table.tex` | `SASRec-equiv. (ablation, α=0)†` |
+| Xie et al. anchor sentence added | `thesis/Captsone/chapter5_holistic.tex` | Published comparison, direction confirmed |
 
 ---
 
@@ -39,7 +39,7 @@
 
 ## One Remaining Placeholder
 
-File: `Captsone/chapter5_holistic.tex`, line ~41  
+File: `thesis/Captsone/chapter5_holistic.tex`, line ~41  
 Replace: `[DELTA\_RESULT]`  
 With: Khoa's Phase 2 HR@10 delta (zero-click vs post-click). **Do NOT invent a number.**
 
@@ -133,11 +133,11 @@ Run in background task. Results appear in `evaluation/results_history.json`.
 
 ### Step 5 — Update LaTeX
 
-**`Captsone/chapter5_comparison_table.tex`:**
+**`thesis/Captsone/chapter5_comparison_table.tex`:**
 - Add `GRU4Rec~\cite{hidasi2016gru4rec}` row between Content Baseline and SASRec-equiv. ablation
 - Add `\S` or `\S\S` footnote if needed explaining it uses GRU hidden state, not self-attention
 
-**`Captsone/chapter5_holistic.tex`:**
+**`thesis/Captsone/chapter5_holistic.tex`:**
 - Add one sentence in the comparison paragraph: GRU4Rec establishes the upper bound for recurrent sequential modelling; the jump to self-attention (SASRecF) is the key gain, and DIF-SASRec decouples the category signal on top.
 
 ---

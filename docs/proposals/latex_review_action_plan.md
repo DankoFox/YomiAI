@@ -1,6 +1,6 @@
 # LaTeX Review — Action Plan & Progress Tracker
 
-Generated from `/review-latex` audit of all 18 `.tex` files in `paper/` and `IAAAconference(Latex)/`.
+Generated from `/review-latex` audit of all 18 `.tex` files in `thesis/paper/` and `IAAAconference(Latex)/`.
 Check off each item as you complete it.
 
 ---
