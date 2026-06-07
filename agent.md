@@ -9,7 +9,7 @@ in a unified way. This system bridges that gap.
 
 | Aspect | Value |
 |---|---|
-| Paper | "Bridging Multimodal Content and Behavioral Signals for NBA Recommendation" — IAAA 2026 (Springer LNNS) |
+| Paper | "Bridging Multimodal Content and Behavioral Signals for NBA Recommendation" — IAAA 2026 (Springer LNNS). **NBA = Next Best Action.** |
 | Backend | Python 3.11 + FastAPI + uvicorn |
 | Frontend | React 19 + Vite 8 + Tailwind CSS |
 | Infra | MongoDB (profiles/logs) + Redis (interaction queue) — via Docker |
@@ -32,14 +32,17 @@ frontend/                     # React 19 + Vite 8 + Tailwind
 ├── src/
 │   ├── components/           # UI components
 │   ├── services/             # API client logic
+│   ├── assets/               # static images/icons
 │   └── App.jsx               # Main app
 
 scripts/
-├── benchmark/                # eval scripts
+├── benchmark/                # eval scripts (HR@10, NDCG@10, encoder compare, latency)
 ├── train/                    # pretrain_dif_sasrec.py
 ├── test/                     # unit/integration tests
 ├── build/                    # index builders
-└── data/                     # cleora pipeline
+├── data/                     # cleora pipeline
+├── audit/                    # data quality audits
+└── profiling/                # perf profiling scripts
 
 thesis/
 ├── paper/                    # Springer LNNS conference paper (8 sections)
@@ -284,12 +287,17 @@ Used for ablation comparison in the paper. Checkpoint arch: `"gru4rec_v1"`.
 Lazy-loaded Qwen2.5-1.5B-Instruct. Grounds responses via Google Books API +
 Wikipedia. Semantic reranking of context with BGE-M3. Streaming supported.
 
+### `app/services/category_encoder.py`
+Category vocabulary + embedding layer shared by DIF-SASRec category stream.
+Reads `data/category_vocab.json` and `data/category_asins.json`.
+
 ### `app/infrastructure/database.py`
 MongoDB (profiles, interactions) + Redis (interaction queue, blocked sets).
 
 ### `app/infrastructure/translation.py`
-Lingua language detection (19 languages) + NLLB-200-Distilled-600M translation.
-Two-tier: greedy (beam=1, ~16ms) → quality gate → beam=4 fallback (~30ms).
+Lingua language detection (19 languages: vi, fr, de, es, zh, ja, ko, ar, pt, ru,
+it, th, id, nl, pl, tr, uk, hi, sv) + NLLB-200-Distilled-600M translation.
+Two-tier: greedy (beam=1, ~30ms) → quality gate → beam=4 fallback (~60ms).
 LRU cache (2048 entries).
 
 ---
@@ -326,9 +334,40 @@ python scripts/test_refit_pipeline.py
 
 1. **Do NOT hardcode file paths.** Use `settings.DATA_DIR` + relative paths.
 2. **Do NOT use `asyncio.gather` for parallel encoding.** Use `anyio.create_task_group()`.
-3. **Do NOT share FAI S S index references across threads.** FAISS is not thread-safe for writes; reads via mmap are safe.
+3. **Do NOT share FAISS index references across threads.** FAISS is not thread-safe for writes; reads via mmap are safe.
 4. **Do NOT mutate `settings`.** It's a frozen dataclass.
 5. **Do NOT import from old `src/` paths.** All imports are from `app.*`.
 6. **Agent pool agents must call `load_user()` before every use** to prevent cross-user weight contamination.
 7. **Numpy arrays in user profiles** must be serialized via `.tolist()` and deserialized via `np.array()`.
 8. **New model agents must implement:** `get_intent_vector()`, `get_candidate_scores()`, `train_step()` / `train_step_batch()`, `save()`, `load()`, `load_user()`, `save_user()`, and a pretrained-state snapshot in `__init__`.
+9. **Stale `.pyc` files in `app/services/__pycache__/`** for `bert4rec`, `rl_filter`, `sequential_dqn` are orphaned (source files removed). Safe to delete with `Get-ChildItem -Path "app\services\__pycache__" -Filter "bert4rec*" -Recurse | Remove-Item -Recurse -Force`.
+
+---
+
+## Key Data Files (`data/`)
+
+| File | Contents |
+|---|---|
+| `bge_index_hnsw.faiss` | BGE-M3 HNSW (1.7M vectors, production search) |
+| `bge_index_flat.faiss` | BGE-M3 flat (3M vectors, exact eval) |
+| `blair_index_hnsw_legacy.faiss` | Legacy BLaIR HNSW (3M vectors) |
+| `cleora_embeddings.npz` | Behavioral graph embeddings (~375k items) |
+| `clip_index_hnsw.faiss` | CLIP visual index (~3M items) |
+| `item_metadata.parquet` | Title, author, genre, image URL (3M items) |
+| `dif_sasrec_pretrained.pt` | Pretrained DIF-SASRec weights (12.4M params) |
+| `sasrec_content_pretrained.pt` | Pretrained SASRec-content baseline (ablation) |
+| `gru4rec_pretrained.pt` | Pretrained GRU4Rec baseline (ablation) |
+| `category_vocab.json` | Category ID ↔ name mapping for DIF-SASRec |
+| `category_asins.json` | Per-category ASIN index for category stream |
+| `tantivy_index/` | BM25 keyword index (auto-rebuilt) |
+| `bge_embeddings_chunk_*.npz` | Sharded BGE-M3 embeddings (32 shards) |
+
+---
+
+## AgentPool Contract (verified, do not change)
+
+- Pool size = `AGENT_POOL_SIZE` (default 8) — defined in `app/services/agent_pool.py`.
+- Each agent holds pretrained weights + AdamW state ≈ 148 MB. Total pool ≈ 1.18 GB VRAM.
+- `borrow()` is a context manager. ALWAYS use `async with`. No timeout — leaked agent stalls all subsequent borrows.
+- `load_user(user_id, settings.DATA_DIR)` MUST be called inside the `async with` BEFORE inference/training. Skipping causes cross-user weight contamination.
+- `save_user()` persists per-user checkpoint to disk. Cleared on pool size change.
