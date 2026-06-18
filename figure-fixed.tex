@@ -1,15 +1,6 @@
-% ============================================================
-%  Dual-Pipeline Architecture — Conference Figure
-%  Requires in preamble:
-%    \usepackage{tikz}
-%    \usetikzlibrary{arrows.meta,shapes.geometric,positioning,backgrounds,fit}
-%    \pgfdeclarelayer{background}
-%    \pgfsetlayers{background,main}
-% ============================================================
-
-\usetikzlibrary{arrows.meta, backgrounds, positioning, fit}
 \begin{figure}[H]
 \centering
+\makebox[\textwidth][c]{%
 \resizebox{1.0\textwidth}{!}{%
 \begin{tikzpicture}[
   >=Stealth,
@@ -48,15 +39,15 @@
 % ==========================================
 
 \node[data]   (d_text)   at (\pOneL, \rowData)  {Item Metadata\\(Title, Genres, Desc.)};
-\node[model]  (m_bge)    at (\pOneL, \rowModel) {Semantic Encoder\\(BGE-M3)};
+\node[model]  (m_bge)    at (\pOneL, \rowModel) {BGE-M3\\(Semantic Encoder)};
 \node[latent] (l_sem)    at (\pOneL, \rowLatent){Textual\\Latent Space};
 
 \node[data]   (d_img)    at (\pOneC, \rowData)  {Item Cover Images\\(Visual Corpus)};
-\node[model]  (m_clip)   at (\pOneC, \rowModel) {Vision Encoder\\(CLIP)};
+\node[model]  (m_clip)   at (\pOneC, \rowModel) {CLIP Vision Encoder\\(Contrastive Learning)};
 \node[latent] (l_vis)    at (\pOneC, \rowLatent){Visual\\Latent Space};
 
 \node[data]   (d_graph)  at (\pOneR, \rowData)  {User-Item Interactions\\(Co-purchase Graph)};
-\node[model]  (m_cleora) at (\pOneR, \rowModel) {Graph Embeddings\\(Cleora)};
+\node[model]  (m_cleora) at (\pOneR, \rowModel) {Cleora Embeddings\\(Markov Random Walks)};
 \node[latent] (l_behav)  at (\pOneR, \rowLatent){Behavioral\\Latent Space};
 
 \draw[->] (d_text) -- (m_bge);   \draw[->] (m_bge)    -- (l_sem);
@@ -83,9 +74,9 @@
 \node[task]   (t_search)   at (\colSearchQ, \rowTask) {\textbf{Multi-Modal Query}\\Text or Image Input};
 
 % Three parallel retrieval channels
-\node[retrieval] (r_text)  at (\colSearchL, \rowPipe) {Dense Search\\(BGE-M3)};
-\node[retrieval] (r_kw)    at (\colSearchC, \rowPipe) {Lexical Search\\(BM25)};
-\node[retrieval] (r_vis)   at (\colSearchR, \rowPipe) {Visual Search\\(CLIP)};
+\node[retrieval] (r_text)  at (\colSearchL, \rowPipe) {BGE-M3\\HNSW};
+\node[retrieval] (r_kw)    at (\colSearchC, \rowPipe) {Tantivy\\BM25};
+\node[retrieval] (r_vis)   at (\colSearchR, \rowPipe) {CLIP\\HNSW};
 
 \node[fusion] (f_rrf)   at (\colSearchOut, \rowVeto) {Adaptive Weighted\\RRF};
 \node[output] (out_search) at (\colSearchOut, \rowOut) {Search Results};
@@ -120,7 +111,7 @@
 
 \node[task]   (p_retrv)  at (\colRecR, \rowPipe) {\textbf{Semantic Retrieval}\\(BGE-M3 HNSW KNN)};
 \node[fusion] (f_veto_b) at (\colRecR, \rowVeto) {Content Veto\\($\tau \geq 0.3$)};
-\node[task]   (p_seq)    at (\colRecR, \rowOut) {\textbf{Sequential Model}\\(DIF-SASRec)};
+\node[task]   (p_seq)    at (\colRecR, \rowOut) {\textbf{DIF-SASRec}\\(Decoupled Attention)};
 \node[output] (out_yml)  at (\colRecR, \rowOutB)  {Sequential Rec.\\[2pt]\footnotesize{(You Might Like)}};
 
 \draw[->] (l_behav.south) -- (t_profile.north);
@@ -176,7 +167,21 @@
 \end{pgfonlayer}
 
 \end{tikzpicture}%
+}%
 }
-\caption{System architecture (data-flow view).}%
+\caption{System architecture. \emph{Solid} arrows show the
+  inference-time data flow. \emph{Dashed} arrows show feedback
+  loops that update the user profile after each interaction.
+  Phase~1 (\protect\colorbox{gray!4}{\strut gray zone}) learns
+  multi-modal representations across textual (BGE-M3), visual
+  (CLIP), and behavioral (Cleora) modalities. Phase~2 splits into
+  two pipelines:
+  \emph{Active Search} (\protect\colorbox{blue!4}{\strut blue zone})
+  handles multi-modal queries via Adaptive Weighted RRF, while
+  \emph{Recommendation} (\protect\colorbox{green!4}{\strut green zone})
+  generates proactive suggestions through two independent paths:
+  Pipeline~A (Cleora collaborative filtering $\to$ content veto)
+  and Pipeline~B (semantic HNSW retrieval $\to$ content veto $\to$
+  DIF-SASRec).}
 \label{fig:arch}
 \end{figure}
