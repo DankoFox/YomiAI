@@ -1,23 +1,24 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%  IAAA 2026 — Springer LNNS (svproc)
+%  CSoNet 2026 — Springer LNCS (llncs)
 %  Dual-Mode Multimodal Book Recommendation System
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\documentclass{svproc}
+\documentclass[runningheads]{llncs}
 
 % ---- Core packages ----
-\usepackage{url}
-\def\UrlFont{\rmfamily}
-\usepackage{float}
+\usepackage[T1]{fontenc}
 \usepackage{graphicx}           % \includegraphics
 \usepackage{booktabs}           % \toprule / \midrule / \bottomrule
 \usepackage{amsmath}            % align, equation*
 \usepackage{amssymb}
 \usepackage{multirow}           % table row-span
-\usepackage{xcolor}
-\usepackage{hyperref}           % clickable refs (comment out for camera-ready if required)
-\usepackage{microtype}
-% better line breaking
-\raggedbottom            % prevent inter-paragraph stretch to fill pages
+\usepackage{microtype}          % better line breaking
+\usepackage{xcolor}             % required by TikZ and hyperref URL color
+
+% ---- Hyperlinks (Springer LNCS style: blue roman URLs) ----
+\usepackage{hyperref}
+\renewcommand\UrlFont{\color{blue}\rmfamily}
+\urlstyle{rm}
+
 % ----- Math macros -----
 \newcommand{\bgem}{\mathrm{BGE\text{-}M3}}
 \usepackage{tikz}
@@ -28,7 +29,6 @@
 
 % -------------------------------------------------------
 \begin{document}
-\mainmatter
 
 \title{Bridging Multimodal Content and Behavioral Signals for Next Best Action Recommendation}
 
@@ -40,10 +40,7 @@
         Thanh-Van Le\inst{1}}
 \authorrunning{Pham, Dang, and Le}
 
-\tocauthor{Pham Tran Dang Khoa, Dang Minh Khang, Le Ha Nguyen Khanh, Le Thanh Van}
-
 \institute{
- % Department of Computer Systems and Networks,\\
   Faculty of Computer Science and Engineering,\\
   Ho Chi Minh City University of Technology (HCMUT), VNU-HCM, Vietnam\\
   \email{\{khoa.pham2210, khang.dangminh26, khanh.lehai709, ltvan\}@hcmut.edu.vn}
@@ -64,7 +61,7 @@
 \input{sections/07_conclusion}
 
 % ---- Bibliography ----
-\bibliographystyle{splncs03_unsrt}
+\bibliographystyle{splncs04}
 \bibliography{references}
 
 \end{document}

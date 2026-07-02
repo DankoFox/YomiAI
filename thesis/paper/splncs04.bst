@@ -1,4 +1,4 @@
-%% BibTeX bibliography style `splncs03_unsrt'
+%% BibTeX bibliography style `splncs04'
 %%
 %% BibTeX bibliography style for use with numbered references in
 %% Springer Verlag's "Lecture Notes in Computer Science" series.
@@ -6,15 +6,12 @@
 %% more details of the suggested reference format.)  Note that this
 %% file will not work for author-year style citations.
 %%
-%% Use \documentclass{llncs} and \bibliographystyle{splncs03_unsrt}, and cite
+%% Use \documentclass{llncs} and \bibliographystyle{splncs04}, and cite
 %% a reference with (e.g.) \cite{smith77} to get a "[1]" in the text.
 %%
 %% This file comes to you courtesy of Maurizio "Titto" Patrignani of
 %% Dipartimento di Informatica e Automazione Universita' Roma Tre
 %%
-%% ================================================================================================
-%% Latest change: disabled the sorting of the references to get a "FIFO" reference list
-%% "splncs03.bst" -> "splncs03_unsrt.bst" produced on Thu Mar 27, 2014, F. Holzwarth, Springer HD
 %% ================================================================================================
 %% This was file `titto-lncs-02.bst' produced on Wed Apr 1, 2009
 %% Edited by hand by titto based on `titto-lncs-01.bst' (see below)
@@ -34,6 +31,7 @@
 %% - Used for editors the same name conventions used for authors (see function format.in.ed.booktitle)
 %% - Removed a \newblock to avoid long spaces between title and "In: ..."
 %% - Added function titto.space.prefix to add a space instead of "~" after the (removed) "vol." label
+%% - Added doi
 %% ================================================================================================
 %% This was file `titto.bst',
 %% generated with the docstrip utility.
@@ -76,6 +74,7 @@ ENTRY
     author
     booktitle
     chapter
+    doi
     edition
     editor
     eid
@@ -246,8 +245,15 @@ FUNCTION {field.or.null}
 }
 FUNCTION {emphasize}
 { skip$ }
+
+FUNCTION {embolden}
+{ duplicate$ empty$
+{ pop$ "" }
+{ "\textbf{" swap$ * "}" * }
+if$
+}
 FUNCTION {tie.or.space.prefix}
-{ duplicate$ text.length$ #3 <
+{ duplicate$ text.length$ #5 <
     { "~" }
     { " " }
   if$
@@ -436,6 +442,14 @@ FUNCTION {format.url}
     { "" }
 %    { "\urlprefix\url{" url * "}" * }
     { "\url{" url * "}" * }  % changed in titto-lncs-02.bst
+  if$
+}
+
+FUNCTION {format.doi} % added in splncs04.bst
+{ doi empty$
+     { "" }
+     { after.block 'output.state :=
+       "\doi{" doi * "}" * }
   if$
 }
 
@@ -771,17 +785,17 @@ FUNCTION {format.journal.eid}
   if$
 }
 FUNCTION {format.vol.num.pages} % this function is used only for journal entries
-{ volume field.or.null
+{ volume field.or.null embolden
   duplicate$ empty$ 'skip$
     {
-%     bbl.volume swap$ tie.or.space.prefix
-      titto.bbl.volume swap$ titto.space.prefix
-%             rationale for the change above: for journals you don't want "vol." label
-%             hence it does not make sense to attach the journal number to the label when
-%             it is short
+%    bbl.volume swap$ tie.or.space.prefix
+     titto.bbl.volume swap$ titto.space.prefix
+%            rationale for the change above: for journals you don't want "vol." label
+%            hence it does not make sense to attach the journal number to the label when
+%            it is short
       "volume" bibinfo.check
       * *
-    }
+      }
   if$
   number "number" bibinfo.check duplicate$ empty$ 'skip$
     {
@@ -1009,6 +1023,7 @@ FUNCTION {article}
     }
   if$
 %  new.block
+  format.doi output
   format.url output
 %  new.block
   format.note output
@@ -1045,6 +1060,7 @@ FUNCTION {book}
   format.edition output
   format.date "year" output.check
 %  new.block
+  format.doi output
   format.url output
 %  new.block
   format.note output
@@ -1061,6 +1077,7 @@ FUNCTION {booklet}
   address "address" bibinfo.check output
   format.date output
 %  new.block
+  format.doi output
   format.url output
 %  new.block
   format.note output
@@ -1101,6 +1118,7 @@ FUNCTION {inbook}
   format.edition output
   format.date "year" output.check
 %  new.block
+  format.doi output
   format.url output
 %  new.block
   format.note output
@@ -1129,6 +1147,7 @@ FUNCTION {incollection}
     }
   if$
 %  new.block
+  format.doi output
   format.url output
 %  new.block
   format.note output
@@ -1161,6 +1180,7 @@ FUNCTION {inproceedings}
     }
   if$
 %  new.block
+  format.doi output
   format.url output
 %  new.block
   format.note output
@@ -1200,6 +1220,7 @@ FUNCTION {manual}
   format.edition output
   format.date output
 %  new.block
+  format.doi output
   format.url output
 %  new.block
   format.note output
@@ -1219,6 +1240,7 @@ FUNCTION {mastersthesis}
   address "address" bibinfo.check output
   format.date "year" output.check
 %  new.block
+  format.doi output
   format.url output
 %  new.block
   format.note output
@@ -1235,6 +1257,7 @@ FUNCTION {misc}
   howpublished "howpublished" bibinfo.check output
   format.date output
 %  new.block
+  format.doi output
   format.url output
 %  new.block
   format.note output
@@ -1254,6 +1277,7 @@ FUNCTION {phdthesis}
   address "address" bibinfo.check output
   format.date "year" output.check
 %  new.block
+  format.doi output
   format.url output
 %  new.block
   format.note output
@@ -1297,6 +1321,7 @@ FUNCTION {proceedings}
   if$
       format.date "year" output.check
 %  new.block
+  format.doi output
   format.url output
 %  new.block
   format.note output
@@ -1316,6 +1341,7 @@ FUNCTION {techreport}
   address "address" bibinfo.check output
   format.date "year" output.check
 %  new.block
+  format.doi output
   format.url output
 %  new.block
   format.note output
@@ -1447,35 +1473,35 @@ FUNCTION {editor.organization.sort}
     { editor sort.format.names }
   if$
 }
-%%% FUNCTION {presort}
-%%% { type$ "book" =
-%%%   type$ "inbook" =
-%%%   or
-%%%     'author.editor.sort
-%%%     { type$ "proceedings" =
-%%%         'editor.organization.sort
-%%%         { type$ "manual" =
-%%%             'author.organization.sort
-%%%             'author.sort
-%%%           if$
-%%%         }
-%%%       if$
-%%%     }
-%%%   if$
-%%%   "    "
-%%%   *
-%%%   year field.or.null sortify
-%%%   *
-%%%   "    "
-%%%   *
-%%%   title field.or.null
-%%%   sort.format.title
-%%%   *
-%%%   #1 entry.max$ substring$
-%%%   'sort.key$ :=
-%%% }
-%%% ITERATE {presort}
-%%% SORT
+FUNCTION {presort}
+{ type$ "book" =
+  type$ "inbook" =
+  or
+    'author.editor.sort
+    { type$ "proceedings" =
+        'editor.organization.sort
+        { type$ "manual" =
+            'author.organization.sort
+            'author.sort
+          if$
+        }
+      if$
+    }
+  if$
+  "    "
+  *
+  year field.or.null sortify
+  *
+  "    "
+  *
+  title field.or.null
+  sort.format.title
+  *
+  #1 entry.max$ substring$
+  'sort.key$ :=
+}
+ITERATE {presort}
+SORT
 STRINGS { longest.label }
 INTEGERS { number.label longest.label.width }
 FUNCTION {initialize.longest.label}
@@ -1506,6 +1532,8 @@ FUNCTION {begin.bib}
   write$ newline$
   "\providecommand{\urlprefix}{URL }"
   write$ newline$
+  "\providecommand{\doi}[1]{https://doi.org/#1}"
+  write$ newline$
 }
 EXECUTE {begin.bib}
 EXECUTE {init.state.consts}
@@ -1518,5 +1546,3 @@ EXECUTE {end.bib}
 %% End of customized bst file
 %%
 %% End of file `titto.bst'.
-
-
