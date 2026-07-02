@@ -5,14 +5,11 @@ Given a user query consisting of text $q_t$ and optionally an image $q_i$,
 the system produces a ranked list via:
 
 \paragraph{Multilingual query normalization.}
-The system supports queries in 19 languages: Vietnamese, French, German,
-Spanish, Chinese, Japanese, Korean, Arabic, Portuguese, Russian, Italian,
-Thai, Indonesian, Dutch, Polish, Turkish, Ukrainian, Hindi, and Swedish.
+The system supports queries in 19 languages.
 Lingua\footnote{\url{https://github.com/pemistahl/lingua-py}} detects source
 language in under 1\,ms.
 Non-English queries are translated by NLLB-200-Distilled-600M~\cite{costa2022nllb}
-via a two-tier strategy: greedy ($\text{num\_beams}=1$, $\sim$16\,ms) with
-beam-search fallback ($\text{num\_beams}=4$, $\sim$30\,ms) when the greedy
+with greedy decoding and beam-search fallback when the greedy
 output retains untranslated tokens. Translation results are cached (2\,048
 entries); repeat queries cost 0\,ms.
 
@@ -78,27 +75,18 @@ The top-$N$ items by $s_{\text{RRF}}$ are returned with metadata.
 \label{ssec:difsasrec}
 
 We adapt DIF-SASRec~\cite{xie2022difsr} to a content-ID-free setting,
-representing each item as its BGE-M3 embedding projected to 512 dimensions.
+representing each item as its BGE-M3 embedding.
 
 \paragraph{Architecture.}
-The model consists of:
-(i)~a linear content projection $\mathbf{W}_c \in \mathbb{R}^{1024 \times 512}$,
-(ii)~4 transformer blocks with causal self-attention,
-(iii)~a dual-stream attention mechanism with separate Q/K heads for content
-and category, fused by a learnable scalar $\alpha$, and
-(iv)~a dot-product prediction head.
-Total parameters: 12.4M.
+The model uses a linear content projection, 4 transformer blocks with
+causal self-attention, a dual-stream attention mechanism decoupling content
+and category streams, and a dot-product prediction head (12.4M parameters).
 
 \paragraph{Training.}
-Trained on 100k users (80/20 temporal split), sampled softmax~\cite{jean2015using} with 512
-negatives per step scales to the 3M-item catalog. An auxiliary category loss
-($\lambda = 0.1$, see Table~\ref{tab:ablation}) stabilizes genre-level understanding.
-We use AdamW~\cite{loshchilov2019decoupled} ($\text{lr}=10^{-3}$,
-$\text{wd}=0.01$) with linear warmup (2 epochs), cosine decay~\cite{loshchilov2017sgdr} over 30 epochs,
-batch size 2048, and AMP float16.
+Trained on 100k users (80/20 temporal split) with sampled
+softmax~\cite{jean2015using} and AdamW. An auxiliary category loss
+($\lambda = 0.1$) stabilizes genre-level understanding.
 
 \paragraph{Online adaptation.}
-At inference, each user's agent fine-tunes on a single interaction step before
-recommendation, enabling real-time personalization.
-A concurrent model pool of 8 instances handles parallel requests, each
-holding a pretrained weight snapshot in CPU RAM for cold-start initialization.
+At inference, each user's agent fine-tunes on a single interaction step per
+request, enabling real-time personalization without full retraining.

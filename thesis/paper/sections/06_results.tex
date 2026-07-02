@@ -1,74 +1,52 @@
 \subsection{Recommendation Performance}
-Table~\ref{tab:main_results} reports HR@10 and NDCG@10 under the
-sampled evaluation protocol (99 random negatives, seed 42).
-
-\input{tables/main_results}
+Table~\ref{tab:main_results} reports HR@10 and NDCG@10 (99 negatives, seed 42).
 
 \paragraph{Pipeline~A (Behavioral Graph + BGE-M3).}
-Pipeline~A achieves HR@10 = \textbf{0.9047} (NDCG@10 = 0.5393), a
-$+108.2\%$ improvement over Content-KNN (0.4346), combining behavioral
-graph candidates with BGE-M3 profile similarity ranking.
+HR@10 = \textbf{0.9047} (NDCG@10 = 0.5393), a $+108.2\%$ improvement over
+Content-KNN (0.4346).
 
 \paragraph{DIF-SASRec (Pipeline~B).}
-DIF-SASRec achieves HR@10 = 0.7745 (NDCG@10 = 0.5024), a $+78.2\%$
-improvement over Content-KNN. Sequential modeling captures
-preference dynamics that nearest-neighbor retrieval misses.
+HR@10 = 0.7745 (NDCG@10 = 0.5024), $+78.2\%$ over Content-KNN.
 
 \paragraph{Dual-pipeline system.}
 The union achieves \textbf{HR@10 = 0.9736} (NDCG@10 = 0.5571).
-Pipeline~A rescues \textbf{88.3\%} of DIF-SASRec misses; DIF-SASRec rescues
-\textbf{72.3\%} of Pipeline~A misses.
-The pipelines serve complementary patterns: Pipeline~A excels on items within
-the behavioral graph index (375{,}000 items), while DIF-SASRec covers items outside that graph.
+Pipeline~A rescues 88.3\% of DIF-SASRec misses; DIF-SASRec rescues 72.3\%
+of Pipeline~A misses. Pipeline~A excels on items within the behavioral
+graph index (375k items), while DIF-SASRec covers items outside it.
 
+\input{tables/main_results}
 \input{tables/complementarity}
 
 \subsection{Robustness Under Stricter Evaluation}
 \label{ssec:robustness}
 
-Table~\ref{tab:robustness} repeats the comparison under a 999-negative
-protocol (random-chance HR@10 = 0.01), an order of magnitude more discriminative.
+Table~\ref{tab:robustness} repeats the comparison under 999 negatives
+(random-chance HR@10 = 0.01).
+
+Pipeline~A achieves HR@10 = 0.3272; DIF-SASRec leads on NDCG@10 (0.2209 vs.\
+0.2102). Content-KNN drops to 0.2122. The relative advantage over
+chance grows with negative pool size for both pipelines.
 
 \input{tables/robustness_results}
 
-Pipeline~A achieves HR@10 = \textbf{0.3272}; DIF-SASRec leads on NDCG@10
-(\textbf{0.2209} vs.\ 0.2102), ranking hits closer to position~1 when it
-retrieves the target. Content-KNN drops to 0.2122 HR@10.
-Both models show an \emph{increasing} relative advantage as the pool grows:
-Pipeline~A rises from $9.0\times$ to $32.7\times$; DIF-SASRec from $7.7\times$
-to $31.4\times$. Neither result is an artifact of easy negatives.
-
 \subsection{Ablation Study}
-Table~\ref{tab:ablation} reports both pipeline-level and component-level
-ablations.
-Component-ablation absolute scores are proportionally scaled to align with
-the joint-evaluation baseline (HR scale factor 1.601, NDCG scale factor 1.344),
-preserving relative $\Delta$HR values while enabling direct comparison with
-pipeline-level rows.
-
-\input{tables/ablation}
+Table~\ref{tab:ablation} reports both pipeline-level and component-level ablations.
+Pipeline-component scores are scaled proportionally to enable direct comparison
+with pipeline-level rows, preserving relative $\Delta$HR.
 
 \paragraph{Pipeline ablation.}
-Pipeline~A alone (+16.8\% HR@10 over Pipeline~B) shows that behavioral
-structure combined with BGE-M3 profile similarity produces a strong
-retrieval signal: +108.2\% over Content-KNN. The full union adds +7.6\% by incorporating DIF-SASRec for items
-outside the behavioral graph's coverage.
+Pipeline~A alone (+16.8\% HR@10 over Pipeline~B, +108.2\% over Content-KNN)
+shows that behavioral graph candidates with BGE-M3 profile ranking produce
+a strong signal. The union adds +7.6\% by covering items outside the graph.
 
-\paragraph{Category auxiliary loss.}
-Removing the category auxiliary head reduces HR@10 by $1.8\%$:
-genre-level supervision provides an inductive bias that improves retrieval.
+\paragraph{Component ablation.}
+Removing the category head reduces HR@10 by $1.8\%$; disabling the content
+veto ($\tau=0.3$) in Pipeline~B costs $2.1\%$; replacing decoupled attention
+with a single stream costs $4.6\%$; and removing per-user fine-tuning causes
+the largest drop ($-7.9\%$), confirming online adaptation as the primary
+personalization driver.
 
-\paragraph{Content veto.}
-Disabling the content veto ($\tau=0.3$) in Pipeline~B reduces HR@10 by
-$2.1\%$, as DIF-SASRec scores semantically unrelated candidates without it.
-
-\paragraph{Online adaptation.}
-The largest drop ($-7.9\%$) comes from removing per-user fine-tuning.
-The online gradient step is the primary personalization driver.
-
-\paragraph{Dual-stream attention.}
-Replacing decoupled attention with a single stream reduces HR@10 by $4.6\%$,
-so separate heads prevent one modality from dominating.
+\input{tables/ablation}
 
 \subsection{Latency Analysis}
 Table~\ref{tab:latency} reports end-to-end latency under two conditions:
@@ -79,32 +57,24 @@ and LRU caches are populated.
 \input{tables/latency}
 
 \paragraph{Cold path.}
-Cold P50 is \textbf{1\,127\,ms} (English) and 1\,281\,ms (non-English).
-The bottleneck is FAISS HNSW text search (P50 906\,ms), which incurs OS
-page faults on the 12.6\,GB index. BGE-M3 encoding adds 40\,ms P50;
-NLLB translation adds 156\,ms for non-English.
-The flat-index baseline (4\,200\,ms) is $3.7\times$ slower than cold HNSW.
-HNSW's~\cite{malkov2018efficient} speedup is independent of caching.
+Cold P50 is 1\,127\,ms (English) and 1\,281\,ms (non-English).
+The bottleneck is FAISS HNSW (P50 906\,ms) with OS page faults on the
+12.6\,GB index. NLLB translation adds 156\,ms for non-English.
 
 \paragraph{Warm path.}
-Once warm, P50 drops to \textbf{17\,ms} (internal) / \textbf{34\,ms}
-(E2E) for English. FAISS search falls to 2\,ms; translation and encoding
-are served from LRU caches at under 1\,ms, leaving the BM25 keyword index
-(${\approx}6$\,ms) as the bottleneck.
+Once warm, P50 drops to 17\,ms (internal) / 34\,ms (E2E) for English.
+FAISS is 2\,ms; translation and encoding are served from LRU caches
+at under 1\,ms. BM25 (${\approx}6$\,ms) is the bottleneck.
 
 \paragraph{Production characterization.}
-A startup warmup routine pages the HNSW index into RAM before serving
-traffic. Thereafter, new unique queries incur BGE-M3 encoding (${\approx}40$\,ms)
-plus FAISS search (${\approx}2$\,ms), yielding a steady-state P50 of 60--80\,ms.
-Repeated queries are served from LRU caches at ${<}\,25$\,ms P50.
+A startup warmup pages the HNSW index into RAM. New unique queries
+incur encoding (${\approx}40$\,ms) plus FAISS (${\approx}2$\,ms),
+steady-state P50 60--80\,ms. Cached queries serve at ${<}\,25$\,ms.
 
 \subsection{Concurrency and Memory}
-The concurrent model pool of 8 DIF-SASRec instances sustains ${\geq}10$ concurrent users
-with no weight corruption (validated at 20 concurrent requests).
-Each instance holds a pretrained snapshot in CPU RAM (${\approx}148$\,MB);
-fine-tuned weights occupy GPU memory only for the request duration.
-Total pool footprint is 1.18\,GB, leaving headroom for ANN indices
-and encoder models.
+The pool of 8 DIF-SASRec instances sustains ${\geq}10$ concurrent users
+(total footprint 1.18\,GB). Each instance holds pretrained weights in CPU
+RAM; fine-tuned weights occupy GPU memory only per request.
 
 \subsection{Encoder Comparison: BLaIR vs.\ BGE-M3}
 \label{ssec:encoder}
@@ -115,27 +85,21 @@ Table~\ref{tab:encoder_comparison} compares the legacy BLaIR
 encoder~\cite{hou2024amazon} against BGE-M3~\cite{chen2024bgem3} along two axes.
 \input{tables/encoder_comparison}
 
-\paragraph{Item-similarity sampled evaluation.}
-Under 99-negative evaluation, BLaIR outperforms BGE-M3 (HR@10: 0.5484
-vs.\ 0.4510, NDCG@10: 0.3513 vs.\ 0.3128). This advantage must be
-interpreted cautiously: the benchmark was collected while BLaIR was the
-live system, so held-out clicks are structurally correlated with its
-embedding space.
-Score analysis confirms the artifact: BLaIR's intra- and inter-genre
-cosine similarities (0.819 vs.\ 0.765, ratio 1.061) are nearly
-indistinguishable, indicating embedding collapse~\cite{gao2021simcse}. BGE-M3's higher ratio
-(1.147) reflects more distinct genre clusters.
+\paragraph{Sampled evaluation.}
+Under 99-negative evaluation, BLaIR shows higher HR@10 (0.5484 vs.\ 0.4510),
+but the benchmark is confounded: clicks were collected while BLaIR was
+the live encoder, so held-out items correlate with its embedding space.
+Score analysis confirms this: BLaIR's intra- and inter-genre cosine
+similarities (0.819 vs.\ 0.765, ratio 1.061) are nearly indistinguishable,
+indicating embedding collapse~\cite{gao2021simcse}. BGE-M3's higher ratio
+(1.147) reflects distinct genre clusters.
 
-\paragraph{Text query retrieval quality.}
+\paragraph{Query retrieval quality.}
 Live evaluation with 22 labeled queries shows BGE-M3 leading on all
 groups except single-token English: medium (0.333 vs.\ 0.083), long
-(0.400 vs.\ 0.200), and non-English (0.275--0.550 vs.\ 0.025--0.050).
-BLaIR marginally leads on short single-token queries (0.233 vs.\ 0.150),
-likely due to collapsed similarities returning genre-coherent results
-regardless of the query token.
-For non-English queries, BLaIR returns results approximating the random baseline due to
-English-only training, while BGE-M3 achieves genre-precision of 0.275
-and 0.550.
-Given the primary interaction mode of typed text search (including
-non-English) and BLaIR's confounded sampled-evaluation advantage, we
-select BGE-M3 as the production encoder.
+(0.400 vs.\ 0.200), non-English (0.275--0.550 vs.\ 0.025--0.050).
+BLaIR leads on short queries (0.233 vs.\ 0.150), likely due to collapsed
+similarities returning genre-coherent results regardless of the token.
+We select BGE-M3 as the production encoder given typed text search
+is the primary interaction mode and BLaIR's sampled-evaluation advantage
+is confounded.
