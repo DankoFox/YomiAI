@@ -6,9 +6,9 @@
 %    \pgfdeclarelayer{background}
 %    \pgfsetlayers{background,main}
 % ============================================================
-
-\usetikzlibrary{arrows.meta, backgrounds, positioning, fit}
+ \usetikzlibrary{arrows.meta, backgrounds, positioning, fit}
 \begin{figure}[H]
+
 \centering
 \resizebox{1.0\textwidth}{!}{%
 \begin{tikzpicture}[
@@ -53,10 +53,12 @@
 
 \node[data]   (d_img)    at (\pOneC, \rowData)  {Item Cover Images\\(Visual Corpus)};
 \node[model]  (m_clip)   at (\pOneC, \rowModel) {Vision Encoder\\(CLIP)};
+
 \node[latent] (l_vis)    at (\pOneC, \rowLatent){Visual\\Latent Space};
 
 \node[data]   (d_graph)  at (\pOneR, \rowData)  {User-Item Interactions\\(Co-purchase Graph)};
 \node[model]  (m_cleora) at (\pOneR, \rowModel) {Graph Embeddings\\(Cleora)};
+
 \node[latent] (l_behav)  at (\pOneR, \rowLatent){Behavioral\\Latent Space};
 
 \draw[->] (d_text) -- (m_bge);   \draw[->] (m_bge)    -- (l_sem);
@@ -86,6 +88,7 @@
 \node[retrieval] (r_text)  at (\colSearchL, \rowPipe) {Dense Search\\(BGE-M3)};
 \node[retrieval] (r_kw)    at (\colSearchC, \rowPipe) {Lexical Search\\(BM25)};
 \node[retrieval] (r_vis)   at (\colSearchR, \rowPipe) {Visual Search\\(CLIP)};
+
 
 \node[fusion] (f_rrf)   at (\colSearchOut, \rowVeto) {Adaptive Weighted\\RRF};
 \node[output] (out_search) at (\colSearchOut, \rowOut) {Search Results};
@@ -178,5 +181,6 @@
 \end{tikzpicture}%
 }
 \caption{System architecture (data-flow view).}%
+
 \label{fig:arch}
 \end{figure}
