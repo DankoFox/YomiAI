@@ -9,7 +9,7 @@ in a unified way. This system bridges that gap.
 
 | Aspect | Value |
 |---|---|
-| Paper | "Bridging Multimodal Content and Behavioral Signals for NBA Recommendation" — IAAA 2026 (Springer LNNS). **NBA = Next Best Action.** |
+| Paper | "Bridging Multimodal Content and Behavioral Signals for NBA Recommendation" — CSoNet 2026 (Springer LNCS). **NBA = Next Best Action.** |
 | Backend | Python 3.11 + FastAPI + uvicorn |
 | Frontend | React 19 + Vite 8 + Tailwind CSS |
 | Infra | MongoDB (profiles/logs) + Redis (interaction queue) — via Docker |
@@ -45,14 +45,59 @@ scripts/
 └── profiling/                # perf profiling scripts
 
 thesis/
-├── paper/                    # Springer LNNS conference paper (8 sections)
-├── Captsone/                 # Full capstone report (7 chapters)
+├── paper/                    # Springer LNCS conference paper (8 sections, llncs.cls)
+├── Capstone/                 # Full capstone report (7 chapters)
 └── poster/                   # Conference poster
 ```
 
 ---
 
-## Architecture (Two Modes)
+## Paper (`thesis/paper/`)
+
+Springer LNCS submission for CSoNet 2026.
+Format migrated from LNNS (`svproc`) — uses `llncs.cls` + `splncs04.bst`.
+Page limit: **14 pages** (including references). Build via Docker.
+
+| Property | Value |
+|---|---|
+| Target | CSoNet 2026 (Springer LNCS) |
+| Class | `\documentclass[runningheads]{llncs}` |
+| Bib style | `splncs04` (DOIs encouraged) |
+| Page limit | 14 pages incl. references |
+| Build | `docker run --rm -v "$(pwd)/thesis/paper:/paper" texlive/texlive:latest bash -c "cd /paper && latexmk -pdf -interaction=nonstopmode main.tex"` |
+| Compliance | `python scripts/test/check_lncs_compliance.py` (23 tests) |
+
+### Paper structure (8 sections)
+
+| Section | File | Content |
+|---|---|---|
+| Abstract | `00_abstract.tex` | ~140 words |
+| \$1 Introduction | `01_introduction.tex` | Motivation, contributions, outline |
+| \$2 Related Work | `02_related_work.tex` | Sequential rec, dense retrieval, graph CF, hybrid systems, text encoders |
+| \$3 System Overview | `03_system_overview.tex` | Architecture diagram, pipeline overview |
+| \$4 Methodology | `04_methodology.tex` | Active search, passive recommendation, fusion, profile update, encoders |
+| \$5 Experiments | `05_experiments.tex` | Dataset, metrics, baselines, impl. details |
+| \$6 Results | `06_results.tex` | Main results, robustness, ablation, latency, encoder comparison |
+| \$7 Conclusion | `07_conclusion.tex` | Summary, limitations, future work + Acknowledgments + Disclosure |
+
+### Formatting rules
+
+- **No `[H]` floats** — use `[tbp]` only (no `float` package)
+- **No `\mainmatter`**, **no `\pagestyle`**
+- Abstract: 150--250 words (currently ~140, close enough)
+- DOIs in references: 13/21 currently have DOIs
+- References in `splncs04` format — `references.bib`
+- Figures under `figures/`, tables under `tables/`
+
+### Key decisions to date
+
+- Docker texlive/texlive:latest (5.5 GB image) used for compile checks — no local TeX install
+- Verbatim acknowledgments: `\ackname` + `\discintname` macros from llncs.cls
+- All tables previously using `[H]` were migrated to `[tbp]`
+- Related Work collapsed from 6 to 4 subsections to save space
+- Abstract expanded from ~106 to ~140 words (target 150--250, borderline OK)
+
+---
 
 ### Mode 1 — Active Search (`POST /search`)
 
