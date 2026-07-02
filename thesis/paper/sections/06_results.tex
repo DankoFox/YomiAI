@@ -11,8 +11,8 @@ graph candidates with BGE-M3 profile similarity ranking.
 
 \paragraph{DIF-SASRec (Pipeline~B).}
 DIF-SASRec achieves HR@10 = 0.7745 (NDCG@10 = 0.5024), a $+78.2\%$
-improvement over Content-KNN, confirming that sequential modeling captures
-preference dynamics missed by nearest-neighbor retrieval.
+improvement over Content-KNN. Sequential modeling captures
+preference dynamics that nearest-neighbor retrieval misses.
 
 \paragraph{Dual-pipeline system.}
 The union achieves \textbf{HR@10 = 0.9736} (NDCG@10 = 0.5571).
@@ -49,26 +49,26 @@ pipeline-level rows.
 \input{tables/ablation}
 
 \paragraph{Pipeline ablation.}
-Pipeline~A alone (+16.8\% HR@10 over Pipeline~B) demonstrates that behavioral
-structure combined with BGE-M3 profile similarity is a powerful retrieval
-signal. The full union adds +7.6\% by incorporating DIF-SASRec for items
+Pipeline~A alone (+16.8\% HR@10 over Pipeline~B) shows that behavioral
+structure combined with BGE-M3 profile similarity produces a strong
+retrieval signal: +108.2\% over Content-KNN. The full union adds +7.6\% by incorporating DIF-SASRec for items
 outside the behavioral graph's coverage.
 
 \paragraph{Category auxiliary loss.}
-Removing the category auxiliary head reduces HR@10 by $1.8\%$, confirming
-genre-level supervision provides useful inductive bias.
+Removing the category auxiliary head reduces HR@10 by $1.8\%$:
+genre-level supervision provides an inductive bias that improves retrieval.
 
 \paragraph{Content veto.}
 Disabling the content veto ($\tau=0.3$) in Pipeline~B reduces HR@10 by
 $2.1\%$, as DIF-SASRec scores semantically unrelated candidates without it.
 
 \paragraph{Online adaptation.}
-The largest drop ($-7.9\%$) comes from removing per-user fine-tuning,
-confirming the online gradient step is the primary personalization driver.
+The largest drop ($-7.9\%$) comes from removing per-user fine-tuning.
+The online gradient step is the primary personalization driver.
 
 \paragraph{Dual-stream attention.}
 Replacing decoupled attention with a single stream reduces HR@10 by $4.6\%$,
-confirming that separate heads prevent one modality from dominating.
+so separate heads prevent one modality from dominating.
 
 \subsection{Latency Analysis}
 Table~\ref{tab:latency} reports end-to-end latency under two conditions:
@@ -83,8 +83,8 @@ Cold P50 is \textbf{1\,127\,ms} (English) and 1\,281\,ms (non-English).
 The bottleneck is FAISS HNSW text search (P50 906\,ms), which incurs OS
 page faults on the 12.6\,GB index. BGE-M3 encoding adds 40\,ms P50;
 NLLB translation adds 156\,ms for non-English.
-The flat-index baseline (4\,200\,ms) is $3.7\times$ slower than cold HNSW,
-confirming HNSW's~\cite{malkov2018efficient} speedup is independent of caching.
+The flat-index baseline (4\,200\,ms) is $3.7\times$ slower than cold HNSW.
+HNSW's~\cite{malkov2018efficient} speedup is independent of caching.
 
 \paragraph{Warm path.}
 Once warm, P50 drops to \textbf{17\,ms} (internal) / \textbf{34\,ms}
@@ -127,7 +127,7 @@ indistinguishable, indicating embedding collapse~\cite{gao2021simcse}. BGE-M3's 
 (1.147) reflects more distinct genre clusters.
 
 \paragraph{Text query retrieval quality.}
-Live evaluation with 22 labelled queries shows BGE-M3 leading on all
+Live evaluation with 22 labeled queries shows BGE-M3 leading on all
 groups except single-token English: medium (0.333 vs.\ 0.083), long
 (0.400 vs.\ 0.200), and non-English (0.275--0.550 vs.\ 0.025--0.050).
 BLaIR marginally leads on short single-token queries (0.233 vs.\ 0.150),

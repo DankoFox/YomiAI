@@ -7,19 +7,19 @@
 Self-attentive sequential models are the dominant paradigm for modeling
 user preference dynamics over interaction histories~\cite{kang2018self,sun2019bert4rec}.
 SASRec~\cite{kang2018self} replaces recurrent encoders with causal
-self-attention, establishing a strong benchmark for next-item prediction.
+self-attention and sets a benchmark for next-item prediction.
 BERT4Rec~\cite{sun2019bert4rec} extends this with bidirectional masked
 modeling for richer sequence representations.
-Both are fundamentally \emph{ID-based}: each item is a learned lookup
-embedding, causing retrieval failure for unseen items (the cold-start problem)
-and precluding zero-shot generalization without retraining.
+Both are \emph{ID-based}: each item is a learned lookup
+embedding, so unseen items cause retrieval failure (cold-start)
+and zero-shot generalization requires retraining.
 
 DIF-SASRec~\cite{xie2022difsr} partially mitigates this by decoupling item
 IDs, attributes, and content into separate attention streams, but auxiliary
 features remain \emph{supplementary} to the ID embedding; the model still
 requires a training-time identifier for every item.
-All three models are trained offline, fail on unseen IDs, and support neither
-multilingual queries nor real-time adaptation.
+All three models train offline, fail on unseen IDs, and do not support
+multilingual queries or real-time adaptation.
 
 % -------------------------------------------------------------------
 \subsection{Dense and Multimodal Retrieval}
@@ -41,25 +41,25 @@ profile shared across search and recommendation.
 % -------------------------------------------------------------------
 \subsection{Graph-Based Collaborative Filtering}
 % -------------------------------------------------------------------
-Graph-based methods learn from co-purchase or co-interaction edges, evolving
-from early factorization to modern graph neural networks (GNNs).
+Graph-based methods learn from co-purchase or co-interaction edges.
+Early work used factorization; modern methods use graph neural networks (GNNs).
 NGCF~\cite{wang2019ngcf} propagates embeddings through a bipartite interaction
-graph via multi-hop convolutions, capturing high-order connectivity.
+graph via multi-hop convolutions to capture high-order connectivity.
 LightGCN~\cite{he2020lightgcn} removes non-linear activations and feature
-transformations, showing that linear aggregation achieves superior accuracy
+transformations; linear aggregation achieves superior accuracy
 with fewer parameters.
 PinSage~\cite{ying2018pinsage} scales GNN recommendation to billion-node
-graphs via random-walk sampling, demonstrating industrial viability.
-Despite these advances, GNN methods require aggregating over the full
-interaction graph, incurring memory and compute costs that grow with catalog
-size, and typically mandate GPU resources.
+graphs via random-walk sampling and demonstrates industrial viability.
+Despite these advances, GNN methods aggregate over the full
+interaction graph, and memory and compute costs grow with catalog
+size. GPU hardware is typically required.
 
-Conventional neural CF requires explicit factorization matrices, precluding
-deployment over millions of items without approximations.
+Conventional neural CF needs explicit factorization matrices, which is
+impractical for millions of items without approximations.
 Cleora~\cite{cleora2021} avoids these costs via deterministic Markov-chain
-propagation, producing stable embeddings without factorization or GPU training.
-A significant coverage constraint remains: embeddings require at least one
-co-purchase edge, covering 375k of 3.08M catalog items (12.2\%).
+propagation and produces stable embeddings without factorization or GPU training.
+A significant coverage constraint remains: embeddings need at least one
+co-purchase edge, so only 375k of 3.08M catalog items (12.2\%) are covered.
 Graph methods are also \emph{query-agnostic}: they return the same
 neighborhood regardless of the typed query, making them unsuitable as a
 standalone active search solution.
@@ -94,38 +94,38 @@ collected from a system using the same encoder: held-out items are structurally
 correlated with that encoder, inflating sampled-evaluation metrics.
 We address this in Section~\ref{ssec:encoder} by supplementing sampled
 evaluation with live text retrieval quality (genre-precision@10 over 22
-labelled queries) where no circular bias applies.
+labeled queries) where no circular bias applies.
 
 % -------------------------------------------------------------------
 \subsection{Summary: Gaps Motivating This Work}
 % -------------------------------------------------------------------
 The surveyed literature divides into two families that have evolved largely
 in isolation.
-\emph{Behaviorally-grounded} methods — collaborative filtering, graph neural
-networks, and sequential models — achieve strong recommendation accuracy but are
+\emph{Behaviorally-grounded} methods (collaborative filtering, graph neural
+networks, and sequential models) achieve good recommendation accuracy but are
 anchored to observed item identifiers: they cannot generalize to unseen items,
 ignore query content, and are insensitive to the language of a typed search.
-\emph{Content-grounded} methods — dense text and image encoders — support
+\emph{Content-grounded} methods (dense text and image encoders) support
 zero-shot generalization and explicit query matching but treat each request
 statelessly, discarding the accumulated user history that behavioral methods
 rely on.
 Hybrid systems that bridge both families typically collapse active search and
 passive recommendation into a single pipeline, preventing their independent
 optimization.
-Four concrete gaps follow from this structural divide.
-\textit{(i)}~\textbf{ID-bound sequential models} cannot generalize to unseen
-items in a long-tail catalog without retraining, imposing a hard ceiling on
-cold-start coverage.
-\textit{(ii)}~\textbf{Stateless dense retrievers} return relevant results but
-are oblivious to user identity and interaction history.
-\textit{(iii)}~\textbf{Behavioral graph methods} capture strong co-purchase
-signals but cover only a fraction of the catalog and are insensitive to the
-content or language of a typed query.
-\textit{(iv)}~\textbf{Existing hybrid systems} collapse user-issued queries
-and system suggestions into one pipeline, preventing independent optimization
-of each mode.
-Our system bridges the divide: BGE-M3 content embeddings replace item IDs for
-zero-shot catalog coverage; complementary pipelines with RRF fuse textual,
-visual, and behavioral signals; a persistent temporally-weighted user profile
-maintains state across both modes; and NLLB-200 routing enables multilingual
-deployment.
+
+The structural divide leaves four gaps.
+ID-bound sequential models cannot generalize to unseen items in a long-tail
+catalog without retraining, which caps cold-start coverage.
+Stateless dense retrievers return relevant results but lack any notion of
+user identity or interaction history.
+Behavioral graph methods capture strong co-purchase signals but cover only
+a fraction of the catalog and cannot respond to the content or language of a
+typed query.
+Existing hybrid systems collapse user queries and system suggestions into one
+pipeline, preventing independent optimization of each mode.
+
+Our system addresses these limitations: BGE-M3 content embeddings replace
+item IDs for zero-shot catalog coverage; complementary pipelines with RRF
+fuse textual, visual, and behavioral signals; a persistent temporally-weighted
+user profile maintains state across both modes; and NLLB-200 routing enables
+multilingual deployment.

@@ -2,32 +2,32 @@
 \label{sec:overview}
 
 Figure~\ref{fig:arch} illustrates the dual-mode data flow.
-The system is organised into two phases.
+The system is organized into two phases.
 Phase~1 (\emph{representation learning})
 encodes items and users into three complementary latent spaces:
 a \emph{textual} space (BGE-M3 on item metadata),
 a \emph{visual} space (CLIP on cover images), and
-a \emph{behavioural} space (Cleora on the co-purchase interaction graph).
+a \emph{behavioral} space (Cleora on the co-purchase interaction graph).
 These three spaces are grouped into two sub-boxes in the diagram:
-Item Content (textual + visual) and User Behavior (behavioural).
+Item Content (textual + visual) and User Behavior (behavioral).
 
-Phase~2 consumes these representations through two
+Phase~2 uses these representations through two
 independent pipelines that operate on the same shared profile.
 \emph{Active Search} (Mode~1) handles user-initiated text or
-image queries by encoding into the textual and visual spaces,
-retrieving across three parallel channels
-(BGE-M3 HNSW, Tantivy BM25, CLIP HNSW), and fusing results via
+image queries: it encodes into the textual and visual spaces,
+retrieves across three parallel channels
+(BGE-M3 HNSW, Tantivy BM25, CLIP HNSW), and fuses results via
 Adaptive Weighted RRF.
 \emph{Recommendation} (Mode~2) generates proactive suggestions
 through two sub-pipelines:
-Pipeline~A retrieves behavioural candidates from the Cleora
+Pipeline~A retrieves behavioral candidates from the Cleora
 co-purchase graph, passes them through a content-veto filter,
 and presents the survivors to the user (People Also Buy);
 Pipeline~B retrieves candidates by BGE-M3 HNSW semantic search,
 applies the same content veto, and scores survivors with
 DIF-SASRec (You Might Like).
-Online interactions continuously update the Cleora
-embeddings and fine-tune the per-user DIF-SASRec model.
+Online interactions update the Cleora
+embeddings and fine-tune the per-user DIF-SASRec model after each click.
 
 \input{figures/full_arch}
 

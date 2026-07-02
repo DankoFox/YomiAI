@@ -5,11 +5,11 @@
 Next Best Action (NBA) systems identify the most appropriate action for each
 customer at a given point in time, such as recommending products or
 personalized offers.
-Current deployments rely predominantly on \emph{structured} transaction data:
+Current deployments rely mostly on \emph{structured} transaction data:
 purchase logs, click histories, and demographic records.
 Modern users increasingly generate \emph{unstructured and multimedia} data,
 including natural language queries, images, and interaction sequences, which
-provide crucial contextual signals for more accurate recommendations.
+provide contextual signals for more accurate recommendations.
 
 % Paragraph 2 — Domain narrowing & interaction-content gap
 Book discovery is a representative testbed for this challenge.
@@ -18,20 +18,20 @@ Users with explicit information needs issue free-text or image-based queries
 proactive suggestions derived from their interaction history (passive recommendation).
 Most systems address only one mode, leaving an \emph{interaction-content gap}:
 behavioral co-purchase signals are decoupled from semantic content understanding.
-Collaborative filtering effectively leverages aggregated user behaviour but suffers from cold-start
-and ignores multimodal content; sequential models~\cite{kang2018self} capture
-preference evolution but discard visual signals; content-based encoders retrieve
+Collaborative filtering uses aggregated user behavior but suffers from cold-start
+and ignores multimodal content. Sequential models~\cite{kang2018self} capture
+preference evolution but discard visual signals. Content-based encoders retrieve
 relevant items but lack behavioral graph structure.
 
 % Paragraph 3 — Our approach & contributions
-To address these challenges, we propose a \textbf{Dual-Mode Multimodal NBA Recommendation System} that jointly models active search and passive personalization, integrating heterogeneous signals from text, images, and user behavior.
+To address these challenges, we propose a \textbf{Dual-Mode Multimodal NBA Recommendation System}. The system handles active search and passive personalization within a single architecture, with heterogeneous signals from text, images, and user behavior.
 \begin{itemize}
   \item \textbf{Mode~1 (Active Search):}  a multilingual query-driven
         retrieval component that combines textual and visual representation via Reciprocal Rank Fusion (RRF)~\cite{cormack2009rrf}, with optional BM25~\cite{robertson1994okapi} keyword boosting and multi-layer LRU caching.
   \item \textbf{Mode~2 (Passive Recommendation):} two complementary pipelines, consisting of (a) a graph-based component capturing behavioral similarity, and (b) a sequential model capturing evolving user preferences.
-  \item A \textbf{shared user profile} continuously updated after every
-        interaction, bridging both modes via temporal weighting and
-        enabling online adaptation of the sequential model.
+  \item A \textbf{shared user profile} that updates after every
+        interaction, bridges both modes via temporal weighting, and
+        enables online adaptation of the sequential model.
 \end{itemize}
 
 % Paragraph 4 — Paper structure
